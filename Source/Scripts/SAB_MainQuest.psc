@@ -1,8 +1,21 @@
 scriptname SAB_MainQuest extends Quest
 
-;TODO add and use the mod's rules here
-; the rules should be saveable/loadable via Jcontainers
+SAB_SpawnerScript Property SpawnerScript Auto
 
-SAB_UnitData[] property Units auto
+; an array of jMaps, each one defining a unit's data
+int jSABUnitDatasArray
 
-Outfit[] property UnitOutfits auto
+; a unit data jMap just for testing
+int jTestGuyData
+
+event OnInit()
+	Debug.Notification("SAB initializing...")
+	
+    jSABUnitDatasArray = JArray.object()
+    JValue.retain(jSABUnitDatasArray, "ShoutAndBlade")
+
+    jTestGuyData = JMap.object()
+    JValue.retain(jTestGuyData, "ShoutAndBlade")
+	
+	Debug.Notification("SAB initialized!")
+endEvent
