@@ -2,7 +2,6 @@ scriptname SAB_UnitData
 {data structure containing most of the information required for setting up a SAB unit/soldier.
 Not really used, just here to remind about the used names}
 
-int UnitIndex
 string Name
 float Health
 float Stamina

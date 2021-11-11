@@ -19,13 +19,11 @@ Actor Function SpawnCustomizationGuy( int jUnitDataMap )
 endFunction
 
 ;spawns a unit in the target location, customized according to the passed jMap 
-Actor Function SpawnUnit( ObjectReference LocationRef, int jUnitDataMap )
+Actor Function SpawnUnit( ObjectReference LocationRef, int jUnitDataMap, int unitIndex)
 	
 	if LocationRef == None
 		return None
 	endif
-
-	int unitIndex = JMap.getInt(jUnitDataMap, "UnitIndex", -1)
 
 	if unitIndex == -1
 		return None
