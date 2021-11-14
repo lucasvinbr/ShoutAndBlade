@@ -3,10 +3,10 @@ scriptname SAB_MainQuest extends Quest
 SAB_SpawnerScript Property SpawnerScript Auto
 
 ; an array of jMaps, each one defining a unit's data
-int jSABUnitDatasArray
+int Property jSABUnitDatasArray Auto
 
 ; a unit data jMap just for testing
-int jTestGuyData
+int Property jTestGuyData Auto
 
 event OnInit()
 	Debug.Notification("SAB initializing...")
@@ -19,6 +19,8 @@ event OnInit()
 	
 	Debug.Notification("SAB initialized!")
 endEvent
+
+
 
 int Function GetUnitIndexByUnitName(string name)
     int i = JArray.count(jSABUnitDatasArray)
