@@ -1,12 +1,12 @@
 scriptname SAB_MCM extends SKI_ConfigBase
 
-SAB_MainQuest Property SAB_MainQuest Auto
+SAB_MainQuest Property SAB_Main Auto
 
+;since we want more than 128 custom units, we need two arrays (0 or 1 here)
+int editedUnitsMenuPage = 0
 int editedUnitIndex = 0
 int editedFactionIndex = 0
 int editedZoneIndex = 0
-
-string editedUnitName = ""
 
 Event OnConfigInit()
     Pages = new string[5]
@@ -32,26 +32,178 @@ Event OnPageReset(string page)
     endif
 EndEvent
 
+;---------------------------------------------------------------------------------------------------------
+; MY TROOPS PAGE STUFF
+;---------------------------------------------------------------------------------------------------------
+
 Function SetupMyTroopsPage()
     ; code
 EndFunction
 
+
+
+
+;---------------------------------------------------------------------------------------------------------
+; EDIT UNITS PAGE STUFF
+;---------------------------------------------------------------------------------------------------------
+
 Function SetupEditUnitsPage()
     SetCursorFillMode(TOP_TO_BOTTOM)
 
-    AddMenuOptionST("UNITEDIT_CUR_UNIT", "Current Unit", editedUnitName)
+    ;string editedUnitName = GetEditedUnitName()
     
-
+    AddHeaderOption("Select Unit Below")
+    AddSliderOptionST("UNITEDIT_MENU_PAGE", "Browse Units Page", editedUnitsMenuPage)
+    AddMenuOptionST("UNITEDIT_CUR_UNIT", "Current Unit", JMap.getStr(SAB_Main.jTestGuyData, "Name", "Recruit"))
+    
     AddHeaderOption("Base Info")
+    AddInputOptionST("UNITEDIT_NAME", "Unit Name", JMap.getStr(SAB_Main.jTestGuyData, "Name", "Recruit"))
+    AddSliderOptionST("UNITEDIT_HEALTH", "Health", JMap.getFlt(SAB_Main.jTestGuyData, "Health", 50.0))
+    AddSliderOptionST("UNITEDIT_STAMINA", "Stamina", JMap.getFlt(SAB_Main.jTestGuyData, "Stamina", 50.0))
+    AddSliderOptionST("UNITEDIT_MAGICKA", "Magicka", JMap.getFlt(SAB_Main.jTestGuyData, "Magicka", 50.0))
+
+    AddEmptyOption()
+    AddTextOptionST("UNITEDIT_OUTFIT", "Spawn Outfit Customizer", "")
+    AddEmptyOption()
+
+    SetCursorPosition(1)
+
+    AddHeaderOption("Skills")
+    AddSliderOptionST("UNITEDIT_SKL_MARKSMAN", "Archery", JMap.getFlt(SAB_Main.jTestGuyData, "SkillMarksman", 15.0))
+    AddSliderOptionST("UNITEDIT_SKL_ONEHANDED", "One-handed", JMap.getFlt(SAB_Main.jTestGuyData, "SkillOneHanded", 15.0))
+    AddSliderOptionST("UNITEDIT_SKL_TWOHANDED", "Two-handed", JMap.getFlt(SAB_Main.jTestGuyData, "SkillTwoHanded", 15.0))
+    AddSliderOptionST("UNITEDIT_SKL_LIGHTARMOR", "Light Armor", JMap.getFlt(SAB_Main.jTestGuyData, "SkillLightArmor", 15.0))
+    AddSliderOptionST("UNITEDIT_SKL_HEAVYARMOR", "Heavy Armor", JMap.getFlt(SAB_Main.jTestGuyData, "SkillHeavyArmor", 15.0))
+    AddSliderOptionST("UNITEDIT_SKL_BLOCK", "Block", JMap.getFlt(SAB_Main.jTestGuyData, "SkillBlock", 15.0))
+
+    AddEmptyOption()
+
+    AddHeaderOption("Allowed Races/Genders")
+    AddTextOptionST("UNITEDIT_RACE_ARGONIAN", "Argonian", GetEditedUnitRaceStatus(SAB_Main.jTestGuyData, "RaceArgonian"))
+    AddTextOptionST("UNITEDIT_RACE_KHAJIIT", "Khajiit", GetEditedUnitRaceStatus(SAB_Main.jTestGuyData, "RaceKhajiit"))
+    AddTextOptionST("UNITEDIT_RACE_ORC", "Orc", GetEditedUnitRaceStatus(SAB_Main.jTestGuyData, "RaceOrc"))
+    AddTextOptionST("UNITEDIT_RACE_BRETON", "Breton", GetEditedUnitRaceStatus(SAB_Main.jTestGuyData, "RaceBreton"))
+    AddTextOptionST("UNITEDIT_RACE_IMPERIAL", "Imperial", GetEditedUnitRaceStatus(SAB_Main.jTestGuyData, "RaceImperial"))
+    AddTextOptionST("UNITEDIT_RACE_NORD", "Nord", GetEditedUnitRaceStatus(SAB_Main.jTestGuyData, "RaceNord"))
+    AddTextOptionST("UNITEDIT_RACE_REDGUARD", "Redguard", GetEditedUnitRaceStatus(SAB_Main.jTestGuyData, "RaceRedguard"))
+    AddTextOptionST("UNITEDIT_RACE_DARKELF", "Dark Elf", GetEditedUnitRaceStatus(SAB_Main.jTestGuyData, "RaceDarkElf"))
+    AddTextOptionST("UNITEDIT_RACE_HIGHELF", "High Elf", GetEditedUnitRaceStatus(SAB_Main.jTestGuyData, "RaceHighElf"))
+    AddTextOptionST("UNITEDIT_RACE_WOODELF", "Wood Elf", GetEditedUnitRaceStatus(SAB_Main.jTestGuyData, "RaceWoodElf"))
+    
 EndFunction
+
+
+state UNITEDIT_MENU_PAGE
+	event OnSliderOpenST()
+		SetSliderDialogStartValue(editedUnitsMenuPage + 1)
+		SetSliderDialogDefaultValue(1)
+		SetSliderDialogRange(1, 2)
+		SetSliderDialogInterval(1)
+	endEvent
+
+	event OnSliderAcceptST(float value)
+		editedUnitsMenuPage = (value as int) - 1
+		SetSliderOptionValueST(editedUnitsMenuPage)
+	endEvent
+
+	event OnDefaultST()
+		editedUnitsMenuPage = 0
+		SetSliderOptionValueST(editedUnitsMenuPage + 1)
+	endEvent
+
+	event OnHighlightST()
+		SetInfoText("Since there are more than 128 unit slots and the menu can only show 128 at a time, we must divide them by pages. This slider sets the page to be shown in the 'select unit' menu.")
+	endEvent
+endState
+
+
+state UNITEDIT_CUR_UNIT
+
+	event OnMenuOpenST()
+		SetMenuDialogStartIndex(editedUnitIndex % 128)
+		SetMenuDialogDefaultIndex(0)
+		SetMenuDialogOptions(new string[128]) ;TODO fill options with unit names and stuff
+	endEvent
+
+	event OnMenuAcceptST(int index)
+        int trueIndex = index + editedUnitsMenuPage * 128
+		editedUnitIndex = trueIndex
+		SetMenuOptionValueST(trueIndex)
+	endEvent
+
+	event OnDefaultST()
+		editedUnitIndex = 0 + editedUnitsMenuPage * 128
+		SetMenuOptionValueST(editedUnitIndex)
+	endEvent
+
+	event OnHighlightST()
+		SetInfoText("Selects the unit to edit. All the edit fields below will be editing this unit.")
+	endEvent
+    
+endstate
+
+
+; returns the text equivalent to the target race/gender status ("male only" for 1, for example).
+; Returns "None" for 0 and invalid values
+string Function GetEditedUnitRaceStatus(int jUnitData, string raceKey)
+
+    int raceStatus = JMap.getInt(jUnitData, raceKey, 0)
+
+    if raceStatus == 0
+        return "None"
+    elseif raceStatus == 1
+        return "Male only"
+    elseif raceStatus == 2
+        return "Female only"
+    elseif raceStatus == 3
+        return "Both genders"
+    endif
+
+    return "None"
+
+endfunction
+
+string Function GetEditedUnitName()
+    string value = "--NO UNIT SELECTED--"
+    
+    if editedUnitIndex != 0
+        int junitData = JArray.getObj(SAB_Main.jSABUnitDatasArray, editedUnitIndex)
+
+        if junitData == 0
+            return value
+        endif
+
+        return JMap.getStr(junitData, "Name", "Recruit")
+    endif
+
+    return value
+EndFunction
+
+
+
+;---------------------------------------------------------------------------------------------------------
+; EDIT FACTIONS PAGE STUFF
+;---------------------------------------------------------------------------------------------------------
 
 Function SetupEditFactionsPage()
     ; code
 EndFunction
 
+
+
+;---------------------------------------------------------------------------------------------------------
+; EDIT ZONES PAGE STUFF
+;---------------------------------------------------------------------------------------------------------
+
 Function SetupEditZonesPage()
     ; code
 EndFunction
+
+
+
+;---------------------------------------------------------------------------------------------------------
+; LOAD/SAVE PAGE STUFF
+;---------------------------------------------------------------------------------------------------------
 
 Function SetupLoadSaveDataPage()
     ; code
