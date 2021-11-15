@@ -1,8 +1,8 @@
 Scriptname SAB_SpawnerScript extends Quest  
 
-FormList Property SAB_UnitActorBases Auto
-FormList Property SAB_UnitGearSets Auto
-FormList Property SAB_UnitAllowedRacesGenders Auto
+SAB_UnitDataHandler Property UnitDataHandler Auto
+
+ActorBase Property CustomizationGuyBase Auto
 
 Actor Property CustomizationGuy Auto
 { The actor spawned for the player to customize the selected unit's gear }
@@ -29,7 +29,7 @@ Actor Function SpawnUnit( ObjectReference LocationRef, int jUnitDataMap, int uni
 		return None
 	endif
 
-	ActorBase unitActorBase = SAB_UnitActorBases.GetAt(unitIndex) as ActorBase
+	ActorBase unitActorBase = UnitDataHandler.SAB_UnitActorBases.GetAt(unitIndex) as ActorBase
 
 	if unitActorBase == None
 		return None
