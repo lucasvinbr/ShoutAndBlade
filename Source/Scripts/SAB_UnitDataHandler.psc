@@ -23,14 +23,20 @@ LeveledActor Property SAB_LooksList_WoodElf_M Auto
 LeveledActor Property SAB_LooksList_WoodElf_F Auto
 
 FormList Property SAB_UnitActorBases Auto
+{list containing each unit's actorBase, used for spawning. entries' indexes should be the same as unit indexes}
+
 FormList Property SAB_UnitGearSets Auto
+{list containing each unit's "gear" leveledItem. entries' indexes should be the same as unit indexes}
+
 FormList Property SAB_UnitAllowedRacesGenders Auto
+{list containing each actor's "looks" leveledActor. entries' indexes should be the same as unit indexes}
 
 ; an array of jMaps, each one defining a unit's data
 int Property jSABUnitDatasArray Auto
 
 ; a unit data jMap just for testing
 int Property jTestGuyData Auto
+
 LeveledActor Property SAB_UnitLooks_TestGuy Auto
 LeveledItem Property SAB_UnitGear_TestGuy Auto
 
@@ -42,6 +48,18 @@ Function InitializeJData()
     JValue.retain(jTestGuyData, "ShoutAndBlade")
 EndFunction
 
+; fetches the unit data and its race/gender leveledActor by its index, 
+; and updates the leveled actor according to the data found in the unit's jmap
+Function SetupRaceGendersAccordingToUnitIndex(int unitIndex)
+    int jUnitData = JArray.getObj(jSABUnitDatasArray, unitIndex)
+    Form unitLooks = SAB_UnitAllowedRacesGenders.GetAt(unitIndex)
+    
+    if unitLooks != None
+        SetupRaceGendersLvlActorAccordingToUnitData(jUnitData, unitLooks as LeveledActor)
+    endif
+endfunction
+
+; updates the provided lvlActor with the provided junitData's race/gender info
 Function SetupRaceGendersLvlActorAccordingToUnitData(int jUnitData, LeveledActor lvlActor)
     
     ;Debug.Notification("SetupRaceGendersLvlActorAccordingToUnitData " + lvlActor)
@@ -51,7 +69,7 @@ Function SetupRaceGendersLvlActorAccordingToUnitData(int jUnitData, LeveledActor
     int addedEntries = 0
 
     addedEntries = addedEntries + AddRaceGenderToLvlActorAccordingToUnitDataKey \
-     (jUnitData, lvlActor, "RaceBreton", SAB_LooksList_Breton_M, SAB_LooksList_Breton_M)
+     (jUnitData, lvlActor, "RaceBreton", SAB_LooksList_Breton_M, SAB_LooksList_Breton_F)
     addedEntries = addedEntries + AddRaceGenderToLvlActorAccordingToUnitDataKey \
      (jUnitData, lvlActor, "RaceImperial", SAB_LooksList_Imperial_M, SAB_LooksList_Imperial_F)
     addedEntries = addedEntries + AddRaceGenderToLvlActorAccordingToUnitDataKey \ 

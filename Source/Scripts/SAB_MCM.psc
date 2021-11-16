@@ -2,13 +2,25 @@ scriptname SAB_MCM extends SKI_ConfigBase
 
 SAB_MainQuest Property SAB_Main Auto
 
-;since we want more than 128 custom units, we need two arrays (0 or 1 here)
+; since we want more than 128 custom units, we need two arrays (0 or 1 here)
 int editedUnitsMenuPage = 0
+
 int editedUnitIndex = 0
 int editedFactionIndex = 0
 int editedZoneIndex = 0
 
+; the name of the jMap entry being hovered or edited in the currently opened dialog
+string currentFieldBeingEdited = ""
+
+; a descriptive type of the field being hovered or edited (like "race menu in edit unit panel").
+; Used because I'm too lazy to write the same thing too many times
+string currentFieldTypeBeingEdited = ""
+float currentSliderDefaultValue = 0.0
+
 string[] editedUnitsArray
+
+string[] unitRaceEditOptions
+
 
 Event OnConfigInit()
     Pages = new string[5]
@@ -17,6 +29,12 @@ Event OnConfigInit()
     Pages[2] = "$sab_mcm_page_edit_factions"
     Pages[3] = "$sab_mcm_page_edit_zones"
     Pages[4] = "$sab_mcm_page_load_save"
+
+    unitRaceEditOptions = new string[4]
+    unitRaceEditOptions[0] = "$sab_mcm_unitedit_race_option_none"
+    unitRaceEditOptions[1] = "$sab_mcm_unitedit_race_option_male"
+    unitRaceEditOptions[2] = "$sab_mcm_unitedit_race_option_female"
+    unitRaceEditOptions[3] = "$sab_mcm_unitedit_race_option_both"
 
     editedUnitsArray = new string[128]
 EndEvent
@@ -50,6 +68,42 @@ Event OnPageReset(string page)
         SetupLoadSaveDataPage()
     endif
 EndEvent
+
+
+
+
+;---------------------------------------------------------------------------------------------------------
+; SHARED STUFF (too much copying of the same stuff to separate)
+;---------------------------------------------------------------------------------------------------------
+
+
+event OnSliderAcceptST(float value)
+    if CurrentPage == Pages[1] ; edit units
+        SetEditedUnitSliderValue(currentFieldBeingEdited, value)
+    endif
+endEvent
+
+event OnMenuOpenST()
+    if currentFieldTypeBeingEdited == "unitedit_racegender_menu"
+        SetupEditedUnitRaceMenuOnOpen(currentFieldBeingEdited)
+    endif
+endEvent
+
+event OnMenuAcceptST(int index)
+    if currentFieldTypeBeingEdited == "unitedit_racegender_menu"
+        SetEditedUnitRaceMenuValue(currentFieldBeingEdited, index)
+    endif
+endEvent
+
+event OnDefaultST()
+    if currentFieldTypeBeingEdited == "unitedit_slider"
+        SetEditedUnitSliderValue(currentFieldBeingEdited, currentSliderDefaultValue)
+    ElseIf currentFieldTypeBeingEdited == "unitedit_racegender_menu"
+        SetEditedUnitRaceMenuValue(currentFieldBeingEdited, 0)
+    endif
+endEvent
+
+
 
 ;---------------------------------------------------------------------------------------------------------
 ; MY TROOPS PAGE STUFF
@@ -98,16 +152,16 @@ Function SetupEditUnitsPage()
     AddEmptyOption()
 
     AddHeaderOption("$sab_mcm_unitedit_header_races")
-    AddTextOptionST("UNITEDIT_RACE_ARGONIAN", "$sab_mcm_unitedit_race_arg", GetEditedUnitRaceStatus(SAB_Main.UnitDataHandler.jTestGuyData, "RaceArgonian"))
-    AddTextOptionST("UNITEDIT_RACE_KHAJIIT", "$sab_mcm_unitedit_race_kha", GetEditedUnitRaceStatus(SAB_Main.UnitDataHandler.jTestGuyData, "RaceKhajiit"))
-    AddTextOptionST("UNITEDIT_RACE_ORC", "$sab_mcm_unitedit_race_orc", GetEditedUnitRaceStatus(SAB_Main.UnitDataHandler.jTestGuyData, "RaceOrc"))
-    AddTextOptionST("UNITEDIT_RACE_BRETON", "$sab_mcm_unitedit_race_bre", GetEditedUnitRaceStatus(SAB_Main.UnitDataHandler.jTestGuyData, "RaceBreton"))
-    AddTextOptionST("UNITEDIT_RACE_IMPERIAL", "$sab_mcm_unitedit_race_imp", GetEditedUnitRaceStatus(SAB_Main.UnitDataHandler.jTestGuyData, "RaceImperial"))
-    AddTextOptionST("UNITEDIT_RACE_NORD", "$sab_mcm_unitedit_race_nor", GetEditedUnitRaceStatus(SAB_Main.UnitDataHandler.jTestGuyData, "RaceNord"))
-    AddTextOptionST("UNITEDIT_RACE_REDGUARD", "$sab_mcm_unitedit_race_red", GetEditedUnitRaceStatus(SAB_Main.UnitDataHandler.jTestGuyData, "RaceRedguard"))
-    AddTextOptionST("UNITEDIT_RACE_DARKELF", "$sab_mcm_unitedit_race_daf", GetEditedUnitRaceStatus(SAB_Main.UnitDataHandler.jTestGuyData, "RaceDarkElf"))
-    AddTextOptionST("UNITEDIT_RACE_HIGHELF", "$sab_mcm_unitedit_race_hif", GetEditedUnitRaceStatus(SAB_Main.UnitDataHandler.jTestGuyData, "RaceHighElf"))
-    AddTextOptionST("UNITEDIT_RACE_WOODELF", "$sab_mcm_unitedit_race_wof", GetEditedUnitRaceStatus(SAB_Main.UnitDataHandler.jTestGuyData, "RaceWoodElf"))
+    AddMenuOptionST("UNITEDIT_RACE_ARGONIAN", "$sab_mcm_unitedit_race_arg", GetEditedUnitRaceStatus(SAB_Main.UnitDataHandler.jTestGuyData, "RaceArgonian"))
+    AddMenuOptionST("UNITEDIT_RACE_KHAJIIT", "$sab_mcm_unitedit_race_kha", GetEditedUnitRaceStatus(SAB_Main.UnitDataHandler.jTestGuyData, "RaceKhajiit"))
+    AddMenuOptionST("UNITEDIT_RACE_ORC", "$sab_mcm_unitedit_race_orc", GetEditedUnitRaceStatus(SAB_Main.UnitDataHandler.jTestGuyData, "RaceOrc"))
+    AddMenuOptionST("UNITEDIT_RACE_BRETON", "$sab_mcm_unitedit_race_bre", GetEditedUnitRaceStatus(SAB_Main.UnitDataHandler.jTestGuyData, "RaceBreton"))
+    AddMenuOptionST("UNITEDIT_RACE_IMPERIAL", "$sab_mcm_unitedit_race_imp", GetEditedUnitRaceStatus(SAB_Main.UnitDataHandler.jTestGuyData, "RaceImperial"))
+    AddMenuOptionST("UNITEDIT_RACE_NORD", "$sab_mcm_unitedit_race_nor", GetEditedUnitRaceStatus(SAB_Main.UnitDataHandler.jTestGuyData, "RaceNord"))
+    AddMenuOptionST("UNITEDIT_RACE_REDGUARD", "$sab_mcm_unitedit_race_red", GetEditedUnitRaceStatus(SAB_Main.UnitDataHandler.jTestGuyData, "RaceRedguard"))
+    AddMenuOptionST("UNITEDIT_RACE_DARKELF", "$sab_mcm_unitedit_race_daf", GetEditedUnitRaceStatus(SAB_Main.UnitDataHandler.jTestGuyData, "RaceDarkElf"))
+    AddMenuOptionST("UNITEDIT_RACE_HIGHELF", "$sab_mcm_unitedit_race_hif", GetEditedUnitRaceStatus(SAB_Main.UnitDataHandler.jTestGuyData, "RaceHighElf"))
+    AddMenuOptionST("UNITEDIT_RACE_WOODELF", "$sab_mcm_unitedit_race_wof", GetEditedUnitRaceStatus(SAB_Main.UnitDataHandler.jTestGuyData, "RaceWoodElf"))
     
 EndFunction
 
@@ -197,57 +251,36 @@ endstate
 
 state UNITEDIT_HEALTH
 	event OnSliderOpenST()
-        SetupEditedUnitBaseAVSliderOnOpen("Health")
-	endEvent
-
-	event OnSliderAcceptST(float value)
-		SetupEditedUnitBaseAVSliderSetValue("Health", value)
-	endEvent
-
-	event OnDefaultST()
-        float value = 50.0
-		SetupEditedUnitBaseAVSliderSetValue("Health", value)
+        SetupEditedUnitBaseAVSliderOnOpen(currentFieldBeingEdited)
 	endEvent
 
 	event OnHighlightST()
+        currentFieldBeingEdited = "Health"
+        currentFieldTypeBeingEdited = "unitedit_slider"
 		SetInfoText("$sab_mcm_unitedit_slider_health_desc")
 	endEvent
 endState
 
 state UNITEDIT_STAMINA
 	event OnSliderOpenST()
-        SetupEditedUnitBaseAVSliderOnOpen("Stamina")
-	endEvent
-
-	event OnSliderAcceptST(float value)
-		SetupEditedUnitBaseAVSliderSetValue("Stamina", value)
-	endEvent
-
-	event OnDefaultST()
-        float value = 50.0
-		SetupEditedUnitBaseAVSliderSetValue("Stamina", value)
+        SetupEditedUnitBaseAVSliderOnOpen(currentFieldBeingEdited)
 	endEvent
 
 	event OnHighlightST()
+        currentFieldBeingEdited = "Stamina"
+        currentFieldTypeBeingEdited = "unitedit_slider"
 		SetInfoText("$sab_mcm_unitedit_slider_stamina_desc")
 	endEvent
 endState
 
 state UNITEDIT_MAGICKA
 	event OnSliderOpenST()
-        SetupEditedUnitBaseAVSliderOnOpen("Magicka")
-	endEvent
-
-	event OnSliderAcceptST(float value)
-		SetupEditedUnitBaseAVSliderSetValue("Magicka", value)
-	endEvent
-
-	event OnDefaultST()
-        float value = 50.0
-		SetupEditedUnitBaseAVSliderSetValue("Magicka", value)
+        SetupEditedUnitBaseAVSliderOnOpen(currentFieldBeingEdited)
 	endEvent
 
 	event OnHighlightST()
+        currentFieldBeingEdited = "Magicka"
+        currentFieldTypeBeingEdited = "unitedit_slider"
 		SetInfoText("$sab_mcm_unitedit_slider_magicka_desc")
 	endEvent
 endState
@@ -262,27 +295,251 @@ state UNITEDIT_OUTFIT
         ShowMessage("$sab_mcm_unitedit_popup_msg_outfitguyspawned", false)
 	endEvent
 
+    event OnDefaultST()
+        ; nothing, just here to not fall back to the default "reset slider" procedure set up in the "common" section
+    endevent
+
 	event OnHighlightST()
 		SetInfoText("$sab_mcm_unitedit_button_outfit_desc")
 	endEvent
 
 endstate
 
+state UNITEDIT_SKL_MARKSMAN
+
+    event OnSliderOpenST()
+        SetupEditedUnitSkillSliderOnOpen(currentFieldBeingEdited)
+	endEvent
+
+	event OnHighlightST()
+        currentFieldBeingEdited = "SkillMarksman"
+        currentFieldTypeBeingEdited = "unitedit_slider"
+		SetInfoText("$sab_mcm_unitedit_slider_marksman_desc")
+	endEvent
+
+endstate
+
+state UNITEDIT_SKL_ONEHANDED
+
+    event OnSliderOpenST()
+        SetupEditedUnitSkillSliderOnOpen(currentFieldBeingEdited)
+	endEvent
+
+	event OnHighlightST()
+        currentFieldBeingEdited = "SkillOneHanded"
+        currentFieldTypeBeingEdited = "unitedit_slider"
+		SetInfoText("$sab_mcm_unitedit_slider_onehanded_desc")
+	endEvent
+
+endstate
+
+state UNITEDIT_SKL_TWOHANDED
+
+    event OnSliderOpenST()
+        SetupEditedUnitSkillSliderOnOpen(currentFieldBeingEdited)
+	endEvent
+
+	event OnHighlightST()
+        currentFieldBeingEdited = "SkillTwoHanded"
+        currentFieldTypeBeingEdited = "unitedit_slider"
+		SetInfoText("$sab_mcm_unitedit_slider_twohanded_desc")
+	endEvent
+
+endstate
+
+state UNITEDIT_SKL_LIGHTARMOR
+
+    event OnSliderOpenST()
+        SetupEditedUnitSkillSliderOnOpen(currentFieldBeingEdited)
+	endEvent
+
+	event OnHighlightST()
+        currentFieldBeingEdited = "SkillLightArmor"
+        currentFieldTypeBeingEdited = "unitedit_slider"
+		SetInfoText("$sab_mcm_unitedit_slider_lightarmor_desc")
+	endEvent
+
+endstate
+
+state UNITEDIT_SKL_HEAVYARMOR
+
+    event OnSliderOpenST()
+        SetupEditedUnitSkillSliderOnOpen(currentFieldBeingEdited)
+	endEvent
+
+	event OnHighlightST()
+        currentFieldBeingEdited = "SkillHeavyArmor"
+        currentFieldTypeBeingEdited = "unitedit_slider"
+		SetInfoText("$sab_mcm_unitedit_slider_heavyarmor_desc")
+	endEvent
+
+endstate
+
+state UNITEDIT_SKL_BLOCK
+
+    event OnSliderOpenST()
+        SetupEditedUnitSkillSliderOnOpen(currentFieldBeingEdited)
+	endEvent
+
+	event OnHighlightST()
+        currentFieldBeingEdited = "SkillBlock"
+        currentFieldTypeBeingEdited = "unitedit_slider"
+		SetInfoText("$sab_mcm_unitedit_slider_block_desc")
+	endEvent
+
+endstate
+
+state UNITEDIT_RACE_ARGONIAN
+
+    event OnHighlightST()
+        currentFieldBeingEdited = "RaceArgonian"
+        currentFieldTypeBeingEdited = "unitedit_racegender_menu"
+		SetInfoText("$sab_mcm_unitedit_race_generic_desc")
+	endEvent
+
+endstate
+
+state UNITEDIT_RACE_KHAJIIT
+
+    event OnHighlightST()
+        currentFieldBeingEdited = "RaceKhajiit"
+        currentFieldTypeBeingEdited = "unitedit_racegender_menu"
+		SetInfoText("$sab_mcm_unitedit_race_generic_desc")
+	endEvent
+
+endstate
+
+state UNITEDIT_RACE_ORC
+
+    event OnHighlightST()
+        currentFieldBeingEdited = "RaceOrc"
+        currentFieldTypeBeingEdited = "unitedit_racegender_menu"
+		SetInfoText("$sab_mcm_unitedit_race_generic_desc")
+	endEvent
+
+endstate
+
+state UNITEDIT_RACE_BRETON
+
+    event OnHighlightST()
+        currentFieldBeingEdited = "RaceBreton"
+        currentFieldTypeBeingEdited = "unitedit_racegender_menu"
+		SetInfoText("$sab_mcm_unitedit_race_generic_desc")
+	endEvent
+
+endstate
+
+state UNITEDIT_RACE_IMPERIAL
+
+    event OnHighlightST()
+        currentFieldBeingEdited = "RaceImperial"
+        currentFieldTypeBeingEdited = "unitedit_racegender_menu"
+		SetInfoText("$sab_mcm_unitedit_race_generic_desc")
+	endEvent
+
+endstate
+
+state UNITEDIT_RACE_NORD
+
+    event OnHighlightST()
+        currentFieldBeingEdited = "RaceNord"
+        currentFieldTypeBeingEdited = "unitedit_racegender_menu"
+		SetInfoText("$sab_mcm_unitedit_race_generic_desc")
+	endEvent
+
+endstate
+
+state UNITEDIT_RACE_REDGUARD
+
+    event OnHighlightST()
+        currentFieldBeingEdited = "RaceRedguard"
+        currentFieldTypeBeingEdited = "unitedit_racegender_menu"
+		SetInfoText("$sab_mcm_unitedit_race_generic_desc")
+	endEvent
+
+endstate
+
+state UNITEDIT_RACE_DARKELF
+
+    event OnHighlightST()
+        currentFieldBeingEdited = "RaceDarkElf"
+        currentFieldTypeBeingEdited = "unitedit_racegender_menu"
+		SetInfoText("$sab_mcm_unitedit_race_generic_desc")
+	endEvent
+
+endstate
+
+state UNITEDIT_RACE_HIGHELF
+
+    event OnHighlightST()
+        currentFieldBeingEdited = "RaceHighElf"
+        currentFieldTypeBeingEdited = "unitedit_racegender_menu"
+		SetInfoText("$sab_mcm_unitedit_race_generic_desc")
+	endEvent
+
+endstate
+
+state UNITEDIT_RACE_WOODELF
+
+    event OnHighlightST()
+        currentFieldBeingEdited = "RaceWoodElf"
+        currentFieldTypeBeingEdited = "unitedit_racegender_menu"
+		SetInfoText("$sab_mcm_unitedit_race_generic_desc")
+	endEvent
+
+endstate
+
 ; sets up common base actor value (health, magicka, stamina) sliders
 Function SetupEditedUnitBaseAVSliderOnOpen(string jUnitMapKey)
-    ;float curValue = JMap.getFlt(JArray.getObj(SAB_Main.UnitDataHandler.jSABUnitDatasArray, editedUnitIndex), jUnitMapKey, 50.0)
-    float curValue = JMap.getFlt(SAB_Main.UnitDataHandler.jTestGuyData, jUnitMapKey, 50.0)
+    currentFieldBeingEdited = jUnitMapKey
+    currentSliderDefaultValue = 50.0
+    ;float curValue = JMap.getFlt(JArray.getObj(SAB_Main.UnitDataHandler.jSABUnitDatasArray, editedUnitIndex), jUnitMapKey, currentSliderDefaultValue)
+    float curValue = JMap.getFlt(SAB_Main.UnitDataHandler.jTestGuyData, jUnitMapKey, currentSliderDefaultValue)
     SetSliderDialogStartValue(curValue)
-    SetSliderDialogDefaultValue(50.0)
+    SetSliderDialogDefaultValue(currentSliderDefaultValue)
     SetSliderDialogRange(10.0, 500.0)
     SetSliderDialogInterval(5)
 EndFunction
 
-Function SetupEditedUnitBaseAVSliderSetValue(string jUnitMapKey, float value)
+; sets up skill actor value (oneHanded, Block, Marksman) sliders
+Function SetupEditedUnitSkillSliderOnOpen(string jUnitMapKey)
+    currentFieldBeingEdited = jUnitMapKey
+    currentSliderDefaultValue = 15.0
+    ;float curValue = JMap.getFlt(JArray.getObj(SAB_Main.UnitDataHandler.jSABUnitDatasArray, editedUnitIndex), jUnitMapKey, currentSliderDefaultValue)
+    float curValue = JMap.getFlt(SAB_Main.UnitDataHandler.jTestGuyData, jUnitMapKey, currentSliderDefaultValue)
+    SetSliderDialogStartValue(curValue)
+    SetSliderDialogDefaultValue(currentSliderDefaultValue)
+    SetSliderDialogRange(10.0, 100.0)
+    SetSliderDialogInterval(1)
+EndFunction
+
+; sets up an allowed race/gender menu
+Function SetupEditedUnitRaceMenuOnOpen(string jUnitMapKey)
+    currentFieldBeingEdited = jUnitMapKey
+    ;int curValue = JMap.getInt(JArray.getObj(SAB_Main.UnitDataHandler.jSABUnitDatasArray, editedUnitIndex), jUnitMapKey, 0)
+    int curValue = JMap.getInt(SAB_Main.UnitDataHandler.jTestGuyData, jUnitMapKey, 0)
+    SetMenuDialogStartIndex(curValue)
+    SetMenuDialogDefaultIndex(0)
+    SetMenuDialogOptions(unitRaceEditOptions)
+EndFunction
+
+Function SetEditedUnitSliderValue(string jUnitMapKey, float value)
     ; JMap.setFlt(JArray.getObj(SAB_Main.UnitDataHandler.jSABUnitDatasArray, editedUnitIndex), jUnitMapKey, value)
     JMap.setFlt(SAB_Main.UnitDataHandler.jTestGuyData, jUnitMapKey, value)
     SetSliderOptionValueST(value)
 EndFunction
+
+Function SetEditedUnitRaceMenuValue(string jUnitMapKey, int value)
+    ; JMap.setInt(JArray.getObj(SAB_Main.UnitDataHandler.jSABUnitDatasArray, editedUnitIndex), jUnitMapKey, value)
+    JMap.setInt(SAB_Main.UnitDataHandler.jTestGuyData, jUnitMapKey, value)
+
+    ;SAB_Main.UnitDataHandler.SetupRaceGendersAccordingToUnitIndex(editedUnitIndex)
+    SAB_Main.UnitDataHandler.SetupRaceGendersLvlActorAccordingToUnitData \ 
+        (SAB_Main.UnitDataHandler.jTestGuyData, SAB_Main.UnitDataHandler.SAB_UnitLooks_TestGuy)
+
+    SetMenuOptionValueST(unitRaceEditOptions[value])
+EndFunction
+
 
 ; returns the text equivalent to the target race/gender status ("male only" for 1, for example).
 ; Returns "None" for 0 and invalid values
@@ -290,14 +547,8 @@ string Function GetEditedUnitRaceStatus(int jUnitData, string raceKey)
 
     int raceStatus = JMap.getInt(jUnitData, raceKey, 0)
 
-    if raceStatus == 0
-        return "$sab_mcm_unitedit_race_option_none"
-    elseif raceStatus == 1
-        return "$sab_mcm_unitedit_race_option_male"
-    elseif raceStatus == 2
-        return "$sab_mcm_unitedit_race_option_female"
-    elseif raceStatus == 3
-        return "$sab_mcm_unitedit_race_option_both"
+    if raceStatus >= 0 && raceStatus < unitRaceEditOptions.Length
+        return unitRaceEditOptions[raceStatus]
     endif
 
     return "$sab_mcm_unitedit_race_option_none"
