@@ -7,11 +7,15 @@ GlobalVariable Property SAB_UnitIndexBeingCustomized Auto
 ActorBase Property CustomizationGuyBase Auto
 { The actor spawned for the player to customize the selected unit's gear }
 
+ReferenceAlias Property OutfitGuyAlias Auto
+{ The storage handling script of the outfit customization actor }
+
 Actor spawnedCustomizationGuy
 
 Actor Function SpawnCustomizationGuy( int jUnitDataMap, int unitIndex )
 
 	if spawnedCustomizationGuy != None
+		OutfitGuyAlias.Clear()
 		spawnedCustomizationGuy.Disable()
 		spawnedCustomizationGuy.Delete()
 	endif
@@ -21,8 +25,14 @@ Actor Function SpawnCustomizationGuy( int jUnitDataMap, int unitIndex )
 	Actor playr = Game.GetPlayer()
 	spawnedCustomizationGuy = playr.PlaceActorAtMe(CustomizationGuyBase)
 	;Debug.Notification("spawnedCustomizationGuy " + spawnedCustomizationGuy)
-	CustomizeActorAccordingToData(spawnedCustomizationGuy, jUnitDataMap)
+	CustomizeActorAccordingToDataWithNameSuffix(spawnedCustomizationGuy, jUnitDataMap, " (Outfitter)")
 	SAB_UnitIndexBeingCustomized.SetValue(unitIndex as float)
+	; teammates can wear stuff given by the player.
+	; we need this to make the changes visible immediately instead of only when spawning the outfit guy again
+	spawnedCustomizationGuy.SetPlayerTeammate(true, false)
+
+	OutfitGuyAlias.ForceRefTo(spawnedCustomizationGuy)
+	(OutfitGuyAlias as SAB_OutfitGuyStorage).SetupStorage(UnitDataHandler.SAB_UnitGear_TestGuy)
 
 	return spawnedCustomizationGuy
 	
@@ -57,6 +67,24 @@ endFunction
 Function CustomizeActorAccordingToData(Actor targetActor, int jUnitData)
 
 	targetActor.SetDisplayName(JMap.getStr(jUnitData, "Name", "Recruit"))
+
+	targetActor.SetAV("Health", JMap.getFlt(jUnitData, "Health", 50.0))
+	targetActor.SetAV("Magicka", JMap.getFlt(jUnitData, "Magicka", 50.0))
+	targetActor.SetAV("Stamina", JMap.getFlt(jUnitData, "Stamina", 50.0))
+
+	targetActor.SetAV("LightArmor", JMap.getFlt(jUnitData, "SkillLightArmor", 15.0))
+	targetActor.SetAV("HeavyArmor", JMap.getFlt(jUnitData, "SkillHeavyArmor", 15.0))
+	targetActor.SetAV("Block", JMap.getFlt(jUnitData, "SkillBlock", 15.0))
+	targetActor.SetAV("OneHanded", JMap.getFlt(jUnitData, "SkillOneHanded", 15.0))
+	targetActor.SetAV("TwoHanded", JMap.getFlt(jUnitData, "SkillTwoHanded", 15.0))
+	targetActor.SetAV("Marksman", JMap.getFlt(jUnitData, "SkillMarksman", 15.0))
+
+endFunction
+
+;Sets actor values and actor name of the target actor based on the passed jMap's values
+Function CustomizeActorAccordingToDataWithNameSuffix(Actor targetActor, int jUnitData, string nameSuffix)
+
+	targetActor.SetDisplayName(JMap.getStr(jUnitData, "Name", "Recruit") + nameSuffix)
 
 	targetActor.SetAV("Health", JMap.getFlt(jUnitData, "Health", 50.0))
 	targetActor.SetAV("Magicka", JMap.getFlt(jUnitData, "Magicka", 50.0))
