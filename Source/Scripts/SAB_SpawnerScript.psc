@@ -2,19 +2,29 @@ Scriptname SAB_SpawnerScript extends Quest
 
 SAB_UnitDataHandler Property UnitDataHandler Auto
 
-ActorBase Property CustomizationGuyBase Auto
+GlobalVariable Property SAB_UnitIndexBeingCustomized Auto
 
-Actor Property CustomizationGuy Auto
+ActorBase Property CustomizationGuyBase Auto
 { The actor spawned for the player to customize the selected unit's gear }
 
-Actor Function SpawnCustomizationGuy( int jUnitDataMap )
-	
-	Actor playr = Game.GetPlayer()
-	CustomizationGuy.Reset(playr)
-	CustomizationGuy.Enable(true)
-	CustomizeActorAccordingToData(CustomizationGuy, jUnitDataMap)
+Actor spawnedCustomizationGuy
 
-	return CustomizationGuy
+Actor Function SpawnCustomizationGuy( int jUnitDataMap, int unitIndex )
+
+	if spawnedCustomizationGuy != None
+		spawnedCustomizationGuy.Disable()
+		spawnedCustomizationGuy.Delete()
+	endif
+
+	spawnedCustomizationGuy = None
+
+	Actor playr = Game.GetPlayer()
+	spawnedCustomizationGuy = playr.PlaceActorAtMe(CustomizationGuyBase)
+	;Debug.Notification("spawnedCustomizationGuy " + spawnedCustomizationGuy)
+	CustomizeActorAccordingToData(spawnedCustomizationGuy, jUnitDataMap)
+	SAB_UnitIndexBeingCustomized.SetValue(unitIndex as float)
+
+	return spawnedCustomizationGuy
 	
 endFunction
 

@@ -1,26 +1,26 @@
 scriptname SAB_UnitDataHandler extends Quest
 {script for setting up and getting data for units/soldiers.}
 
-LeveledActor Property ArgonianM Auto
-LeveledActor Property ArgonianF Auto
-LeveledActor Property OrcM Auto
-LeveledActor Property OrcF Auto
-LeveledActor Property KhajiitM Auto
-LeveledActor Property KhajiitF Auto
-LeveledActor Property BretonM Auto
-LeveledActor Property BretonF Auto
-LeveledActor Property ImperialM Auto
-LeveledActor Property ImperialF Auto
-LeveledActor Property NordM Auto
-LeveledActor Property NordF Auto
-LeveledActor Property RedguardM Auto
-LeveledActor Property RedguardF Auto
-LeveledActor Property DarkElfM Auto
-LeveledActor Property DarkElfF Auto
-LeveledActor Property HighElfM Auto
-LeveledActor Property HighElfF Auto
-LeveledActor Property WoodElfM Auto
-LeveledActor Property WoodElfF Auto
+LeveledActor Property SAB_LooksList_Argonian_M Auto
+LeveledActor Property SAB_LooksList_Argonian_F Auto
+LeveledActor Property SAB_LooksList_Orc_M Auto
+LeveledActor Property SAB_LooksList_Orc_F Auto
+LeveledActor Property SAB_LooksList_Khajiit_M Auto
+LeveledActor Property SAB_LooksList_Khajiit_F Auto
+LeveledActor Property SAB_LooksList_Breton_M Auto
+LeveledActor Property SAB_LooksList_Breton_F Auto
+LeveledActor Property SAB_LooksList_Imperial_M Auto
+LeveledActor Property SAB_LooksList_Imperial_F Auto
+LeveledActor Property SAB_LooksList_Nord_M Auto
+LeveledActor Property SAB_LooksList_Nord_F Auto
+LeveledActor Property SAB_LooksList_Redguard_M Auto
+LeveledActor Property SAB_LooksList_Redguard_F Auto
+LeveledActor Property SAB_LooksList_DarkElf_M Auto
+LeveledActor Property SAB_LooksList_DarkElf_F Auto
+LeveledActor Property SAB_LooksList_HighElf_M Auto
+LeveledActor Property SAB_LooksList_HighElf_F Auto
+LeveledActor Property SAB_LooksList_WoodElf_M Auto
+LeveledActor Property SAB_LooksList_WoodElf_F Auto
 
 FormList Property SAB_UnitActorBases Auto
 FormList Property SAB_UnitGearSets Auto
@@ -31,6 +31,8 @@ int Property jSABUnitDatasArray Auto
 
 ; a unit data jMap just for testing
 int Property jTestGuyData Auto
+LeveledActor Property SAB_UnitLooks_TestGuy Auto
+LeveledItem Property SAB_UnitGear_TestGuy Auto
 
 Function InitializeJData()
     jSABUnitDatasArray = JArray.object()
@@ -42,24 +44,38 @@ EndFunction
 
 Function SetupRaceGendersLvlActorAccordingToUnitData(int jUnitData, LeveledActor lvlActor)
     
+    ;Debug.Notification("SetupRaceGendersLvlActorAccordingToUnitData " + lvlActor)
+
     lvlActor.Revert()
 
     int addedEntries = 0
 
-    addedEntries = addedEntries + AddRaceGenderToLvlActorAccordingToUnitDataKey(jUnitData, lvlActor, "RaceBreton", BretonM, BretonF)
-    addedEntries = addedEntries + AddRaceGenderToLvlActorAccordingToUnitDataKey(jUnitData, lvlActor, "RaceImperial", ImperialM, ImperialF)
-    addedEntries = addedEntries + AddRaceGenderToLvlActorAccordingToUnitDataKey(jUnitData, lvlActor, "RaceNord", NordM, NordF)
-    addedEntries = addedEntries + AddRaceGenderToLvlActorAccordingToUnitDataKey(jUnitData, lvlActor, "RaceRedguard", RedguardM, RedguardF)
-    addedEntries = addedEntries + AddRaceGenderToLvlActorAccordingToUnitDataKey(jUnitData, lvlActor, "RaceDarkElf", DarkElfM, DarkElfF)
-    addedEntries = addedEntries + AddRaceGenderToLvlActorAccordingToUnitDataKey(jUnitData, lvlActor, "RaceHighElf", HighElfM, HighElfF)
-    addedEntries = addedEntries + AddRaceGenderToLvlActorAccordingToUnitDataKey(jUnitData, lvlActor, "RaceWoodElf", WoodElfM, WoodElfF)
-    addedEntries = addedEntries + AddRaceGenderToLvlActorAccordingToUnitDataKey(jUnitData, lvlActor, "RaceArgonian", ArgonianM, ArgonianF)
-    addedEntries = addedEntries + AddRaceGenderToLvlActorAccordingToUnitDataKey(jUnitData, lvlActor, "RaceKhajiit", KhajiitM, KhajiitF)
-    addedEntries = addedEntries + AddRaceGenderToLvlActorAccordingToUnitDataKey(jUnitData, lvlActor, "RaceOrc", OrcM, OrcF)
+    addedEntries = addedEntries + AddRaceGenderToLvlActorAccordingToUnitDataKey \
+     (jUnitData, lvlActor, "RaceBreton", SAB_LooksList_Breton_M, SAB_LooksList_Breton_M)
+    addedEntries = addedEntries + AddRaceGenderToLvlActorAccordingToUnitDataKey \
+     (jUnitData, lvlActor, "RaceImperial", SAB_LooksList_Imperial_M, SAB_LooksList_Imperial_F)
+    addedEntries = addedEntries + AddRaceGenderToLvlActorAccordingToUnitDataKey \ 
+     (jUnitData, lvlActor, "RaceNord", SAB_LooksList_Nord_M, SAB_LooksList_Nord_F)
+    addedEntries = addedEntries + AddRaceGenderToLvlActorAccordingToUnitDataKey \
+     (jUnitData, lvlActor, "RaceRedguard", SAB_LooksList_Redguard_M, SAB_LooksList_Redguard_F)
+    addedEntries = addedEntries + AddRaceGenderToLvlActorAccordingToUnitDataKey \
+     (jUnitData, lvlActor, "RaceDarkElf", SAB_LooksList_DarkElf_M, SAB_LooksList_DarkElf_F)
+    addedEntries = addedEntries + AddRaceGenderToLvlActorAccordingToUnitDataKey \
+     (jUnitData, lvlActor, "RaceHighElf", SAB_LooksList_HighElf_M, SAB_LooksList_HighElf_F)
+    addedEntries = addedEntries + AddRaceGenderToLvlActorAccordingToUnitDataKey \ 
+     (jUnitData, lvlActor, "RaceWoodElf", SAB_LooksList_WoodElf_M, SAB_LooksList_WoodElf_F)
+    addedEntries = addedEntries + AddRaceGenderToLvlActorAccordingToUnitDataKey \
+     (jUnitData, lvlActor, "RaceArgonian", SAB_LooksList_Argonian_M, SAB_LooksList_Argonian_F)
+    addedEntries = addedEntries + AddRaceGenderToLvlActorAccordingToUnitDataKey \
+     (jUnitData, lvlActor, "RaceKhajiit", SAB_LooksList_Khajiit_M, SAB_LooksList_Khajiit_F)
+    addedEntries = addedEntries + AddRaceGenderToLvlActorAccordingToUnitDataKey \
+     (jUnitData, lvlActor, "RaceOrc", SAB_LooksList_Orc_M, SAB_LooksList_Orc_F)
 
     if addedEntries == 0
-        ; add one lvlActor, to avoid spawning people with 0 appearances
-        lvlActor.AddForm(ArgonianF, 0)
+        ; if no entries have been selected,
+        ; add one lvlActor anyway, to avoid spawning people with 0 appearances
+        ;Debug.Notification("SetupRaceGendersLvlActorAccordingToUnitData: added argonianF to have something in the list")
+        lvlActor.AddForm(SAB_LooksList_Argonian_F, 1)
     endif
 
 EndFunction
@@ -72,14 +88,14 @@ int Function AddRaceGenderToLvlActorAccordingToUnitDataKey(int jUnitData, Levele
     if raceGenderValue == 0
         return 0
     elseif raceGenderValue == 3
-        lvlActor.AddForm(male, 0)
-        lvlActor.AddForm(female, 0)
+        lvlActor.AddForm(male, 1)
+        lvlActor.AddForm(female, 1)
         return 2
     elseif raceGenderValue == 2
-        lvlActor.AddForm(female, 0)
+        lvlActor.AddForm(female, 1)
         return 1
     elseif raceGenderValue == 1
-        lvlActor.AddForm(male, 0)
+        lvlActor.AddForm(male, 1)
         return 1
     endif
 
