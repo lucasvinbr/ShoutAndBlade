@@ -138,6 +138,8 @@ Function SetupEditUnitsPage()
     AddEmptyOption()
     AddTextOptionST("UNITEDIT_OUTFIT", "$sab_mcm_unitedit_button_outfit", "")
     AddEmptyOption()
+    AddTextOptionST("UNITEDIT_TEST_SAVE", "(Debug) Save testGuy data", "")
+    AddTextOptionST("UNITEDIT_TEST_LOAD", "(Debug) Load testGuy data", "")
 
     SetCursorPosition(1)
 
@@ -487,6 +489,45 @@ state UNITEDIT_RACE_WOODELF
 		SetInfoText("$sab_mcm_unitedit_race_generic_desc")
 	endEvent
 
+endstate
+
+state UNITEDIT_TEST_SAVE
+    event OnSelectST()
+        string filePath = JContainers.userDirectory() + "SAB/testGuyData.json"
+        JValue.writeToFile(SAB_Main.UnitDataHandler.jTestGuyData, filePath)
+        ShowMessage("Save finished. Saved to: " + filePath, false)
+	endEvent
+
+    event OnDefaultST()
+        ; nothing, just here to not fall back to the default "reset slider" procedure set up in the "common" section
+    endevent
+
+	event OnHighlightST()
+		SetInfoText("Test Save Guy")
+	endEvent
+endstate
+
+state UNITEDIT_TEST_LOAD
+    event OnSelectST()
+        string filePath = JContainers.userDirectory() + "SAB/testGuyData.json"
+        int jReadData = JValue.readFromFile(filePath)
+        if jReadData != 0
+            SAB_Main.UnitDataHandler.jTestGuyData = JValue.releaseAndRetain(SAB_Main.UnitDataHandler.jTestGuyData, jReadData, "ShoutAndBlade")
+            ShowMessage("Load successful!", false)
+            ; TODO update leveled lists (gear, race)!
+            ForcePageReset()
+        else
+            ShowMessage("Load failed! The file probably does not exist", false)
+        endif
+	endEvent
+
+    event OnDefaultST()
+        ; nothing, just here to not fall back to the default "reset slider" procedure set up in the "common" section
+    endevent
+
+	event OnHighlightST()
+		SetInfoText("Test Load Guy")
+	endEvent
 endstate
 
 ; sets up common base actor value (health, magicka, stamina) sliders

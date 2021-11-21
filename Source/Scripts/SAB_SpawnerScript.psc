@@ -32,7 +32,7 @@ Actor Function SpawnCustomizationGuy( int jUnitDataMap, int unitIndex )
 	spawnedCustomizationGuy.SetPlayerTeammate(true, false)
 
 	OutfitGuyAlias.ForceRefTo(spawnedCustomizationGuy)
-	(OutfitGuyAlias as SAB_OutfitGuyStorage).SetupStorage(UnitDataHandler.SAB_UnitGear_TestGuy)
+	(OutfitGuyAlias as SAB_OutfitGuyStorage).SetupStorage(UnitDataHandler.SAB_UnitGear_TestGuy, UnitDataHandler.jTestGuyData)
 
 	return spawnedCustomizationGuy
 	

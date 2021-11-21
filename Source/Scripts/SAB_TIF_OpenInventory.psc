@@ -1,5 +1,5 @@
 ;BEGIN FRAGMENT CODE - Do not edit anything between this and the end comment
-;NEXT FRAGMENT INDEX 1
+;NEXT FRAGMENT INDEX 0
 Scriptname SAB_TIF_OpenInventory Extends TopicInfo Hidden
 
 ;BEGIN FRAGMENT Fragment_0

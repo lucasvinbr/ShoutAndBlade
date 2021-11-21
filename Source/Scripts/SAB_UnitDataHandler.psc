@@ -141,6 +141,16 @@ int Function GetUnitIndexByUnitName(string name)
     return -1
 EndFunction
 
+; returns true if we've successfully ATTEMPTED to write the data, and false if something else stopped us in the process (like a file name check)
+bool Function DebugSaveTestGuyData(string fileName)
+    if StringUtil.Find(fileName, ".") != -1
+        return false
+    endif
+    string filePath = JContainers.userDirectory() + "SAB/unitData/" + fileName + ".json"
+    JValue.writeToFile(jTestGuyData, filePath)
+    return true
+EndFunction
+
 ; unitData jmap entries:
 
 ; string Name
@@ -153,6 +163,9 @@ EndFunction
 ; float SkillLightArmor
 ; float SkillHeavyArmor
 ; float SkillBlock
+
+; an array of jMaps. Each jMap in the array has two fields: "itemForm" (form) and "amount" (int)
+; int jGearArray
 
 ;allowed races/genders - 0 is "none", 1 is "male only", 2 is "female only", 3 is "both"
 
