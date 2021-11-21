@@ -513,8 +513,8 @@ state UNITEDIT_TEST_LOAD
         int jReadData = JValue.readFromFile(filePath)
         if jReadData != 0
             SAB_Main.UnitDataHandler.jTestGuyData = JValue.releaseAndRetain(SAB_Main.UnitDataHandler.jTestGuyData, jReadData, "ShoutAndBlade")
+            SAB_Main.UnitDataHandler.UpdateGearAndRaceListsAccordingToJMap()
             ShowMessage("Load successful!", false)
-            ; TODO update leveled lists (gear, race)!
             ForcePageReset()
         else
             ShowMessage("Load failed! The file probably does not exist", false)

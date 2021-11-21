@@ -121,6 +121,30 @@ int Function AddRaceGenderToLvlActorAccordingToUnitDataKey(int jUnitData, Levele
 
 EndFunction
 
+Function SetupGearListAccordingToUnitData(int jUnitData, LeveledItem gearList)
+    int jUnitGearArray = jMap.getObj(jUnitData, "jGearArray")
+
+    if jUnitGearArray == 0
+        return
+    endif
+
+    gearList.Revert()
+
+    int i = jArray.count(jUnitGearArray)
+
+    While (i > 0)
+        i -= 1
+
+        int jItemEntry = jArray.getObj(jUnitGearArray, i)
+        int itemAmount = jMap.getInt(jItemEntry, "amount")
+        Form itemForm = jMap.getForm(jItemEntry, "itemForm")
+        
+        if itemAmount > 0 && itemForm != None
+            gearList.AddForm(itemForm, 1, itemAmount)
+        endif
+
+    EndWhile
+EndFunction
 
 int Function GetUnitIndexByUnitName(string name)
     int i = JArray.count(jSABUnitDatasArray)
@@ -141,14 +165,10 @@ int Function GetUnitIndexByUnitName(string name)
     return -1
 EndFunction
 
-; returns true if we've successfully ATTEMPTED to write the data, and false if something else stopped us in the process (like a file name check)
-bool Function DebugSaveTestGuyData(string fileName)
-    if StringUtil.Find(fileName, ".") != -1
-        return false
-    endif
-    string filePath = JContainers.userDirectory() + "SAB/unitData/" + fileName + ".json"
-    JValue.writeToFile(jTestGuyData, filePath)
-    return true
+
+Function UpdateGearAndRaceListsAccordingToJMap()
+    SetupRaceGendersLvlActorAccordingToUnitData(jTestGuyData, SAB_UnitLooks_TestGuy)
+    SetupGearListAccordingToUnitData(jTestGuyData, SAB_UnitGear_TestGuy)
 EndFunction
 
 ; unitData jmap entries:
