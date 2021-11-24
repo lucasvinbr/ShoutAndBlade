@@ -14,7 +14,7 @@ Function SetupStorage(LeveledItem gearsetToEdit, int jUnitDataToEdit)
     jUnitDataBeingEdited = jUnitDataToEdit
     GearsetBeingEdited = gearsetToEdit
     jItemAmountsArray = JValue.releaseAndRetain(jItemAmountsArray, jArray.object(), "ShoutAndBlade")
-
+    ; Debug.Trace("set up storage for unit: " + jUnitDataToEdit)
     ; empty the storage list and re-fill it with the gearset's current stuff
     SAB_OutfitGuyStorageList.Revert()
 

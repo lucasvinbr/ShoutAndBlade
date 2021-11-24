@@ -41,7 +41,7 @@ LeveledActor Property SAB_UnitLooks_TestGuy Auto
 LeveledItem Property SAB_UnitGear_TestGuy Auto
 
 Function InitializeJData()
-    jSABUnitDatasArray = JArray.object()
+    jSABUnitDatasArray = JArray.objectWithSize(256)
     JValue.retain(jSABUnitDatasArray, "ShoutAndBlade")
 
     jTestGuyData = JMap.object()
@@ -62,7 +62,7 @@ endfunction
 ; updates the provided lvlActor with the provided junitData's race/gender info
 Function SetupRaceGendersLvlActorAccordingToUnitData(int jUnitData, LeveledActor lvlActor)
     
-    ;Debug.Notification("SetupRaceGendersLvlActorAccordingToUnitData " + lvlActor)
+    ; Debug.Trace("lvlactor " + lvlActor.GetName())
 
     lvlActor.Revert()
 
@@ -92,7 +92,7 @@ Function SetupRaceGendersLvlActorAccordingToUnitData(int jUnitData, LeveledActor
     if addedEntries == 0
         ; if no entries have been selected,
         ; add one lvlActor anyway, to avoid spawning people with 0 appearances
-        ;Debug.Notification("SetupRaceGendersLvlActorAccordingToUnitData: added argonianF to have something in the list")
+        ; Debug.Notification("SetupRaceGendersLvlActorAccordingToUnitData: added argonianF to have something in the list")
         lvlActor.AddForm(SAB_LooksList_Argonian_F, 1)
     endif
 
@@ -125,7 +125,8 @@ Function SetupGearListAccordingToUnitData(int jUnitData, LeveledItem gearList)
     int jUnitGearArray = jMap.getObj(jUnitData, "jGearArray")
 
     if jUnitGearArray == 0
-        return
+        jUnitGearArray = JArray.object()
+        jMap.setObj(jUnitData, "jGearArray", jUnitGearArray)
     endif
 
     gearList.Revert()
@@ -165,10 +166,57 @@ int Function GetUnitIndexByUnitName(string name)
     return -1
 EndFunction
 
+; makes sure the unitDatasArray has 256 elements
+Function EnsureUnitDataArrayCount()
+    int count = jArray.count(jSABUnitDatasArray)
 
-Function UpdateGearAndRaceListsAccordingToJMap()
-    SetupRaceGendersLvlActorAccordingToUnitData(jTestGuyData, SAB_UnitLooks_TestGuy)
-    SetupGearListAccordingToUnitData(jTestGuyData, SAB_UnitGear_TestGuy)
+    if count < 256
+        int remainingCount = 256 - count
+        int padArray = jArray.objectWithSize(remainingCount)
+
+        JArray.addFromArray(jSABUnitDatasArray, padArray)
+    elseif count > 256
+        ; if there are too many records in the array, keep the first 256 only
+        jSABUnitDatasArray = jValue.releaseAndRetain(jSABUnitDatasArray, jArray.subArray(jSABUnitDatasArray, 0, 255), "ShoutAndBlade")
+    endif
+EndFunction
+
+Function UpdateAllGearAndRaceListsAccordingToJMap()
+    int i = jArray.count(jSABUnitDatasArray)
+
+    While (i > 0)
+        i -= 1
+        
+        int jUnitData = jArray.getObj(jSABUnitDatasArray, i)
+
+        if jUnitData != 0
+            SetupRaceGendersLvlActorAccordingToUnitData(jUnitData, SAB_UnitAllowedRacesGenders.GetAt(i) as LeveledActor)
+            SetupGearListAccordingToUnitData(jUnitData, SAB_UnitGearSets.GetAt(i) as LeveledItem)
+        endif
+        
+    EndWhile
+    
+    ; SetupRaceGendersLvlActorAccordingToUnitData(jTestGuyData, SAB_UnitLooks_TestGuy)
+    ; SetupGearListAccordingToUnitData(jTestGuyData, SAB_UnitGear_TestGuy)
+EndFunction
+
+; fills a 128-sized string array with unit IDs accompanied by their names.
+; can get either the first or the second "page" of 128 units
+Function SetupStringArrayWithUnitIdentifiers(string[] stringArray, int page)
+    int startingIndex = page * 128
+    int endingIndex = (page + 1) * 128
+
+    int i = startingIndex
+
+    while(i < endingIndex)
+
+        int jUnitData = jArray.getObj(jSABUnitDatasArray, i)
+        string unitName = jMap.getStr(jUnitData, "Name", "Recruit")
+
+        stringArray[i] = ((i + 1) as string) + " - " + unitName
+
+        i += 1
+    endwhile
 EndFunction
 
 ; unitData jmap entries:

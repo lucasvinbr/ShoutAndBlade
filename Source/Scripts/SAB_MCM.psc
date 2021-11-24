@@ -6,8 +6,11 @@ SAB_MainQuest Property SAB_Main Auto
 int editedUnitsMenuPage = 0
 
 int editedUnitIndex = 0
+int jEditedUnitData = 0
 int editedFactionIndex = 0
 int editedZoneIndex = 0
+
+bool isLoadingData = false
 
 ; the name of the jMap entry being hovered or edited in the currently opened dialog
 string currentFieldBeingEdited = ""
@@ -17,7 +20,7 @@ string currentFieldBeingEdited = ""
 string currentFieldTypeBeingEdited = ""
 float currentSliderDefaultValue = 0.0
 
-string[] editedUnitsArray
+string[] editedUnitIdentifiersArray
 
 string[] unitRaceEditOptions
 
@@ -36,7 +39,7 @@ Event OnConfigInit()
     unitRaceEditOptions[2] = "$sab_mcm_unitedit_race_option_female"
     unitRaceEditOptions[3] = "$sab_mcm_unitedit_race_option_both"
 
-    editedUnitsArray = new string[128]
+    editedUnitIdentifiersArray = new string[128]
 EndEvent
 
 Event OnVersionUpdate(Int a_version)
@@ -76,6 +79,21 @@ EndEvent
 ; SHARED STUFF (too much copying of the same stuff to separate)
 ;---------------------------------------------------------------------------------------------------------
 
+state SHARED_LOADING
+
+    event OnSelectST()
+        ; nothing
+	endEvent
+
+    event OnDefaultST()
+        ; nothing, just here to not fall back to the default "reset slider" procedure set up in the "common" section
+    endevent
+
+	event OnHighlightST()
+		SetInfoText("$sab_mcm_shared_loading_desc")
+	endEvent
+
+endstate
 
 event OnSliderAcceptST(float value)
     if CurrentPage == Pages[1] ; edit units
@@ -110,7 +128,12 @@ endEvent
 ;---------------------------------------------------------------------------------------------------------
 
 Function SetupMyTroopsPage()
-    ; code
+    if isLoadingData
+        AddTextOptionST("SHARED_LOADING", "$sab_mcm_shared_loading", "")
+        return
+    endif
+
+
 EndFunction
 
 
@@ -121,19 +144,31 @@ EndFunction
 ;---------------------------------------------------------------------------------------------------------
 
 Function SetupEditUnitsPage()
+
+    if isLoadingData
+        AddTextOptionST("SHARED_LOADING", "$sab_mcm_shared_loading", "")
+        return
+    endif
+
     SetCursorFillMode(TOP_TO_BOTTOM)
 
-    ;string editedUnitName = GetEditedUnitName()
+    jEditedUnitData = jArray.getObj(SAB_Main.UnitDataHandler.jSABUnitDatasArray, editedUnitIndex)
+
+    if jEditedUnitData == 0
+        jEditedUnitData = jMap.object()
+        JArray.setObj(SAB_Main.UnitDataHandler.jSABUnitDatasArray, editedUnitIndex, jEditedUnitData)
+    endif
     
     AddHeaderOption("$sab_mcm_unitedit_header_selectunit")
     AddSliderOptionST("UNITEDIT_MENU_PAGE", "$sab_mcm_unitedit_slider_menupage", editedUnitsMenuPage + 1)
-    AddMenuOptionST("UNITEDIT_CUR_UNIT", "$sab_mcm_unitedit_menu_currentunit", JMap.getStr(SAB_Main.UnitDataHandler.jTestGuyData, "Name", "Recruit"))
+    AddMenuOptionST("UNITEDIT_CUR_UNIT", "$sab_mcm_unitedit_menu_currentunit", \
+        ((editedUnitIndex + 1) as string) + " - " + JMap.getStr(jEditedUnitData, "Name", "Recruit"))
     
     AddHeaderOption("$sab_mcm_unitedit_header_baseinfo")
-    AddInputOptionST("UNITEDIT_NAME", "$sab_mcm_unitedit_input_unitname", JMap.getStr(SAB_Main.UnitDataHandler.jTestGuyData, "Name", "Recruit"))
-    AddSliderOptionST("UNITEDIT_HEALTH", "$sab_mcm_unitedit_slider_health", JMap.getFlt(SAB_Main.UnitDataHandler.jTestGuyData, "Health", 50.0))
-    AddSliderOptionST("UNITEDIT_STAMINA", "$sab_mcm_unitedit_slider_stamina", JMap.getFlt(SAB_Main.UnitDataHandler.jTestGuyData, "Stamina", 50.0))
-    AddSliderOptionST("UNITEDIT_MAGICKA", "$sab_mcm_unitedit_slider_magicka", JMap.getFlt(SAB_Main.UnitDataHandler.jTestGuyData, "Magicka", 50.0))
+    AddInputOptionST("UNITEDIT_NAME", "$sab_mcm_unitedit_input_unitname", JMap.getStr(jEditedUnitData, "Name", "Recruit"))
+    AddSliderOptionST("UNITEDIT_HEALTH", "$sab_mcm_unitedit_slider_health", JMap.getFlt(jEditedUnitData, "Health", 50.0))
+    AddSliderOptionST("UNITEDIT_STAMINA", "$sab_mcm_unitedit_slider_stamina", JMap.getFlt(jEditedUnitData, "Stamina", 50.0))
+    AddSliderOptionST("UNITEDIT_MAGICKA", "$sab_mcm_unitedit_slider_magicka", JMap.getFlt(jEditedUnitData, "Magicka", 50.0))
 
     AddEmptyOption()
     AddTextOptionST("UNITEDIT_OUTFIT", "$sab_mcm_unitedit_button_outfit", "")
@@ -144,26 +179,26 @@ Function SetupEditUnitsPage()
     SetCursorPosition(1)
 
     AddHeaderOption("$sab_mcm_unitedit_header_skills")
-    AddSliderOptionST("UNITEDIT_SKL_MARKSMAN", "$sab_mcm_unitedit_slider_marksman", JMap.getFlt(SAB_Main.UnitDataHandler.jTestGuyData, "SkillMarksman", 15.0))
-    AddSliderOptionST("UNITEDIT_SKL_ONEHANDED", "$sab_mcm_unitedit_slider_onehanded", JMap.getFlt(SAB_Main.UnitDataHandler.jTestGuyData, "SkillOneHanded", 15.0))
-    AddSliderOptionST("UNITEDIT_SKL_TWOHANDED", "$sab_mcm_unitedit_slider_twohanded", JMap.getFlt(SAB_Main.UnitDataHandler.jTestGuyData, "SkillTwoHanded", 15.0))
-    AddSliderOptionST("UNITEDIT_SKL_LIGHTARMOR", "$sab_mcm_unitedit_slider_lightarmor", JMap.getFlt(SAB_Main.UnitDataHandler.jTestGuyData, "SkillLightArmor", 15.0))
-    AddSliderOptionST("UNITEDIT_SKL_HEAVYARMOR", "$sab_mcm_unitedit_slider_heavyarmor", JMap.getFlt(SAB_Main.UnitDataHandler.jTestGuyData, "SkillHeavyArmor", 15.0))
-    AddSliderOptionST("UNITEDIT_SKL_BLOCK", "$sab_mcm_unitedit_slider_block", JMap.getFlt(SAB_Main.UnitDataHandler.jTestGuyData, "SkillBlock", 15.0))
+    AddSliderOptionST("UNITEDIT_SKL_MARKSMAN", "$sab_mcm_unitedit_slider_marksman", JMap.getFlt(jEditedUnitData, "SkillMarksman", 15.0))
+    AddSliderOptionST("UNITEDIT_SKL_ONEHANDED", "$sab_mcm_unitedit_slider_onehanded", JMap.getFlt(jEditedUnitData, "SkillOneHanded", 15.0))
+    AddSliderOptionST("UNITEDIT_SKL_TWOHANDED", "$sab_mcm_unitedit_slider_twohanded", JMap.getFlt(jEditedUnitData, "SkillTwoHanded", 15.0))
+    AddSliderOptionST("UNITEDIT_SKL_LIGHTARMOR", "$sab_mcm_unitedit_slider_lightarmor", JMap.getFlt(jEditedUnitData, "SkillLightArmor", 15.0))
+    AddSliderOptionST("UNITEDIT_SKL_HEAVYARMOR", "$sab_mcm_unitedit_slider_heavyarmor", JMap.getFlt(jEditedUnitData, "SkillHeavyArmor", 15.0))
+    AddSliderOptionST("UNITEDIT_SKL_BLOCK", "$sab_mcm_unitedit_slider_block", JMap.getFlt(jEditedUnitData, "SkillBlock", 15.0))
 
     AddEmptyOption()
 
     AddHeaderOption("$sab_mcm_unitedit_header_races")
-    AddMenuOptionST("UNITEDIT_RACE_ARGONIAN", "$sab_mcm_unitedit_race_arg", GetEditedUnitRaceStatus(SAB_Main.UnitDataHandler.jTestGuyData, "RaceArgonian"))
-    AddMenuOptionST("UNITEDIT_RACE_KHAJIIT", "$sab_mcm_unitedit_race_kha", GetEditedUnitRaceStatus(SAB_Main.UnitDataHandler.jTestGuyData, "RaceKhajiit"))
-    AddMenuOptionST("UNITEDIT_RACE_ORC", "$sab_mcm_unitedit_race_orc", GetEditedUnitRaceStatus(SAB_Main.UnitDataHandler.jTestGuyData, "RaceOrc"))
-    AddMenuOptionST("UNITEDIT_RACE_BRETON", "$sab_mcm_unitedit_race_bre", GetEditedUnitRaceStatus(SAB_Main.UnitDataHandler.jTestGuyData, "RaceBreton"))
-    AddMenuOptionST("UNITEDIT_RACE_IMPERIAL", "$sab_mcm_unitedit_race_imp", GetEditedUnitRaceStatus(SAB_Main.UnitDataHandler.jTestGuyData, "RaceImperial"))
-    AddMenuOptionST("UNITEDIT_RACE_NORD", "$sab_mcm_unitedit_race_nor", GetEditedUnitRaceStatus(SAB_Main.UnitDataHandler.jTestGuyData, "RaceNord"))
-    AddMenuOptionST("UNITEDIT_RACE_REDGUARD", "$sab_mcm_unitedit_race_red", GetEditedUnitRaceStatus(SAB_Main.UnitDataHandler.jTestGuyData, "RaceRedguard"))
-    AddMenuOptionST("UNITEDIT_RACE_DARKELF", "$sab_mcm_unitedit_race_daf", GetEditedUnitRaceStatus(SAB_Main.UnitDataHandler.jTestGuyData, "RaceDarkElf"))
-    AddMenuOptionST("UNITEDIT_RACE_HIGHELF", "$sab_mcm_unitedit_race_hif", GetEditedUnitRaceStatus(SAB_Main.UnitDataHandler.jTestGuyData, "RaceHighElf"))
-    AddMenuOptionST("UNITEDIT_RACE_WOODELF", "$sab_mcm_unitedit_race_wof", GetEditedUnitRaceStatus(SAB_Main.UnitDataHandler.jTestGuyData, "RaceWoodElf"))
+    AddMenuOptionST("UNITEDIT_RACE_ARGONIAN", "$sab_mcm_unitedit_race_arg", GetEditedUnitRaceStatus(jEditedUnitData, "RaceArgonian"))
+    AddMenuOptionST("UNITEDIT_RACE_KHAJIIT", "$sab_mcm_unitedit_race_kha", GetEditedUnitRaceStatus(jEditedUnitData, "RaceKhajiit"))
+    AddMenuOptionST("UNITEDIT_RACE_ORC", "$sab_mcm_unitedit_race_orc", GetEditedUnitRaceStatus(jEditedUnitData, "RaceOrc"))
+    AddMenuOptionST("UNITEDIT_RACE_BRETON", "$sab_mcm_unitedit_race_bre", GetEditedUnitRaceStatus(jEditedUnitData, "RaceBreton"))
+    AddMenuOptionST("UNITEDIT_RACE_IMPERIAL", "$sab_mcm_unitedit_race_imp", GetEditedUnitRaceStatus(jEditedUnitData, "RaceImperial"))
+    AddMenuOptionST("UNITEDIT_RACE_NORD", "$sab_mcm_unitedit_race_nor", GetEditedUnitRaceStatus(jEditedUnitData, "RaceNord"))
+    AddMenuOptionST("UNITEDIT_RACE_REDGUARD", "$sab_mcm_unitedit_race_red", GetEditedUnitRaceStatus(jEditedUnitData, "RaceRedguard"))
+    AddMenuOptionST("UNITEDIT_RACE_DARKELF", "$sab_mcm_unitedit_race_daf", GetEditedUnitRaceStatus(jEditedUnitData, "RaceDarkElf"))
+    AddMenuOptionST("UNITEDIT_RACE_HIGHELF", "$sab_mcm_unitedit_race_hif", GetEditedUnitRaceStatus(jEditedUnitData, "RaceHighElf"))
+    AddMenuOptionST("UNITEDIT_RACE_WOODELF", "$sab_mcm_unitedit_race_wof", GetEditedUnitRaceStatus(jEditedUnitData, "RaceWoodElf"))
     
 EndFunction
 
@@ -197,13 +232,15 @@ state UNITEDIT_CUR_UNIT
 	event OnMenuOpenST()
 		SetMenuDialogStartIndex(editedUnitIndex % 128)
 		SetMenuDialogDefaultIndex(0)
-		SetMenuDialogOptions(new string[128]) ;TODO fill options with unit names and stuff
+        SAB_Main.UnitDataHandler.SetupStringArrayWithUnitIdentifiers(editedUnitIdentifiersArray, editedUnitsMenuPage)
+		SetMenuDialogOptions(editedUnitIdentifiersArray)
 	endEvent
 
 	event OnMenuAcceptST(int index)
         int trueIndex = index + editedUnitsMenuPage * 128
 		editedUnitIndex = trueIndex
 		SetMenuOptionValueST(trueIndex)
+        ForcePageReset()
 	endEvent
 
 	event OnDefaultST()
@@ -220,14 +257,14 @@ endstate
 state UNITEDIT_NAME
 
 	event OnInputOpenST()
-        ;string unitName = JMap.getStr(JArray.getObj(SAB_Main.UnitDataHandler.jSABUnitDatasArray, editedUnitIndex), "Name", "Recruit")
-        string unitName = JMap.getStr(SAB_Main.UnitDataHandler.jTestGuyData, "Name", "Recruit")
+        string unitName = JMap.getStr(jEditedUnitData, "Name", "Recruit")
+        ; string unitName = JMap.getStr(SAB_Main.UnitDataHandler.jTestGuyData, "Name", "Recruit")
 		SetInputDialogStartText(unitName)
 	endEvent
 
 	event OnInputAcceptST(string inputs)
-        ; JMap.setStr(JArray.getObj(SAB_Main.UnitDataHandler.jSABUnitDatasArray, editedUnitIndex), "Name", input)
-        JMap.setStr(SAB_Main.UnitDataHandler.jTestGuyData, "Name", inputs)
+        JMap.setStr(jEditedUnitData, "Name", inputs)
+        ; JMap.setStr(SAB_Main.UnitDataHandler.jTestGuyData, "Name", inputs)
         SetInputOptionValueST(inputs)
 
         ;force a reset to update other fields that use the name
@@ -236,8 +273,8 @@ state UNITEDIT_NAME
 
 	event OnDefaultST()
 
-        ;JMap.setStr(JArray.getObj(SAB_Main.UnitDataHandler.jSABUnitDatasArray, editedUnitIndex), "Name", "Recruit")
-        JMap.setStr(SAB_Main.UnitDataHandler.jTestGuyData, "Name", "Recruit")
+        JMap.setStr(jEditedUnitData, "Name", "Recruit")
+        ; JMap.setStr(SAB_Main.UnitDataHandler.jTestGuyData, "Name", "Recruit")
 
 		SetInputOptionValueST("Recruit")
 
@@ -290,10 +327,17 @@ endState
 state UNITEDIT_OUTFIT
 
     event OnSelectST()
-        ; run a raceGenders update on the unit, to avoid spawning a "raceless" guy
+        ; run a raceGenders update on the unit and the outfitter guy, to avoid spawning a "raceless" guy
         SAB_Main.UnitDataHandler.SetupRaceGendersLvlActorAccordingToUnitData \ 
-            (SAB_Main.UnitDataHandler.jTestGuyData, SAB_Main.UnitDataHandler.SAB_UnitLooks_TestGuy)
-        SAB_Main.SpawnerScript.SpawnCustomizationGuy(SAB_Main.UnitDataHandler.jTestGuyData, editedUnitIndex)
+            (jEditedUnitData, (SAB_Main.UnitDataHandler.SAB_UnitAllowedRacesGenders.GetAt(editedUnitIndex) as LeveledActor))
+        SAB_Main.UnitDataHandler.SetupRaceGendersLvlActorAccordingToUnitData \ 
+            (jEditedUnitData, SAB_Main.UnitDataHandler.SAB_UnitLooks_TestGuy)
+
+        ; also set the test guy's outfit to the target unit's outfit
+        SAB_Main.UnitDataHandler.SetupGearListAccordingToUnitData \
+            (jEditedUnitData, SAB_Main.UnitDataHandler.SAB_UnitGear_TestGuy)
+
+        SAB_Main.SpawnerScript.SpawnCustomizationGuy(jEditedUnitData, editedUnitIndex)
         ShowMessage("$sab_mcm_unitedit_popup_msg_outfitguyspawned", false)
 	endEvent
 
@@ -493,9 +537,9 @@ endstate
 
 state UNITEDIT_TEST_SAVE
     event OnSelectST()
-        string filePath = JContainers.userDirectory() + "SAB/testGuyData.json"
-        JValue.writeToFile(SAB_Main.UnitDataHandler.jTestGuyData, filePath)
-        ShowMessage("Save finished. Saved to: " + filePath, false)
+        string filePath = JContainers.userDirectory() + "SAB/unitData.json"
+        JValue.writeToFile(SAB_Main.UnitDataHandler.jSABUnitDatasArray, filePath)
+        ShowMessage("$sab_mcm_shared_popup_msg_saved_to_x" + filePath, false)
 	endEvent
 
     event OnDefaultST()
@@ -509,15 +553,24 @@ endstate
 
 state UNITEDIT_TEST_LOAD
     event OnSelectST()
-        string filePath = JContainers.userDirectory() + "SAB/testGuyData.json"
+        SAB_Main.SpawnerScript.HideCustomizationGuy()
+        string filePath = JContainers.userDirectory() + "SAB/unitData.json"
+        isLoadingData = true
         int jReadData = JValue.readFromFile(filePath)
         if jReadData != 0
-            SAB_Main.UnitDataHandler.jTestGuyData = JValue.releaseAndRetain(SAB_Main.UnitDataHandler.jTestGuyData, jReadData, "ShoutAndBlade")
-            SAB_Main.UnitDataHandler.UpdateGearAndRaceListsAccordingToJMap()
-            ShowMessage("Load successful!", false)
+            ShowMessage("$sab_mcm_shared_popup_msg_load_started", false)
+            ;force a page reset to disable all action buttons!
+            ForcePageReset()
+            Utility.WaitMenuMode(0.2)
+            SAB_Main.UnitDataHandler.jSABUnitDatasArray = JValue.releaseAndRetain(SAB_Main.UnitDataHandler.jSABUnitDatasArray, jReadData, "ShoutAndBlade")
+            SAB_Main.UnitDataHandler.EnsureUnitDataArrayCount()
+            SAB_Main.UnitDataHandler.UpdateAllGearAndRaceListsAccordingToJMap()
+            isLoadingData = false
+            ShowMessage("$sab_mcm_shared_popup_msg_load_success", false)
             ForcePageReset()
         else
-            ShowMessage("Load failed! The file probably does not exist", false)
+            isLoadingData = false
+            ShowMessage("$sab_mcm_shared_popup_msg_load_fail", false)
         endif
 	endEvent
 
@@ -534,8 +587,8 @@ endstate
 Function SetupEditedUnitBaseAVSliderOnOpen(string jUnitMapKey)
     currentFieldBeingEdited = jUnitMapKey
     currentSliderDefaultValue = 50.0
-    ;float curValue = JMap.getFlt(JArray.getObj(SAB_Main.UnitDataHandler.jSABUnitDatasArray, editedUnitIndex), jUnitMapKey, currentSliderDefaultValue)
-    float curValue = JMap.getFlt(SAB_Main.UnitDataHandler.jTestGuyData, jUnitMapKey, currentSliderDefaultValue)
+    float curValue = JMap.getFlt(jEditedUnitData, jUnitMapKey, currentSliderDefaultValue)
+    ; float curValue = JMap.getFlt(SAB_Main.UnitDataHandler.jTestGuyData, jUnitMapKey, currentSliderDefaultValue)
     SetSliderDialogStartValue(curValue)
     SetSliderDialogDefaultValue(currentSliderDefaultValue)
     SetSliderDialogRange(10.0, 500.0)
@@ -546,8 +599,8 @@ EndFunction
 Function SetupEditedUnitSkillSliderOnOpen(string jUnitMapKey)
     currentFieldBeingEdited = jUnitMapKey
     currentSliderDefaultValue = 15.0
-    ;float curValue = JMap.getFlt(JArray.getObj(SAB_Main.UnitDataHandler.jSABUnitDatasArray, editedUnitIndex), jUnitMapKey, currentSliderDefaultValue)
-    float curValue = JMap.getFlt(SAB_Main.UnitDataHandler.jTestGuyData, jUnitMapKey, currentSliderDefaultValue)
+    float curValue = JMap.getFlt(jEditedUnitData, jUnitMapKey, currentSliderDefaultValue)
+    ; float curValue = JMap.getFlt(SAB_Main.UnitDataHandler.jTestGuyData, jUnitMapKey, currentSliderDefaultValue)
     SetSliderDialogStartValue(curValue)
     SetSliderDialogDefaultValue(currentSliderDefaultValue)
     SetSliderDialogRange(10.0, 100.0)
@@ -557,26 +610,28 @@ EndFunction
 ; sets up an allowed race/gender menu
 Function SetupEditedUnitRaceMenuOnOpen(string jUnitMapKey)
     currentFieldBeingEdited = jUnitMapKey
-    ;int curValue = JMap.getInt(JArray.getObj(SAB_Main.UnitDataHandler.jSABUnitDatasArray, editedUnitIndex), jUnitMapKey, 0)
-    int curValue = JMap.getInt(SAB_Main.UnitDataHandler.jTestGuyData, jUnitMapKey, 0)
+    int curValue = JMap.getInt(jEditedUnitData, jUnitMapKey, 0)
+    ; int curValue = JMap.getInt(SAB_Main.UnitDataHandler.jTestGuyData, jUnitMapKey, 0)
     SetMenuDialogStartIndex(curValue)
     SetMenuDialogDefaultIndex(0)
     SetMenuDialogOptions(unitRaceEditOptions)
 EndFunction
 
 Function SetEditedUnitSliderValue(string jUnitMapKey, float value)
-    ; JMap.setFlt(JArray.getObj(SAB_Main.UnitDataHandler.jSABUnitDatasArray, editedUnitIndex), jUnitMapKey, value)
-    JMap.setFlt(SAB_Main.UnitDataHandler.jTestGuyData, jUnitMapKey, value)
+    JMap.setFlt(jEditedUnitData, jUnitMapKey, value)
+    ; JMap.setFlt(SAB_Main.UnitDataHandler.jTestGuyData, jUnitMapKey, value)
     SetSliderOptionValueST(value)
 EndFunction
 
 Function SetEditedUnitRaceMenuValue(string jUnitMapKey, int value)
-    ; JMap.setInt(JArray.getObj(SAB_Main.UnitDataHandler.jSABUnitDatasArray, editedUnitIndex), jUnitMapKey, value)
-    JMap.setInt(SAB_Main.UnitDataHandler.jTestGuyData, jUnitMapKey, value)
+    JMap.setInt(jEditedUnitData, jUnitMapKey, value)
+    ; JMap.setInt(SAB_Main.UnitDataHandler.jTestGuyData, jUnitMapKey, value)
 
-    ;SAB_Main.UnitDataHandler.SetupRaceGendersAccordingToUnitIndex(editedUnitIndex)
     SAB_Main.UnitDataHandler.SetupRaceGendersLvlActorAccordingToUnitData \ 
-        (SAB_Main.UnitDataHandler.jTestGuyData, SAB_Main.UnitDataHandler.SAB_UnitLooks_TestGuy)
+        (jEditedUnitData, SAB_Main.UnitDataHandler.SAB_UnitAllowedRacesGenders.GetAt(editedUnitIndex) as LeveledActor)
+    ; SAB_Main.UnitDataHandler.SetupRaceGendersLvlActorAccordingToUnitData \ 
+    ;     (SAB_Main.UnitDataHandler.jTestGuyData, SAB_Main.UnitDataHandler.SAB_UnitLooks_TestGuy)
+    
 
     SetMenuOptionValueST(unitRaceEditOptions[value])
 EndFunction
@@ -596,29 +651,18 @@ string Function GetEditedUnitRaceStatus(int jUnitData, string raceKey)
 
 endfunction
 
-string Function GetEditedUnitName()
-    string value = "--NO UNIT SELECTED--"
-    
-    if editedUnitIndex != 0
-        int junitData = JArray.getObj(SAB_Main.UnitDataHandler.jSABUnitDatasArray, editedUnitIndex)
-
-        if junitData == 0
-            return value
-        endif
-
-        return JMap.getStr(junitData, "Name", "Recruit")
-    endif
-
-    return value
-EndFunction
-
 
 ;---------------------------------------------------------------------------------------------------------
 ; EDIT FACTIONS PAGE STUFF
 ;---------------------------------------------------------------------------------------------------------
 
 Function SetupEditFactionsPage()
-    ; code
+    if isLoadingData
+        AddTextOptionST("SHARED_LOADING", "$sab_mcm_shared_loading", "")
+        return
+    endif
+
+
 EndFunction
 
 
@@ -628,7 +672,12 @@ EndFunction
 ;---------------------------------------------------------------------------------------------------------
 
 Function SetupEditZonesPage()
-    ; code
+    if isLoadingData
+        AddTextOptionST("SHARED_LOADING", "$sab_mcm_shared_loading", "")
+        return
+    endif
+
+
 EndFunction
 
 
@@ -638,5 +687,10 @@ EndFunction
 ;---------------------------------------------------------------------------------------------------------
 
 Function SetupLoadSaveDataPage()
-    ; code
+    if isLoadingData
+        AddTextOptionST("SHARED_LOADING", "$sab_mcm_shared_loading", "")
+        return
+    endif
+
+
 EndFunction

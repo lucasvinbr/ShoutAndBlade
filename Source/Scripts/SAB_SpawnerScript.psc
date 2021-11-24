@@ -12,6 +12,16 @@ ReferenceAlias Property OutfitGuyAlias Auto
 
 Actor spawnedCustomizationGuy
 
+Function HideCustomizationGuy()
+	if spawnedCustomizationGuy != None
+		OutfitGuyAlias.Clear()
+		spawnedCustomizationGuy.Disable()
+		spawnedCustomizationGuy.Delete()
+	endif
+
+	spawnedCustomizationGuy = None
+EndFunction
+
 Actor Function SpawnCustomizationGuy( int jUnitDataMap, int unitIndex )
 
 	if spawnedCustomizationGuy != None
@@ -23,8 +33,10 @@ Actor Function SpawnCustomizationGuy( int jUnitDataMap, int unitIndex )
 	spawnedCustomizationGuy = None
 
 	Actor playr = Game.GetPlayer()
+	; Debug.Trace("spawn customization guy for unit index " + unitIndex)
+	; Debug.Trace("unit jMap: " + jUnitDataMap)
 	spawnedCustomizationGuy = playr.PlaceActorAtMe(CustomizationGuyBase)
-	;Debug.Notification("spawnedCustomizationGuy " + spawnedCustomizationGuy)
+	; Debug.Trace("spawnedCustomizationGuy " + spawnedCustomizationGuy)
 	CustomizeActorAccordingToDataWithNameSuffix(spawnedCustomizationGuy, jUnitDataMap, " (Outfitter)")
 	SAB_UnitIndexBeingCustomized.SetValue(unitIndex as float)
 	; teammates can wear stuff given by the player.
@@ -32,7 +44,7 @@ Actor Function SpawnCustomizationGuy( int jUnitDataMap, int unitIndex )
 	spawnedCustomizationGuy.SetPlayerTeammate(true, false)
 
 	OutfitGuyAlias.ForceRefTo(spawnedCustomizationGuy)
-	(OutfitGuyAlias as SAB_OutfitGuyStorage).SetupStorage(UnitDataHandler.SAB_UnitGear_TestGuy, UnitDataHandler.jTestGuyData)
+	(OutfitGuyAlias as SAB_OutfitGuyStorage).SetupStorage(UnitDataHandler.SAB_UnitGearSets.GetAt(unitIndex) as LeveledItem, jUnitDataMap)
 
 	return spawnedCustomizationGuy
 	
