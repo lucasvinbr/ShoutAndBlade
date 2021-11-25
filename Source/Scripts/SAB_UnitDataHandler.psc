@@ -207,13 +207,16 @@ Function SetupStringArrayWithUnitIdentifiers(string[] stringArray, int page)
     int endingIndex = (page + 1) * 128
 
     int i = startingIndex
+    int i_clamped
 
     while(i < endingIndex)
 
         int jUnitData = jArray.getObj(jSABUnitDatasArray, i)
         string unitName = jMap.getStr(jUnitData, "Name", "Recruit")
 
-        stringArray[i] = ((i + 1) as string) + " - " + unitName
+        i_clamped = i % 128
+
+        stringArray[i_clamped] = ((i + 1) as string) + " - " + unitName
 
         i += 1
     endwhile

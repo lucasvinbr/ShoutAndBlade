@@ -213,7 +213,7 @@ state UNITEDIT_MENU_PAGE
 
 	event OnSliderAcceptST(float value)
 		editedUnitsMenuPage = (value as int) - 1
-		SetSliderOptionValueST(editedUnitsMenuPage)
+		SetSliderOptionValueST(editedUnitsMenuPage + 1)
 	endEvent
 
 	event OnDefaultST()
@@ -539,7 +539,7 @@ state UNITEDIT_TEST_SAVE
     event OnSelectST()
         string filePath = JContainers.userDirectory() + "SAB/unitData.json"
         JValue.writeToFile(SAB_Main.UnitDataHandler.jSABUnitDatasArray, filePath)
-        ShowMessage("$sab_mcm_shared_popup_msg_saved_to_x" + filePath, false)
+        ShowMessage("Save: " + filePath, false)
 	endEvent
 
     event OnDefaultST()
@@ -561,7 +561,6 @@ state UNITEDIT_TEST_LOAD
             ShowMessage("$sab_mcm_shared_popup_msg_load_started", false)
             ;force a page reset to disable all action buttons!
             ForcePageReset()
-            Utility.WaitMenuMode(0.2)
             SAB_Main.UnitDataHandler.jSABUnitDatasArray = JValue.releaseAndRetain(SAB_Main.UnitDataHandler.jSABUnitDatasArray, jReadData, "ShoutAndBlade")
             SAB_Main.UnitDataHandler.EnsureUnitDataArrayCount()
             SAB_Main.UnitDataHandler.UpdateAllGearAndRaceListsAccordingToJMap()
