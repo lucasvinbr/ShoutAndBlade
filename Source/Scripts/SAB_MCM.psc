@@ -173,6 +173,9 @@ Function SetupEditUnitsPage()
     AddEmptyOption()
     AddTextOptionST("UNITEDIT_OUTFIT", "$sab_mcm_unitedit_button_outfit", "")
     AddEmptyOption()
+    AddMenuOptionST("UNITEDIT_COPY_ANOTHER_UNIT", "$sab_mcm_unitedit_button_copyfrom", \
+    "$sab_mcm_unitedit_button_copyfrom_value")
+    AddEmptyOption()
     AddTextOptionST("UNITEDIT_TEST_SAVE", "(Debug) Save testGuy data", "")
     AddTextOptionST("UNITEDIT_TEST_LOAD", "(Debug) Load testGuy data", "")
 
@@ -349,6 +352,34 @@ state UNITEDIT_OUTFIT
 		SetInfoText("$sab_mcm_unitedit_button_outfit_desc")
 	endEvent
 
+endstate
+
+state UNITEDIT_COPY_ANOTHER_UNIT
+
+	event OnMenuOpenST()
+		SetMenuDialogStartIndex(editedUnitIndex % 128)
+		SetMenuDialogDefaultIndex(0)
+        SAB_Main.UnitDataHandler.SetupStringArrayWithUnitIdentifiers(editedUnitIdentifiersArray, editedUnitsMenuPage)
+		SetMenuDialogOptions(editedUnitIdentifiersArray)
+	endEvent
+
+	event OnMenuAcceptST(int index)
+        if ShowMessage("$sab_mcm_unitedit_popup_msg_confirm_unitcopy")
+            int trueIndex = index + editedUnitsMenuPage * 128
+            SAB_Main.UnitDataHandler.CopyUnitDataFromAnotherIndex(editedUnitIndex, trueIndex)
+            SetMenuOptionValueST(trueIndex)
+            ForcePageReset()
+        endif
+	endEvent
+
+	event OnDefaultST()
+		; do nothing
+	endEvent
+
+	event OnHighlightST()
+		SetInfoText("$sab_mcm_unitedit_button_copyfrom_desc")
+	endEvent
+    
 endstate
 
 state UNITEDIT_SKL_MARKSMAN

@@ -48,6 +48,21 @@ Function InitializeJData()
     JValue.retain(jTestGuyData, "ShoutAndBlade")
 EndFunction
 
+; makes sure the unitDatasArray has 256 elements
+Function EnsureUnitDataArrayCount()
+    int count = jArray.count(jSABUnitDatasArray)
+
+    if count < 256
+        int remainingCount = 256 - count
+        int padArray = jArray.objectWithSize(remainingCount)
+
+        JArray.addFromArray(jSABUnitDatasArray, padArray)
+    elseif count > 256
+        ; if there are too many records in the array, keep the first 256 only
+        jSABUnitDatasArray = jValue.releaseAndRetain(jSABUnitDatasArray, jArray.subArray(jSABUnitDatasArray, 0, 255), "ShoutAndBlade")
+    endif
+EndFunction
+
 ; fetches the unit data and its race/gender leveledActor by its index, 
 ; and updates the leveled actor according to the data found in the unit's jmap
 Function SetupRaceGendersAccordingToUnitIndex(int unitIndex)
@@ -147,40 +162,6 @@ Function SetupGearListAccordingToUnitData(int jUnitData, LeveledItem gearList)
     EndWhile
 EndFunction
 
-int Function GetUnitIndexByUnitName(string name)
-    int i = JArray.count(jSABUnitDatasArray)
-
-    while i > 0
-        i -= 1
-
-        int unitData = JArray.getObj(jSABUnitDatasArray, i)
-        if unitData != 0
-            string unitName = jMap.getStr(unitData, "Name", "")
-
-            if unitName == name
-                return i
-            endif
-        endif
-    endwhile
-
-    return -1
-EndFunction
-
-; makes sure the unitDatasArray has 256 elements
-Function EnsureUnitDataArrayCount()
-    int count = jArray.count(jSABUnitDatasArray)
-
-    if count < 256
-        int remainingCount = 256 - count
-        int padArray = jArray.objectWithSize(remainingCount)
-
-        JArray.addFromArray(jSABUnitDatasArray, padArray)
-    elseif count > 256
-        ; if there are too many records in the array, keep the first 256 only
-        jSABUnitDatasArray = jValue.releaseAndRetain(jSABUnitDatasArray, jArray.subArray(jSABUnitDatasArray, 0, 255), "ShoutAndBlade")
-    endif
-EndFunction
-
 Function UpdateAllGearAndRaceListsAccordingToJMap()
     int i = jArray.count(jSABUnitDatasArray)
 
@@ -198,6 +179,25 @@ Function UpdateAllGearAndRaceListsAccordingToJMap()
     
     ; SetupRaceGendersLvlActorAccordingToUnitData(jTestGuyData, SAB_UnitLooks_TestGuy)
     ; SetupGearListAccordingToUnitData(jTestGuyData, SAB_UnitGear_TestGuy)
+EndFunction
+
+int Function GetUnitIndexByUnitName(string name)
+    int i = JArray.count(jSABUnitDatasArray)
+
+    while i > 0
+        i -= 1
+
+        int unitData = JArray.getObj(jSABUnitDatasArray, i)
+        if unitData != 0
+            string unitName = jMap.getStr(unitData, "Name", "")
+
+            if unitName == name
+                return i
+            endif
+        endif
+    endwhile
+
+    return -1
 EndFunction
 
 ; fills a 128-sized string array with unit IDs accompanied by their names.
@@ -220,6 +220,15 @@ Function SetupStringArrayWithUnitIdentifiers(string[] stringArray, int page)
 
         i += 1
     endwhile
+EndFunction
+
+Function CopyUnitDataFromAnotherIndex(int indexToCopyTo, int indexToCopyFrom)
+    int jUnitCopyFrom = jArray.getObj(jSABUnitDatasArray, indexToCopyFrom)
+    int jUnitCopy = jValue.deepCopy(jUnitCopyFrom)
+    JArray.setObj(jSABUnitDatasArray, indexToCopyTo, jUnitCopy)
+
+    SetupRaceGendersLvlActorAccordingToUnitData(jUnitCopy, SAB_UnitAllowedRacesGenders.GetAt(indexToCopyTo) as LeveledActor)
+    SetupGearListAccordingToUnitData(jUnitCopy, SAB_UnitGearSets.GetAt(indexToCopyTo) as LeveledItem)
 EndFunction
 
 ; unitData jmap entries:
