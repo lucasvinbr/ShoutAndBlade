@@ -2,6 +2,8 @@ scriptname SAB_MCM extends SKI_ConfigBase
 
 SAB_MainQuest Property SAB_Main Auto
 
+string lastOpenedModPage = ""
+
 ; since we want more than 128 custom units, we need two arrays (0 or 1 here)
 int editedUnitsMenuPage = 0
 
@@ -58,16 +60,26 @@ Event OnVersionUpdate(Int a_version)
 EndEvent
 
 Event OnPageReset(string page)
+
+    if page == ""
+        page = lastOpenedModPage
+    endif
+
     ; check page, add options according to which page was picked and all that
     if page == Pages[0] || page == "" ; my troops
+        lastOpenedModPage = Pages[0]
         SetupMyTroopsPage()
     elseif page == Pages[1] ; edit units
+        lastOpenedModPage = Pages[1]
         SetupEditUnitsPage()
     elseif page == Pages[2] ; edit factions
+        lastOpenedModPage = Pages[2]
         SetupEditFactionsPage()
     elseif page == Pages[3] ; edit zones
+        lastOpenedModPage = Pages[3]
         SetupEditZonesPage()
     elseif page == Pages[4] ; load/save data
+        lastOpenedModPage = Pages[4]
         SetupLoadSaveDataPage()
     endif
 EndEvent
