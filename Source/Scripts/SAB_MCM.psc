@@ -2,6 +2,10 @@ scriptname SAB_MCM extends nl_mcm_module
 
 SAB_MainQuest Property MainQuest Auto
 
+bool Property isLoadingData Auto
+
+int key_openMCM = 0x30 ; B
+
 event OnInit()
     RegisterModule("$sab_mcm_page_load_save", 4)
 endevent
@@ -9,13 +13,18 @@ endevent
 event OnPageInit()
     SetModName("Shout and Blade")
     SetLandingPage("$sab_mcm_page_edit_units")
+    isLoadingData = false
+
+    ;GoToState("MENU_CLOSED")
+    QuickHotkey = key_openMCM
 endevent
 
 event OnPageDraw()
+    SetLandingPage("$sab_mcm_page_load_save")
     SetCursorFillMode(TOP_TO_BOTTOM)
 
-    AddHeaderOption("Main Options")
-    AddParagraph("Nothing here yet")
+    AddKeyMapOptionST("KEY_OPENMCM", "$sab_mcm_main_keymap_openmcm", key_openMCM)
+    
 endevent
 
 Event OnVersionUpdate(Int a_version)
@@ -32,6 +41,27 @@ Event OnVersionUpdate(Int a_version)
 	
 	OnPageInit()
 EndEvent
+
+state KEY_OPENMCM
+
+    event OnKeyMapChangeST(string state_id, int keycode)
+		key_openMCM = keycode
+		SetKeyMapOptionValueST(key_openMCM)
+        QuickHotkey = key_openMCM
+	endevent
+
+    event OnDefaultST(string state_id)
+		key_openMCM = 0x30
+		SetKeyMapOptionValueST(key_openMCM)
+        QuickHotkey = key_openMCM
+	endevent
+
+	event OnHighlightST(string state_id)
+		SetInfoText("$sab_mcm_main_keymap_openmcm_desc")
+	endevent
+
+endstate
+
 
 
 ; Event OnConfigInit()

@@ -8,8 +8,6 @@ int editedUnitsMenuPage = 0
 int editedUnitIndex = 0
 int jEditedUnitData = 0
 
-bool isLoadingData = false
-
 ; the name of the jMap entry being hovered or edited in the currently opened dialog
 string currentFieldBeingEdited = ""
 
@@ -41,6 +39,7 @@ Event OnVersionUpdate(Int a_version)
 EndEvent
 
 Event OnPageDraw()
+    SetLandingPage("$sab_mcm_page_edit_units")
     SetupEditUnitsPage()
 EndEvent
 
@@ -95,7 +94,7 @@ endEvent
 
 Function SetupEditUnitsPage()
 
-    if isLoadingData
+    if MainPage.isLoadingData
         AddTextOptionST("SHARED_LOADING", "$sab_mcm_shared_loading", "")
         return
     endif
@@ -536,7 +535,7 @@ state UNITEDIT_TEST_LOAD
     event OnSelectST(string state_id)
         MainPage.MainQuest.SpawnerScript.HideCustomizationGuy()
         string filePath = JContainers.userDirectory() + "SAB/unitData.json"
-        isLoadingData = true
+        MainPage.isLoadingData = true
         int jReadData = JValue.readFromFile(filePath)
         if jReadData != 0
             ShowMessage("$sab_mcm_shared_popup_msg_load_started", false)
@@ -545,11 +544,11 @@ state UNITEDIT_TEST_LOAD
             MainPage.MainQuest.UnitDataHandler.jSABUnitDatasArray = JValue.releaseAndRetain(MainPage.MainQuest.UnitDataHandler.jSABUnitDatasArray, jReadData, "ShoutAndBlade")
             MainPage.MainQuest.UnitDataHandler.EnsureUnitDataArrayCount()
             MainPage.MainQuest.UnitDataHandler.UpdateAllGearAndRaceListsAccordingToJMap()
-            isLoadingData = false
+            MainPage.isLoadingData = false
             ShowMessage("$sab_mcm_shared_popup_msg_load_success", false)
             ForcePageReset()
         else
-            isLoadingData = false
+            MainPage.isLoadingData = false
             ShowMessage("$sab_mcm_shared_popup_msg_load_fail", false)
         endif
 	endEvent
