@@ -4,7 +4,7 @@ SAB_MainQuest Property MainQuest Auto
 
 bool Property isLoadingData Auto
 
-int key_openMCM = 0x30 ; B
+int key_openMCM = -1
 
 event OnInit()
     RegisterModule("$sab_mcm_page_load_save", 4)
@@ -42,6 +42,15 @@ Event OnVersionUpdate(Int a_version)
 	OnPageInit()
 EndEvent
 
+; enables or disables quickHotkey functionality by setting it to the stored value or an invalid one
+Function ToggleQuickHotkey(bool enabled)
+	if enabled
+		QuickHotkey = key_openMCM
+	else
+		QuickHotkey = -1
+	endif
+EndFunction
+
 state KEY_OPENMCM
 
     event OnKeyMapChangeST(string state_id, int keycode)
@@ -51,7 +60,7 @@ state KEY_OPENMCM
 	endevent
 
     event OnDefaultST(string state_id)
-		key_openMCM = 0x30
+		key_openMCM = -1
 		SetKeyMapOptionValueST(key_openMCM)
         QuickHotkey = key_openMCM
 	endevent

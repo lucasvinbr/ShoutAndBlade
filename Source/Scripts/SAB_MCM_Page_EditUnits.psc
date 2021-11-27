@@ -45,7 +45,7 @@ EndEvent
 
 
 ;---------------------------------------------------------------------------------------------------------
-; SHARED STUFF (too much copying of the same stuff to separate)
+; SHARED STUFF
 ;---------------------------------------------------------------------------------------------------------
 
 ; fetches the localization key based on the stateId. Should be overridden on the "base" states!
@@ -55,47 +55,12 @@ endfunction
 
 state SHARED_LOADING
 
-    event OnSelectST(string state_id)
-        ; nothing
-	endEvent
-
-    event OnDefaultST(string state_id)
-        ; nothing, just here to not fall back to the default "reset slider" procedure set up in the "common" section
-    endevent
-
 	event OnHighlightST(string state_id)
+        MainPage.ToggleQuickHotkey(true)
 		SetInfoText("$sab_mcm_shared_loading_desc")
 	endEvent
 
 endstate
-
-; event OnSliderAcceptST(string state_id, float value)
-;     Debug.Trace("OnSliderAcceptST in " + currentFieldBeingEdited)
-;     SetEditedUnitSliderValue(currentFieldBeingEdited, value)
-; endEvent
-
-; event OnMenuOpenST(string state_id)
-;     Debug.Trace("OnMenuOpenST in " + currentFieldBeingEdited)
-;     if currentFieldTypeBeingEdited == "unitedit_racegender_menu"
-;         SetupEditedUnitRaceMenuOnOpen(currentFieldBeingEdited)
-;     endif
-; endEvent
-
-; event OnMenuAcceptST(string state_id, int index)
-;     Debug.Trace("OnMenuAcceptST in " + currentFieldBeingEdited)
-;     if currentFieldTypeBeingEdited == "unitedit_racegender_menu"
-;         SetEditedUnitRaceMenuValue(currentFieldBeingEdited, index)
-;     endif
-; endEvent
-
-; event OnDefaultST(string state_id)
-;     Debug.Trace("OnDefaultST in " + currentFieldBeingEdited)
-;     if currentFieldTypeBeingEdited == "unitedit_slider"
-;         SetEditedUnitSliderValue(currentFieldBeingEdited, currentSliderDefaultValue)
-;     ElseIf currentFieldTypeBeingEdited == "unitedit_racegender_menu"
-;         SetEditedUnitRaceMenuValue(currentFieldBeingEdited, 0)
-;     endif
-; endEvent
 
 ;---------------------------------------------------------------------------------------------------------
 ; EDIT UNITS PAGE STUFF
@@ -183,6 +148,7 @@ state UNITEDIT_MENU_PAGE
 	endEvent
 
 	event OnHighlightST(string state_id)
+        MainPage.ToggleQuickHotkey(true)
 		SetInfoText("$sab_mcm_unitedit_slider_menupage_desc")
 	endEvent
 endState
@@ -210,6 +176,7 @@ state UNITEDIT_CUR_UNIT
 	endEvent
 
 	event OnHighlightST(string state_id)
+        MainPage.ToggleQuickHotkey(true)
 		SetInfoText("$sab_mcm_unitedit_menu_currentunit_desc")
 	endEvent
     
@@ -224,6 +191,7 @@ state UNITEDIT_NAME
 	endEvent
 
 	event OnInputAcceptST(string state_id, string inputs)
+        MainPage.ToggleQuickHotkey(true)
         JMap.setStr(jEditedUnitData, "Name", inputs)
         ; JMap.setStr(SAB_MCM.SAB_Main.UnitDataHandler.jTestGuyData, "Name", inputs)
         SetInputOptionValueST(inputs)
@@ -244,6 +212,7 @@ state UNITEDIT_NAME
 	endEvent
 
 	event OnHighlightST(string state_id)
+        MainPage.ToggleQuickHotkey(false)
 		SetInfoText("$sab_mcm_unitedit_input_unitname_desc")
 	endEvent
     
@@ -264,6 +233,7 @@ state UNITEDIT_BASEAV
     endEvent
 
 	event OnHighlightST(string state_id)
+        MainPage.ToggleQuickHotkey(true)
         currentFieldBeingEdited = state_id
         currentFieldTypeBeingEdited = "unitedit_slider"
 		SetInfoText(GetInfoTextLocaleKey(state_id))
@@ -304,6 +274,7 @@ state UNITEDIT_OUTFIT
     endevent
 
 	event OnHighlightST(string state_id)
+        MainPage.ToggleQuickHotkey(true)
 		SetInfoText("$sab_mcm_unitedit_button_outfit_desc")
 	endEvent
 
@@ -332,6 +303,7 @@ state UNITEDIT_COPY_ANOTHER_UNIT
 	endEvent
 
 	event OnHighlightST(string state_id)
+        MainPage.ToggleQuickHotkey(true)
 		SetInfoText("$sab_mcm_unitedit_button_copyfrom_desc")
 	endEvent
     
@@ -352,6 +324,7 @@ state UNITEDIT_SKL
     endEvent
 
 	event OnHighlightST(string state_id)
+        MainPage.ToggleQuickHotkey(true)
         currentFieldBeingEdited = state_id
         currentFieldTypeBeingEdited = "unitedit_slider"
 		SetInfoText(GetInfoTextLocaleKey(state_id))
@@ -391,6 +364,7 @@ state UNITEDIT_RACE
     endEvent
 
     event OnHighlightST(string state_id)
+        MainPage.ToggleQuickHotkey(true)
         currentFieldBeingEdited = state_id
         currentFieldTypeBeingEdited = "unitedit_racegender_menu"
 		SetInfoText("$sab_mcm_unitedit_race_generic_desc")
@@ -411,6 +385,7 @@ state UNITEDIT_TEST_SAVE
     endevent
 
 	event OnHighlightST(string state_id)
+        MainPage.ToggleQuickHotkey(true)
 		SetInfoText("Test Save Guy")
 	endEvent
 endstate
@@ -442,6 +417,7 @@ state UNITEDIT_TEST_LOAD
     endevent
 
 	event OnHighlightST(string state_id)
+        MainPage.ToggleQuickHotkey(true)
 		SetInfoText("Test Load Guy")
 	endEvent
 endstate
