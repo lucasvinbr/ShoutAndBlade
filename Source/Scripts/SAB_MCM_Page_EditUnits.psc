@@ -48,6 +48,11 @@ EndEvent
 ; SHARED STUFF (too much copying of the same stuff to separate)
 ;---------------------------------------------------------------------------------------------------------
 
+; fetches the localization key based on the stateId. Should be overridden on the "base" states!
+string function GetInfoTextLocaleKey(string stateId)
+    "$sab_mcm_unitedit_slider_health_desc"
+endfunction
+
 state SHARED_LOADING
 
     event OnSelectST(string state_id)
@@ -64,29 +69,33 @@ state SHARED_LOADING
 
 endstate
 
-event OnSliderAcceptST(string state_id, float value)
-    SetEditedUnitSliderValue(currentFieldBeingEdited, value)
-endEvent
+; event OnSliderAcceptST(string state_id, float value)
+;     Debug.Trace("OnSliderAcceptST in " + currentFieldBeingEdited)
+;     SetEditedUnitSliderValue(currentFieldBeingEdited, value)
+; endEvent
 
-event OnMenuOpenST(string state_id)
-    if currentFieldTypeBeingEdited == "unitedit_racegender_menu"
-        SetupEditedUnitRaceMenuOnOpen(currentFieldBeingEdited)
-    endif
-endEvent
+; event OnMenuOpenST(string state_id)
+;     Debug.Trace("OnMenuOpenST in " + currentFieldBeingEdited)
+;     if currentFieldTypeBeingEdited == "unitedit_racegender_menu"
+;         SetupEditedUnitRaceMenuOnOpen(currentFieldBeingEdited)
+;     endif
+; endEvent
 
-event OnMenuAcceptST(string state_id, int index)
-    if currentFieldTypeBeingEdited == "unitedit_racegender_menu"
-        SetEditedUnitRaceMenuValue(currentFieldBeingEdited, index)
-    endif
-endEvent
+; event OnMenuAcceptST(string state_id, int index)
+;     Debug.Trace("OnMenuAcceptST in " + currentFieldBeingEdited)
+;     if currentFieldTypeBeingEdited == "unitedit_racegender_menu"
+;         SetEditedUnitRaceMenuValue(currentFieldBeingEdited, index)
+;     endif
+; endEvent
 
-event OnDefaultST(string state_id)
-    if currentFieldTypeBeingEdited == "unitedit_slider"
-        SetEditedUnitSliderValue(currentFieldBeingEdited, currentSliderDefaultValue)
-    ElseIf currentFieldTypeBeingEdited == "unitedit_racegender_menu"
-        SetEditedUnitRaceMenuValue(currentFieldBeingEdited, 0)
-    endif
-endEvent
+; event OnDefaultST(string state_id)
+;     Debug.Trace("OnDefaultST in " + currentFieldBeingEdited)
+;     if currentFieldTypeBeingEdited == "unitedit_slider"
+;         SetEditedUnitSliderValue(currentFieldBeingEdited, currentSliderDefaultValue)
+;     ElseIf currentFieldTypeBeingEdited == "unitedit_racegender_menu"
+;         SetEditedUnitRaceMenuValue(currentFieldBeingEdited, 0)
+;     endif
+; endEvent
 
 ;---------------------------------------------------------------------------------------------------------
 ; EDIT UNITS PAGE STUFF
@@ -115,9 +124,9 @@ Function SetupEditUnitsPage()
     
     AddHeaderOption("$sab_mcm_unitedit_header_baseinfo")
     AddInputOptionST("UNITEDIT_NAME", "$sab_mcm_unitedit_input_unitname", JMap.getStr(jEditedUnitData, "Name", "Recruit"))
-    AddSliderOptionST("UNITEDIT_HEALTH", "$sab_mcm_unitedit_slider_health", JMap.getFlt(jEditedUnitData, "Health", 50.0))
-    AddSliderOptionST("UNITEDIT_STAMINA", "$sab_mcm_unitedit_slider_stamina", JMap.getFlt(jEditedUnitData, "Stamina", 50.0))
-    AddSliderOptionST("UNITEDIT_MAGICKA", "$sab_mcm_unitedit_slider_magicka", JMap.getFlt(jEditedUnitData, "Magicka", 50.0))
+    AddSliderOptionST("UNITEDIT_BASEAV___Health", "$sab_mcm_unitedit_slider_health", JMap.getFlt(jEditedUnitData, "Health", 50.0))
+    AddSliderOptionST("UNITEDIT_BASEAV___Stamina", "$sab_mcm_unitedit_slider_stamina", JMap.getFlt(jEditedUnitData, "Stamina", 50.0))
+    AddSliderOptionST("UNITEDIT_BASEAV___Magicka", "$sab_mcm_unitedit_slider_magicka", JMap.getFlt(jEditedUnitData, "Magicka", 50.0))
 
     AddEmptyOption()
     AddTextOptionST("UNITEDIT_OUTFIT", "$sab_mcm_unitedit_button_outfit", "")
@@ -131,26 +140,26 @@ Function SetupEditUnitsPage()
     SetCursorPosition(1)
 
     AddHeaderOption("$sab_mcm_unitedit_header_skills")
-    AddSliderOptionST("UNITEDIT_SKL_MARKSMAN", "$sab_mcm_unitedit_slider_marksman", JMap.getFlt(jEditedUnitData, "SkillMarksman", 15.0))
-    AddSliderOptionST("UNITEDIT_SKL_ONEHANDED", "$sab_mcm_unitedit_slider_onehanded", JMap.getFlt(jEditedUnitData, "SkillOneHanded", 15.0))
-    AddSliderOptionST("UNITEDIT_SKL_TWOHANDED", "$sab_mcm_unitedit_slider_twohanded", JMap.getFlt(jEditedUnitData, "SkillTwoHanded", 15.0))
-    AddSliderOptionST("UNITEDIT_SKL_LIGHTARMOR", "$sab_mcm_unitedit_slider_lightarmor", JMap.getFlt(jEditedUnitData, "SkillLightArmor", 15.0))
-    AddSliderOptionST("UNITEDIT_SKL_HEAVYARMOR", "$sab_mcm_unitedit_slider_heavyarmor", JMap.getFlt(jEditedUnitData, "SkillHeavyArmor", 15.0))
-    AddSliderOptionST("UNITEDIT_SKL_BLOCK", "$sab_mcm_unitedit_slider_block", JMap.getFlt(jEditedUnitData, "SkillBlock", 15.0))
+    AddSliderOptionST("UNITEDIT_SKL___SkillMarksman", "$sab_mcm_unitedit_slider_marksman", JMap.getFlt(jEditedUnitData, "SkillMarksman", 15.0))
+    AddSliderOptionST("UNITEDIT_SKL___SkillOneHanded", "$sab_mcm_unitedit_slider_onehanded", JMap.getFlt(jEditedUnitData, "SkillOneHanded", 15.0))
+    AddSliderOptionST("UNITEDIT_SKL___SkillTwoHanded", "$sab_mcm_unitedit_slider_twohanded", JMap.getFlt(jEditedUnitData, "SkillTwoHanded", 15.0))
+    AddSliderOptionST("UNITEDIT_SKL___SkillLightArmor", "$sab_mcm_unitedit_slider_lightarmor", JMap.getFlt(jEditedUnitData, "SkillLightArmor", 15.0))
+    AddSliderOptionST("UNITEDIT_SKL___SkillHeavyArmor", "$sab_mcm_unitedit_slider_heavyarmor", JMap.getFlt(jEditedUnitData, "SkillHeavyArmor", 15.0))
+    AddSliderOptionST("UNITEDIT_SKL___SkillBlock", "$sab_mcm_unitedit_slider_block", JMap.getFlt(jEditedUnitData, "SkillBlock", 15.0))
 
     AddEmptyOption()
 
     AddHeaderOption("$sab_mcm_unitedit_header_races")
-    AddMenuOptionST("UNITEDIT_RACE_ARGONIAN", "$sab_mcm_unitedit_race_arg", GetEditedUnitRaceStatus(jEditedUnitData, "RaceArgonian"))
-    AddMenuOptionST("UNITEDIT_RACE_KHAJIIT", "$sab_mcm_unitedit_race_kha", GetEditedUnitRaceStatus(jEditedUnitData, "RaceKhajiit"))
-    AddMenuOptionST("UNITEDIT_RACE_ORC", "$sab_mcm_unitedit_race_orc", GetEditedUnitRaceStatus(jEditedUnitData, "RaceOrc"))
-    AddMenuOptionST("UNITEDIT_RACE_BRETON", "$sab_mcm_unitedit_race_bre", GetEditedUnitRaceStatus(jEditedUnitData, "RaceBreton"))
-    AddMenuOptionST("UNITEDIT_RACE_IMPERIAL", "$sab_mcm_unitedit_race_imp", GetEditedUnitRaceStatus(jEditedUnitData, "RaceImperial"))
-    AddMenuOptionST("UNITEDIT_RACE_NORD", "$sab_mcm_unitedit_race_nor", GetEditedUnitRaceStatus(jEditedUnitData, "RaceNord"))
-    AddMenuOptionST("UNITEDIT_RACE_REDGUARD", "$sab_mcm_unitedit_race_red", GetEditedUnitRaceStatus(jEditedUnitData, "RaceRedguard"))
-    AddMenuOptionST("UNITEDIT_RACE_DARKELF", "$sab_mcm_unitedit_race_daf", GetEditedUnitRaceStatus(jEditedUnitData, "RaceDarkElf"))
-    AddMenuOptionST("UNITEDIT_RACE_HIGHELF", "$sab_mcm_unitedit_race_hif", GetEditedUnitRaceStatus(jEditedUnitData, "RaceHighElf"))
-    AddMenuOptionST("UNITEDIT_RACE_WOODELF", "$sab_mcm_unitedit_race_wof", GetEditedUnitRaceStatus(jEditedUnitData, "RaceWoodElf"))
+    AddMenuOptionST("UNITEDIT_RACE___RaceArgonian", "$sab_mcm_unitedit_race_arg", GetEditedUnitRaceStatus(jEditedUnitData, "RaceArgonian"))
+    AddMenuOptionST("UNITEDIT_RACE___RaceKhajiit", "$sab_mcm_unitedit_race_kha", GetEditedUnitRaceStatus(jEditedUnitData, "RaceKhajiit"))
+    AddMenuOptionST("UNITEDIT_RACE___RaceOrc", "$sab_mcm_unitedit_race_orc", GetEditedUnitRaceStatus(jEditedUnitData, "RaceOrc"))
+    AddMenuOptionST("UNITEDIT_RACE___RaceBreton", "$sab_mcm_unitedit_race_bre", GetEditedUnitRaceStatus(jEditedUnitData, "RaceBreton"))
+    AddMenuOptionST("UNITEDIT_RACE___RaceImperial", "$sab_mcm_unitedit_race_imp", GetEditedUnitRaceStatus(jEditedUnitData, "RaceImperial"))
+    AddMenuOptionST("UNITEDIT_RACE___RaceNord", "$sab_mcm_unitedit_race_nor", GetEditedUnitRaceStatus(jEditedUnitData, "RaceNord"))
+    AddMenuOptionST("UNITEDIT_RACE___RaceRedguard", "$sab_mcm_unitedit_race_red", GetEditedUnitRaceStatus(jEditedUnitData, "RaceRedguard"))
+    AddMenuOptionST("UNITEDIT_RACE___RaceDarkElf", "$sab_mcm_unitedit_race_daf", GetEditedUnitRaceStatus(jEditedUnitData, "RaceDarkElf"))
+    AddMenuOptionST("UNITEDIT_RACE___RaceHighElf", "$sab_mcm_unitedit_race_hif", GetEditedUnitRaceStatus(jEditedUnitData, "RaceHighElf"))
+    AddMenuOptionST("UNITEDIT_RACE___RaceWoodElf", "$sab_mcm_unitedit_race_wof", GetEditedUnitRaceStatus(jEditedUnitData, "RaceWoodElf"))
     
 EndFunction
 
@@ -240,41 +249,38 @@ state UNITEDIT_NAME
     
 endstate
 
-state UNITEDIT_HEALTH
-	event OnSliderOpenST(string state_id)
+state UNITEDIT_BASEAV
+
+    event OnSliderOpenST(string state_id)
         SetupEditedUnitBaseAVSliderOnOpen(currentFieldBeingEdited)
 	endEvent
 
-	event OnHighlightST(string state_id)
-        currentFieldBeingEdited = "Health"
-        currentFieldTypeBeingEdited = "unitedit_slider"
-		SetInfoText("$sab_mcm_unitedit_slider_health_desc")
-	endEvent
-endState
+    event OnSliderAcceptST(string state_id, float value)
+        SetEditedUnitSliderValue(currentFieldBeingEdited, value)
+    endEvent
 
-state UNITEDIT_STAMINA
-	event OnSliderOpenST(string state_id)
-        SetupEditedUnitBaseAVSliderOnOpen(currentFieldBeingEdited)
-	endEvent
+    event OnDefaultST(string state_id)
+        SetEditedUnitSliderValue(currentFieldBeingEdited, currentSliderDefaultValue)
+    endEvent
 
 	event OnHighlightST(string state_id)
-        currentFieldBeingEdited = "Stamina"
+        currentFieldBeingEdited = state_id
         currentFieldTypeBeingEdited = "unitedit_slider"
-		SetInfoText("$sab_mcm_unitedit_slider_stamina_desc")
-	endEvent
-endState
-
-state UNITEDIT_MAGICKA
-	event OnSliderOpenST(string state_id)
-        SetupEditedUnitBaseAVSliderOnOpen(currentFieldBeingEdited)
+		SetInfoText(GetInfoTextLocaleKey(state_id))
 	endEvent
 
-	event OnHighlightST(string state_id)
-        currentFieldBeingEdited = "Magicka"
-        currentFieldTypeBeingEdited = "unitedit_slider"
-		SetInfoText("$sab_mcm_unitedit_slider_magicka_desc")
-	endEvent
-endState
+    string function GetInfoTextLocaleKey(string stateId)
+        if stateId == "Health"
+            return "$sab_mcm_unitedit_slider_health_desc"
+        elseif stateId == "Stamina"
+            return "$sab_mcm_unitedit_slider_stamina_desc"
+        elseif stateId == "Magicka"
+            return "$sab_mcm_unitedit_slider_magicka_desc"
+        endif
+    endfunction
+    
+
+endstate
 
 state UNITEDIT_OUTFIT
 
@@ -331,189 +337,67 @@ state UNITEDIT_COPY_ANOTHER_UNIT
     
 endstate
 
-state UNITEDIT_SKL_MARKSMAN
+state UNITEDIT_SKL
 
     event OnSliderOpenST(string state_id)
         SetupEditedUnitSkillSliderOnOpen(currentFieldBeingEdited)
 	endEvent
 
-	event OnHighlightST(string state_id)
-        currentFieldBeingEdited = "SkillMarksman"
-        currentFieldTypeBeingEdited = "unitedit_slider"
-		SetInfoText("$sab_mcm_unitedit_slider_marksman_desc")
-	endEvent
+    event OnSliderAcceptST(string state_id, float value)
+        SetEditedUnitSliderValue(currentFieldBeingEdited, value)
+    endEvent
 
-endstate
-
-state UNITEDIT_SKL_ONEHANDED
-
-    event OnSliderOpenST(string state_id)
-        SetupEditedUnitSkillSliderOnOpen(currentFieldBeingEdited)
-	endEvent
+    event OnDefaultST(string state_id)
+        SetEditedUnitSliderValue(currentFieldBeingEdited, currentSliderDefaultValue)
+    endEvent
 
 	event OnHighlightST(string state_id)
-        currentFieldBeingEdited = "SkillOneHanded"
+        currentFieldBeingEdited = state_id
         currentFieldTypeBeingEdited = "unitedit_slider"
-		SetInfoText("$sab_mcm_unitedit_slider_onehanded_desc")
+		SetInfoText(GetInfoTextLocaleKey(state_id))
 	endEvent
+
+    string function GetInfoTextLocaleKey(string stateId)
+        if stateId == "SkillMarksman"
+            return "$sab_mcm_unitedit_slider_marksman_desc"
+        elseif stateId == "SkillOneHanded"
+            return "$sab_mcm_unitedit_slider_onehanded_desc"
+        elseif stateId == "SkillTwoHanded"
+            return "$sab_mcm_unitedit_slider_twohanded_desc"
+        elseif stateId == "SkillLightArmor"
+            return "$sab_mcm_unitedit_slider_lightarmor_desc"
+        elseif stateId == "SkillHeavyArmor"
+            return "$sab_mcm_unitedit_slider_heavyarmor_desc"
+        elseif stateId == "SkillBlock"
+            return "$sab_mcm_unitedit_slider_block_desc"
+        endif
+    endfunction
 
 endstate
 
-state UNITEDIT_SKL_TWOHANDED
 
-    event OnSliderOpenST(string state_id)
-        SetupEditedUnitSkillSliderOnOpen(currentFieldBeingEdited)
-	endEvent
+state UNITEDIT_RACE
 
-	event OnHighlightST(string state_id)
-        currentFieldBeingEdited = "SkillTwoHanded"
-        currentFieldTypeBeingEdited = "unitedit_slider"
-		SetInfoText("$sab_mcm_unitedit_slider_twohanded_desc")
-	endEvent
+    event OnMenuOpenST(string state_id)
+        SetupEditedUnitRaceMenuOnOpen(currentFieldBeingEdited)
+    endEvent
+    
+    event OnMenuAcceptST(string state_id, int index)
+        SetEditedUnitRaceMenuValue(currentFieldBeingEdited, index)
+    endEvent
 
-endstate
-
-state UNITEDIT_SKL_LIGHTARMOR
-
-    event OnSliderOpenST(string state_id)
-        SetupEditedUnitSkillSliderOnOpen(currentFieldBeingEdited)
-	endEvent
-
-	event OnHighlightST(string state_id)
-        currentFieldBeingEdited = "SkillLightArmor"
-        currentFieldTypeBeingEdited = "unitedit_slider"
-		SetInfoText("$sab_mcm_unitedit_slider_lightarmor_desc")
-	endEvent
-
-endstate
-
-state UNITEDIT_SKL_HEAVYARMOR
-
-    event OnSliderOpenST(string state_id)
-        SetupEditedUnitSkillSliderOnOpen(currentFieldBeingEdited)
-	endEvent
-
-	event OnHighlightST(string state_id)
-        currentFieldBeingEdited = "SkillHeavyArmor"
-        currentFieldTypeBeingEdited = "unitedit_slider"
-		SetInfoText("$sab_mcm_unitedit_slider_heavyarmor_desc")
-	endEvent
-
-endstate
-
-state UNITEDIT_SKL_BLOCK
-
-    event OnSliderOpenST(string state_id)
-        SetupEditedUnitSkillSliderOnOpen(currentFieldBeingEdited)
-	endEvent
-
-	event OnHighlightST(string state_id)
-        currentFieldBeingEdited = "SkillBlock"
-        currentFieldTypeBeingEdited = "unitedit_slider"
-		SetInfoText("$sab_mcm_unitedit_slider_block_desc")
-	endEvent
-
-endstate
-
-state UNITEDIT_RACE_ARGONIAN
+    event OnDefaultST(string state_id)
+        SetEditedUnitRaceMenuValue(currentFieldBeingEdited, 0)
+    endEvent
 
     event OnHighlightST(string state_id)
-        currentFieldBeingEdited = "RaceArgonian"
+        currentFieldBeingEdited = state_id
         currentFieldTypeBeingEdited = "unitedit_racegender_menu"
 		SetInfoText("$sab_mcm_unitedit_race_generic_desc")
 	endEvent
 
 endstate
 
-state UNITEDIT_RACE_KHAJIIT
-
-    event OnHighlightST(string state_id)
-        currentFieldBeingEdited = "RaceKhajiit"
-        currentFieldTypeBeingEdited = "unitedit_racegender_menu"
-		SetInfoText("$sab_mcm_unitedit_race_generic_desc")
-	endEvent
-
-endstate
-
-state UNITEDIT_RACE_ORC
-
-    event OnHighlightST(string state_id)
-        currentFieldBeingEdited = "RaceOrc"
-        currentFieldTypeBeingEdited = "unitedit_racegender_menu"
-		SetInfoText("$sab_mcm_unitedit_race_generic_desc")
-	endEvent
-
-endstate
-
-state UNITEDIT_RACE_BRETON
-
-    event OnHighlightST(string state_id)
-        currentFieldBeingEdited = "RaceBreton"
-        currentFieldTypeBeingEdited = "unitedit_racegender_menu"
-		SetInfoText("$sab_mcm_unitedit_race_generic_desc")
-	endEvent
-
-endstate
-
-state UNITEDIT_RACE_IMPERIAL
-
-    event OnHighlightST(string state_id)
-        currentFieldBeingEdited = "RaceImperial"
-        currentFieldTypeBeingEdited = "unitedit_racegender_menu"
-		SetInfoText("$sab_mcm_unitedit_race_generic_desc")
-	endEvent
-
-endstate
-
-state UNITEDIT_RACE_NORD
-
-    event OnHighlightST(string state_id)
-        currentFieldBeingEdited = "RaceNord"
-        currentFieldTypeBeingEdited = "unitedit_racegender_menu"
-		SetInfoText("$sab_mcm_unitedit_race_generic_desc")
-	endEvent
-
-endstate
-
-state UNITEDIT_RACE_REDGUARD
-
-    event OnHighlightST(string state_id)
-        currentFieldBeingEdited = "RaceRedguard"
-        currentFieldTypeBeingEdited = "unitedit_racegender_menu"
-		SetInfoText("$sab_mcm_unitedit_race_generic_desc")
-	endEvent
-
-endstate
-
-state UNITEDIT_RACE_DARKELF
-
-    event OnHighlightST(string state_id)
-        currentFieldBeingEdited = "RaceDarkElf"
-        currentFieldTypeBeingEdited = "unitedit_racegender_menu"
-		SetInfoText("$sab_mcm_unitedit_race_generic_desc")
-	endEvent
-
-endstate
-
-state UNITEDIT_RACE_HIGHELF
-
-    event OnHighlightST(string state_id)
-        currentFieldBeingEdited = "RaceHighElf"
-        currentFieldTypeBeingEdited = "unitedit_racegender_menu"
-		SetInfoText("$sab_mcm_unitedit_race_generic_desc")
-	endEvent
-
-endstate
-
-state UNITEDIT_RACE_WOODELF
-
-    event OnHighlightST(string state_id)
-        currentFieldBeingEdited = "RaceWoodElf"
-        currentFieldTypeBeingEdited = "unitedit_racegender_menu"
-		SetInfoText("$sab_mcm_unitedit_race_generic_desc")
-	endEvent
-
-endstate
 
 state UNITEDIT_TEST_SAVE
     event OnSelectST(string state_id)
