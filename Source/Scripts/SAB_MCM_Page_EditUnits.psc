@@ -2,6 +2,9 @@ scriptname SAB_MCM_Page_EditUnits extends nl_mcm_module
 
 SAB_MCM Property MainPage Auto
 
+Faction Property SAB_TestFaction_1 Auto
+Faction Property SAB_TestFaction_2 Auto
+
 ; since we want more than 128 custom units, we need two arrays (0 or 1 here)
 int editedUnitsMenuPage = 0
 
@@ -96,8 +99,10 @@ Function SetupEditUnitsPage()
     AddEmptyOption()
     AddTextOptionST("UNITEDIT_OUTFIT", "$sab_mcm_unitedit_button_outfit", "")
     AddEmptyOption()
-    AddMenuOptionST("UNITEDIT_COPY_ANOTHER_UNIT", "$sab_mcm_unitedit_button_copyfrom", \
-    "$sab_mcm_unitedit_button_copyfrom_value")
+    AddMenuOptionST("UNITEDIT_COPY_ANOTHER_UNIT", "$sab_mcm_unitedit_button_copyfrom", "$sab_mcm_unitedit_button_copyfrom_value")
+    AddEmptyOption()
+    AddTextOptionST("UNITEDIT_TESTSPAWN___FAC1", "$sab_mcm_unitedit_button_spawn_testfac", "1")
+    AddTextOptionST("UNITEDIT_TESTSPAWN___FAC2", "$sab_mcm_unitedit_button_spawn_testfac", "2")
     AddEmptyOption()
     AddTextOptionST("UNITEDIT_TEST_SAVE", "(Debug) Save testGuy data", "")
     AddTextOptionST("UNITEDIT_TEST_LOAD", "(Debug) Load testGuy data", "")
@@ -269,10 +274,6 @@ state UNITEDIT_OUTFIT
         ShowMessage("$sab_mcm_unitedit_popup_msg_outfitguyspawned", false)
 	endEvent
 
-    event OnDefaultST(string state_id)
-        ; nothing, just here to not fall back to the default "reset slider" procedure set up in the "common" section
-    endevent
-
 	event OnHighlightST(string state_id)
         MainPage.ToggleQuickHotkey(true)
 		SetInfoText("$sab_mcm_unitedit_button_outfit_desc")
@@ -307,6 +308,28 @@ state UNITEDIT_COPY_ANOTHER_UNIT
 		SetInfoText("$sab_mcm_unitedit_button_copyfrom_desc")
 	endEvent
     
+endstate
+
+state UNITEDIT_TESTSPAWN
+
+    event OnSelectST(string state_id)
+        ; run a raceGenders update on the unit, to avoid spawning a "raceless" guy (they won't spawn in that case)
+        MainPage.MainQuest.UnitDataHandler.GuardRaceGendersLvlActorAtIndex(editedUnitIndex)
+
+        Faction desiredOwnerFaction = SAB_TestFaction_1
+
+        if state_id == "FAC2"
+            desiredOwnerFaction = SAB_TestFaction_2
+        endif
+
+        MainPage.MainQuest.SpawnerScript.SpawnUnit(Game.GetPlayer(), desiredOwnerFaction, jEditedUnitData, editedUnitIndex)
+	endEvent
+
+	event OnHighlightST(string state_id)
+        MainPage.ToggleQuickHotkey(true)
+		SetInfoText("$sab_mcm_unitedit_button_spawn_testfac_desc")
+	endEvent
+
 endstate
 
 state UNITEDIT_SKL
@@ -411,10 +434,6 @@ state UNITEDIT_TEST_LOAD
             ShowMessage("$sab_mcm_shared_popup_msg_load_fail", false)
         endif
 	endEvent
-
-    event OnDefaultST(string state_id)
-        ; nothing, just here to not fall back to the default "reset slider" procedure set up in the "common" section
-    endevent
 
 	event OnHighlightST(string state_id)
         MainPage.ToggleQuickHotkey(true)

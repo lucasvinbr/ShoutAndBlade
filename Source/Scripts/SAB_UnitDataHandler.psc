@@ -74,6 +74,18 @@ Function SetupRaceGendersAccordingToUnitIndex(int unitIndex)
     endif
 endfunction
 
+; makes sure the leveled actor at index of the unitRaceGenders list is valid
+; (with at least one race/gender type in it)
+Function GuardRaceGendersLvlActorAtIndex(int index)
+    
+    LeveledActor unitLooks = SAB_UnitAllowedRacesGenders.GetAt(index) as LeveledActor
+
+    if unitLooks.GetNumForms() == 0
+        SetupRaceGendersLvlActorAccordingToUnitData(jArray.getObj(jSABUnitDatasArray, index), unitLooks)
+    endif
+
+EndFunction
+
 ; updates the provided lvlActor with the provided junitData's race/gender info
 Function SetupRaceGendersLvlActorAccordingToUnitData(int jUnitData, LeveledActor lvlActor)
     

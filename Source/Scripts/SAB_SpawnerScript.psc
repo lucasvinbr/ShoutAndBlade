@@ -51,7 +51,7 @@ Actor Function SpawnCustomizationGuy( int jUnitDataMap, int unitIndex )
 endFunction
 
 ;spawns a unit in the target location, customized according to the passed jMap 
-Actor Function SpawnUnit( ObjectReference LocationRef, int jUnitDataMap, int unitIndex)
+Actor Function SpawnUnit( ObjectReference LocationRef, Faction ownerFaction, int jUnitDataMap, int unitIndex)
 	
 	if LocationRef == None
 		return None
@@ -69,6 +69,7 @@ Actor Function SpawnUnit( ObjectReference LocationRef, int jUnitDataMap, int uni
 
 	Actor createdActor = LocationRef.PlaceActorAtMe(unitActorBase)
 	CustomizeActorAccordingToData(createdActor, jUnitDataMap)
+	createdActor.AddToFaction(ownerFaction)
 
 	return createdActor
 	
