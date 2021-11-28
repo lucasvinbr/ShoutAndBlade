@@ -28,6 +28,11 @@ FormList Property SAB_UnitActorBases Auto
 FormList Property SAB_UnitGearSets Auto
 {list containing each unit's "gear" leveledItem. entries' indexes should be the same as unit indexes}
 
+FormList Property SAB_UnitDuplicateItemSets Auto
+{list containing each unit's "repeated items" leveledItem. 
+This leveled item is filled with gear entries that have more than one as the item count (usually the case for arrows).
+entries' indexes should be the same as unit indexes}
+
 FormList Property SAB_UnitAllowedRacesGenders Auto
 {list containing each actor's "looks" leveledActor. entries' indexes should be the same as unit indexes}
 
@@ -39,6 +44,7 @@ int Property jTestGuyData Auto
 
 LeveledActor Property SAB_UnitLooks_TestGuy Auto
 LeveledItem Property SAB_UnitGear_TestGuy Auto
+LeveledItem Property SAB_UnitDuplicateItems_TestGuy Auto
 
 Function InitializeJData()
     jSABUnitDatasArray = JArray.objectWithSize(256)
@@ -148,7 +154,7 @@ int Function AddRaceGenderToLvlActorAccordingToUnitDataKey(int jUnitData, Levele
 
 EndFunction
 
-Function SetupGearListAccordingToUnitData(int jUnitData, LeveledItem gearList)
+Function SetupGearListAccordingToUnitData(int jUnitData, LeveledItem gearList, LeveledItem duplicateGearList)
     int jUnitGearArray = jMap.getObj(jUnitData, "jGearArray")
 
     if jUnitGearArray == 0
@@ -157,6 +163,7 @@ Function SetupGearListAccordingToUnitData(int jUnitData, LeveledItem gearList)
     endif
 
     gearList.Revert()
+    duplicateGearList.Revert()
 
     int i = jArray.count(jUnitGearArray)
 
@@ -168,12 +175,17 @@ Function SetupGearListAccordingToUnitData(int jUnitData, LeveledItem gearList)
         Form itemForm = jMap.getForm(jItemEntry, "itemForm")
         
         if itemAmount > 0 && itemForm != None
-            gearList.AddForm(itemForm, 1, itemAmount)
+            gearList.AddForm(itemForm, 1, 1)
+            
+            if itemAmount > 1
+                duplicateGearList.AddForm(itemForm, 1, itemAmount - 1)
+            endif
         endif
 
     EndWhile
 EndFunction
 
+; for each unit, attempts to set up their gear and looks leveledItems/Actors using the data stored in jSABUnitDatasArray
 Function UpdateAllGearAndRaceListsAccordingToJMap()
     int i = jArray.count(jSABUnitDatasArray)
 
@@ -184,7 +196,8 @@ Function UpdateAllGearAndRaceListsAccordingToJMap()
 
         if jUnitData != 0
             SetupRaceGendersLvlActorAccordingToUnitData(jUnitData, SAB_UnitAllowedRacesGenders.GetAt(i) as LeveledActor)
-            SetupGearListAccordingToUnitData(jUnitData, SAB_UnitGearSets.GetAt(i) as LeveledItem)
+            SetupGearListAccordingToUnitData(jUnitData, \
+                SAB_UnitGearSets.GetAt(i) as LeveledItem, SAB_UnitDuplicateItemSets.GetAt(i) as LeveledItem)
         endif
         
     EndWhile
@@ -240,7 +253,8 @@ Function CopyUnitDataFromAnotherIndex(int indexToCopyTo, int indexToCopyFrom)
     JArray.setObj(jSABUnitDatasArray, indexToCopyTo, jUnitCopy)
 
     SetupRaceGendersLvlActorAccordingToUnitData(jUnitCopy, SAB_UnitAllowedRacesGenders.GetAt(indexToCopyTo) as LeveledActor)
-    SetupGearListAccordingToUnitData(jUnitCopy, SAB_UnitGearSets.GetAt(indexToCopyTo) as LeveledItem)
+    SetupGearListAccordingToUnitData(jUnitCopy, \
+        SAB_UnitGearSets.GetAt(indexToCopyTo) as LeveledItem, SAB_UnitDuplicateItemSets.GetAt(indexToCopyTo) as LeveledItem)
 EndFunction
 
 ; unitData jmap entries:
