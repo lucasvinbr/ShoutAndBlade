@@ -11,12 +11,14 @@ int jItemAmountsArray
 int jItemFormsArray
 
 
-LeveledItem Property GearsetBeingEdited auto
+LeveledItem gearsetBeingEdited
+LeveledItem duplicatesSetBeingEdited
 
-Function SetupStorage(LeveledItem gearsetToEdit, int jUnitDataToEdit)
+Function SetupStorage(LeveledItem gearsetToEdit, LeveledItem duplicatesSetToEdit, int jUnitDataToEdit)
     
     jUnitDataBeingEdited = jUnitDataToEdit
-    GearsetBeingEdited = gearsetToEdit
+    gearsetBeingEdited = gearsetToEdit
+    duplicatesSetBeingEdited = duplicatesSetToEdit
     
     ; Debug.Trace("set up storage for unit: " + jUnitDataToEdit)
     ; empty the storage list and re-fill it with the gearset's current stuff
@@ -25,19 +27,34 @@ Function SetupStorage(LeveledItem gearsetToEdit, int jUnitDataToEdit)
 
     ; debug.Trace("setup storage!")
 
-    int i = GearsetBeingEdited.GetNumForms()
+    int jUnitGearArray = jMap.getObj(jUnitDataBeingEdited, "jGearArray")
+
+    ; create a new gear array if the unit didn't have one or it was invalid
+    if jUnitGearArray == 0
+        jUnitGearArray = jArray.object()
+        jMap.setObj(jUnitDataBeingEdited, "jGearArray", jUnitGearArray)
+    endif
+
+    int i = jArray.count(jUnitGearArray)
+    int jGearEntry = 0
 
     While (i > 0)
         i -= 1
 
-        Form itemAtIndex = GearsetBeingEdited.GetNthForm(i)
-        int itemAmount = GearsetBeingEdited.GetNthCount(i)
+        jGearEntry = jArray.getObj(jUnitGearArray, i)
 
-        if itemAmount > 0 && itemAtIndex != None
-            JArray.addForm(jItemFormsArray, itemAtIndex)
-            JArray.addInt(jItemAmountsArray, itemAmount)
+        if jGearEntry != 0
 
-            ; debug.Trace("added " + itemAmount + " of item " + itemAtIndex)
+            Form itemAtIndex = jMap.getForm(jGearEntry, "itemForm") ;gearsetBeingEdited.GetNthForm(i)
+            int itemAmount = jMap.getInt(jGearEntry, "amount") ;gearsetBeingEdited.GetNthCount(i)
+
+            if itemAmount > 0 && itemAtIndex != None
+                JArray.addForm(jItemFormsArray, itemAtIndex)
+                JArray.addInt(jItemAmountsArray, itemAmount)
+    
+                ; debug.Trace("added " + itemAmount + " of item " + itemAtIndex)
+            endif
+
         endif
 
     EndWhile
@@ -49,7 +66,12 @@ Event OnItemAdded(Form akBaseItem, int aiItemCount, ObjectReference akItemRefere
     int itemIndexInStorage = JArray.findForm(jItemFormsArray, akBaseItem)
 
     if itemIndexInStorage == -1 ; not found in storage list
-        GearsetBeingEdited.AddForm(akBaseItem, 1, aiItemCount)
+        gearsetBeingEdited.AddForm(akBaseItem, 1, 1)
+
+        if aiItemCount > 1
+            duplicatesSetBeingEdited.AddForm(akBaseItem, 1, aiItemCount - 1)
+        endif
+
         JArray.addInt(jItemAmountsArray, aiItemCount)
         JArray.addForm(jItemFormsArray, akBaseItem)
     else
@@ -97,7 +119,8 @@ endEvent
 Function RebuildGearset()
 
     ; debug.Trace("rebuild gearset leveledItem!")
-    GearsetBeingEdited.Revert()
+    gearsetBeingEdited.Revert()
+    duplicatesSetBeingEdited.Revert()
 
     int i = jArray.count(jItemFormsArray)
 
@@ -108,7 +131,11 @@ Function RebuildGearset()
         int itemAmount = jArray.getInt(jItemAmountsArray, i)
 
         if itemAmount > 0 && itemAtIndex != None
-            GearsetBeingEdited.AddForm(itemAtIndex, 1, itemAmount)
+            gearsetBeingEdited.AddForm(itemAtIndex, 1, 1)
+
+            if itemAmount > 1
+                duplicatesSetBeingEdited.AddForm(itemAtIndex, 1, itemAmount - 1)
+            endif
             ; debug.Trace("gearset add: " + itemAtIndex + ", amount: " + itemAmount)
         endif
 
@@ -116,7 +143,7 @@ Function RebuildGearset()
 
 EndFunction
 
-; rebuilds the unit's gear jArray using the data inside SAB_OutfitGuyStorageList and jItemAmountsArray
+; rebuilds the unit's gear jArray using the data inside jItemFormsArray and jItemAmountsArray
 Function RebuildUnitGearData()
 
     ; debug.Trace("rebuild gear data!")
@@ -140,7 +167,10 @@ Function RebuildUnitGearData()
         int itemAmount = jArray.getInt(jItemAmountsArray, i)
 
         if itemAmount > 0 && itemAtIndex != None
-            GearsetBeingEdited.AddForm(itemAtIndex, 1, itemAmount)
+            gearsetBeingEdited.AddForm(itemAtIndex, 1, 1)
+            if itemAmount > 1
+                duplicatesSetBeingEdited.AddForm(itemAtIndex, 1, itemAmount - 1)
+            endif
             int jNewGearEntry = jMap.object()
             jMap.setForm(jNewGearEntry, "itemForm", itemAtIndex)
             jMap.setInt(jNewGearEntry, "amount", itemAmount)

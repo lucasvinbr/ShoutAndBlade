@@ -44,7 +44,10 @@ Actor Function SpawnCustomizationGuy( int jUnitDataMap, int unitIndex )
 	spawnedCustomizationGuy.SetPlayerTeammate(true, false)
 
 	OutfitGuyAlias.ForceRefTo(spawnedCustomizationGuy)
-	(OutfitGuyAlias as SAB_OutfitGuyStorage).SetupStorage(UnitDataHandler.SAB_UnitGearSets.GetAt(unitIndex) as LeveledItem, jUnitDataMap)
+	(OutfitGuyAlias as SAB_OutfitGuyStorage).SetupStorage \
+		(UnitDataHandler.SAB_UnitGearSets.GetAt(unitIndex) as LeveledItem, \
+		UnitDataHandler.SAB_UnitDuplicateItemSets.GetAt(unitIndex) as LeveledItem, \
+		 jUnitDataMap)
 
 	return spawnedCustomizationGuy
 	

@@ -268,7 +268,9 @@ state UNITEDIT_OUTFIT
 
         ; also set the test guy's outfit to the target unit's outfit
         MainPage.MainQuest.UnitDataHandler.SetupGearListAccordingToUnitData \
-            (jEditedUnitData, MainPage.MainQuest.UnitDataHandler.SAB_UnitGear_TestGuy)
+            (jEditedUnitData, \
+            MainPage.MainQuest.UnitDataHandler.SAB_UnitGear_TestGuy, \
+            MainPage.MainQuest.UnitDataHandler.SAB_UnitDuplicateItems_TestGuy)
 
         MainPage.MainQuest.SpawnerScript.SpawnCustomizationGuy(jEditedUnitData, editedUnitIndex)
         ShowMessage("$sab_mcm_unitedit_popup_msg_outfitguyspawned", false)
