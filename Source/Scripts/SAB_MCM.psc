@@ -71,6 +71,18 @@ state KEY_OPENMCM
 
 endstate
 
+;---------------------------------------------------------------------------------------------------------
+; SHARED STUFF (used in more than one MCM page)
+;---------------------------------------------------------------------------------------------------------
+
+; returns a string with the unit's index and name, to be used in MCMs. Will fetch the unit data if it isn't provided
+string Function GetMCMUnitDisplayByUnitIndex(int unitIndex, int jUnitData = -1)
+	if jUnitData < 0
+		jUnitData = jArray.getObj(MainQuest.UnitDataHandler.jSABUnitDatasArray, unitIndex)
+	endif
+
+	return ((unitIndex + 1) as string) + " - " + JMap.getStr(jUnitData, "Name", "Recruit")
+EndFunction
 
 
 ; Event OnConfigInit()

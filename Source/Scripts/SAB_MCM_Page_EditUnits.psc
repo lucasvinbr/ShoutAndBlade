@@ -53,7 +53,7 @@ EndEvent
 
 ; fetches the localization key based on the stateId. Should be overridden on the "base" states!
 string function GetInfoTextLocaleKey(string stateId)
-    "$sab_mcm_unitedit_slider_health_desc"
+    return "$sab_mcm_unitedit_slider_health_desc"
 endfunction
 
 state SHARED_LOADING
