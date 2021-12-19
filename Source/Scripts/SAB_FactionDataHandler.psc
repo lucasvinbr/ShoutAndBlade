@@ -27,47 +27,68 @@ Function EnsureArrayCounts()
     endif
 EndFunction
 
-; returns a string array with a faction's troop trees' "preview".
-; only the first 128 troop trees will be shown (do you really need that many troop trees? hahah)
-string[] Function SetupStringArrayWithTroopTreeIdentifiers(int jTargetFactionData)
+; fills a 25-sized string array with faction IDs accompanied by their names
+Function SetupStringArrayWithFactionIdentifiers(string[] stringArray)
 
-    int jTroopTreesArray = jMap.getObj(jTargetFactionData, "jTroopTreesArray")
+    int endingIndex = 25
 
-    if jTroopTreesArray == 0
-        jTroopTreesArray = JArray.object()
-        jMap.setObj(jTargetFactionData, "jTroopTreesArray", jTroopTreesArray)
+    int i = 0
+
+    while(i < endingIndex)
+
+        int jFactionData = jArray.getObj(jSABFactionDatasArray, i)
+        string facName = jMap.getStr(jFactionData, "Name", "Faction")
+
+        stringArray[i] = ((i + 1) as string) + " - " + facName
+
+        i += 1
+    endwhile
+EndFunction
+
+; returns a string array with a faction's troop lines' "preview".
+; only the first 128 troop lines will be shown (do you really need that many troop lines? hahah)
+string[] Function CreateStringArrayWithTroopLineIdentifiers(int jTargetFactionData)
+
+    int jTroopLinesArray = jMap.getObj(jTargetFactionData, "jTroopLinesArray")
+
+    if jTroopLinesArray == 0
+        jTroopLinesArray = JArray.object()
+        jMap.setObj(jTargetFactionData, "jTroopLinesArray", jTroopLinesArray)
     endif
 
-    int arraySize = JValue.count(jTroopTreesArray)
+    int troopLinesCount = JValue.count(jTroopLinesArray)
+    int arraySize = troopLinesCount + 1
 
     if arraySize > 128
         arraySize = 128
     endif
 
-    string[] stringArr = Utility.CreateStringArray(arraySize, "-")
+    string[] stringArr = Utility.CreateStringArray(arraySize, "$sab_mcm_factionedit_menu_entry_troopline_create_new")
 
     ;write a "preview" of the beginning of each tree, using the units' indexes
     int i = 0
 
     ;vars used for each troop tree
-    int troopTreeLength
+    int troopLineLength
     int j
     string troopIndexes
 
-    while(i < arraySize)
+    while(i < troopLinesCount)
 
-        int jTroopTreeArr = jArray.getObj(jTroopTreesArray, i)
+        int jTroopLineArr = jArray.getObj(jTroopLinesArray, i)
 
-        troopTreeLength = jValue.count(jTroopTreeArr)
+        troopLineLength = jValue.count(jTroopLineArr)
         troopIndexes = ""
         j = 0
 
-        while(j < troopTreeLength)
-            int troopIndex = JArray.getInt(jTroopTreeArr, j)
+        while(j < troopLineLength)
+            int troopIndex = JArray.getInt(jTroopLineArr, j) + 1
             troopIndexes = troopIndexes + (troopIndex as string)
-            if j < troopTreeLength - 1
+            if j < troopLineLength - 1
                 troopIndexes = troopIndexes + ", "
             endif
+
+            j += 1
         endwhile
 
         stringArr[i] = ((i + 1) as string) + " - " + troopIndexes
@@ -83,12 +104,17 @@ EndFunction
 ; string Name
 ; int AvailableGold
 
+; it's a key with a value we don't care about! We only check if it exists. If it exists it means "enabled" to us. If it doesn't, it's "disabled".
+; if a faction isn't enabled, it won't "think" (it won't create new cmders, receive gold or give orders or anything)
+; int enabled
+
 ; the index of a unit from the unit datas array. This unit will be used as the commanders of this faction
 ; int CmderUnitIndex
 
 ; the index of a unit from the unit datas array. This unit will be used as the base recruit of this faction
 ; int RecruitUnitIndex
 
-; a list of troop trees, a jArray of jArrays; each array contains a list of unit indexes, ordered in their "evolution" order.
-; we can have up to 128 troop trees, because that's when we'd have to set up another array for the UI
-; int jTroopTreesArray
+; a list of troop lines, a jArray of jArrays; each array contains a list of unit indexes, ordered in their "evolution" order.
+; at least one troop line should begin with the base recruit; other lines can begin with other units, and in that way we can get a "troop tree".
+; we can have up to 128 troop lines, because that's when we'd have to set up another array for the UI
+; int jTroopLinesArray

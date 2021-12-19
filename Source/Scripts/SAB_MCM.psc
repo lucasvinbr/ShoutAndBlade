@@ -84,6 +84,15 @@ string Function GetMCMUnitDisplayByUnitIndex(int unitIndex, int jUnitData = -1)
 	return ((unitIndex + 1) as string) + " - " + JMap.getStr(jUnitData, "Name", "Recruit")
 EndFunction
 
+; returns a string with the faction's index and name, to be used in MCMs. Will fetch the faction data if it isn't provided
+string Function GetMCMFactionDisplayByFactionIndex(int factionIndex, int jFactionData = -1)
+	if jFactionData < 0
+		jFactionData = jArray.getObj(MainQuest.FactionDataHandler.jSABFactionDatasArray, factionIndex)
+	endif
+
+	return ((factionIndex + 1) as string) + " - " + JMap.getStr(jFactionData, "Name", "Faction")
+EndFunction
+
 
 ; Event OnConfigInit()
 ;     ; Pages = new string[5]
