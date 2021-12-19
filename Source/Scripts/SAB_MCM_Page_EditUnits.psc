@@ -178,6 +178,7 @@ state UNITEDIT_CUR_UNIT
 	event OnDefaultST(string state_id)
 		editedUnitIndex = 0 + editedUnitsMenuPage * 128
 		SetMenuOptionValueST(editedUnitIndex)
+        ForcePageReset()
 	endEvent
 
 	event OnHighlightST(string state_id)
@@ -451,7 +452,7 @@ Function SetupEditedUnitBaseAVSliderOnOpen(string jUnitMapKey)
     ; float curValue = JMap.getFlt(SAB_MCM.SAB_Main.UnitDataHandler.jTestGuyData, jUnitMapKey, currentSliderDefaultValue)
     SetSliderDialogStartValue(curValue)
     SetSliderDialogDefaultValue(currentSliderDefaultValue)
-    SetSliderDialogRange(10.0, 500.0)
+    SetSliderDialogRange(10.0, 1000.0)
     SetSliderDialogInterval(5)
 EndFunction
 
