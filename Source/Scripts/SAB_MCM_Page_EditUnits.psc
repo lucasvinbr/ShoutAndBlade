@@ -325,7 +325,7 @@ state UNITEDIT_TESTSPAWN
             desiredOwnerFaction = SAB_TestFaction_2
         endif
 
-        MainPage.MainQuest.SpawnerScript.SpawnUnit(Game.GetPlayer(), desiredOwnerFaction, jEditedUnitData, editedUnitIndex)
+        MainPage.MainQuest.SpawnerScript.SpawnUnit(Game.GetPlayer(), desiredOwnerFaction, editedUnitIndex, jEditedUnitData)
 	endEvent
 
 	event OnHighlightST(string state_id)

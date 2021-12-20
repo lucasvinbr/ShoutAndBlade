@@ -270,6 +270,15 @@ EndFunction
 ; float SkillHeavyArmor
 ; float SkillBlock
 
+; cost for recruiting or upgrading to this unit
+; int GoldCost
+
+; experience cost for upgrading to this unit
+; float ExpCost
+
+; in autocalc battles, this defines how strong this unit is
+; float AutocalcStrength
+
 ; an array of jMaps. Each jMap in the array has two fields: "itemForm" (form) and "amount" (int)
 ; int jGearArray
 

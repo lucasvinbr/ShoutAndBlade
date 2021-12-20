@@ -10,6 +10,9 @@ ActorBase Property CustomizationGuyBase Auto
 ReferenceAlias Property OutfitGuyAlias Auto
 { The storage handling script of the outfit customization actor }
 
+Faction Property SAB_CommanderRanksFaction Auto
+{ Faction used for defining which commander the unit should follow }
+
 Actor spawnedCustomizationGuy
 
 Function HideCustomizationGuy()
@@ -53,8 +56,8 @@ Actor Function SpawnCustomizationGuy( int jUnitDataMap, int unitIndex )
 	
 endFunction
 
-;spawns a unit in the target location, customized according to the passed jMap 
-Actor Function SpawnUnit( ObjectReference LocationRef, Faction ownerFaction, int jUnitDataMap, int unitIndex)
+; spawns a unit in the target location, customized according to the passed jMap (we fetch the map by unit index if it isn't passed) 
+Actor Function SpawnUnit( ObjectReference LocationRef, Faction ownerFaction, int unitIndex, int jUnitDataMap = -1, int cmderFollowIndex = -1)
 	
 	if LocationRef == None
 		return None
@@ -70,9 +73,18 @@ Actor Function SpawnUnit( ObjectReference LocationRef, Faction ownerFaction, int
 		return None
 	endif
 
+	if jUnitDataMap == -1
+		jUnitDataMap = jArray.getObj(UnitDataHandler.jSABUnitDatasArray, unitIndex)
+	endif
+
 	Actor createdActor = LocationRef.PlaceActorAtMe(unitActorBase)
 	CustomizeActorAccordingToData(createdActor, jUnitDataMap)
 	createdActor.AddToFaction(ownerFaction)
+
+	if cmderFollowIndex > -1
+		createdActor.AddToFaction(SAB_CommanderRanksFaction)
+		createdActor.SetFactionRank(SAB_CommanderRanksFaction, cmderFollowIndex)
+	endif
 
 	return createdActor
 	
