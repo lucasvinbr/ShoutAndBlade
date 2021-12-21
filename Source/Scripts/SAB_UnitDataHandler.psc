@@ -271,7 +271,7 @@ EndFunction
 ; float SkillBlock
 
 ; cost for recruiting or upgrading to this unit
-; int GoldCost
+; float GoldCost
 
 ; experience cost for upgrading to this unit
 ; float ExpCost

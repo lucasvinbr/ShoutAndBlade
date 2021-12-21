@@ -37,7 +37,7 @@ Event OnUpdateGameTime()
 
 	if jMap.hasKey(jFactionData, "enabled")
 		Debug.Trace("updating faction " + jMap.getStr(jFactionData, "name", "Faction"))
-		int baseAwardedGold = 500 ; TODO make this configurable
+		int baseAwardedGold = 200 ; TODO make this configurable
 
 		int currentGold = jMap.getInt(jFactionData, "AvailableGold")
 		jMap.setInt(jFactionData, "AvailableGold", currentGold + baseAwardedGold)

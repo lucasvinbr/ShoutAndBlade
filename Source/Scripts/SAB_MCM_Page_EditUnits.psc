@@ -97,17 +97,24 @@ Function SetupEditUnitsPage()
     AddSliderOptionST("UNITEDIT_BASEAV___Magicka", "$sab_mcm_unitedit_slider_magicka", JMap.getFlt(jEditedUnitData, "Magicka", 50.0))
 
     AddEmptyOption()
+    AddSliderOptionST("UNITEDIT_AUTOCALC_STRENGTH", "$sab_mcm_unitedit_slider_autocalc_strength", JMap.getFlt(jEditedUnitData, "AutocalcStrength", 1.0))
+    AddEmptyOption()
     AddTextOptionST("UNITEDIT_OUTFIT", "$sab_mcm_unitedit_button_outfit", "")
     AddEmptyOption()
     AddMenuOptionST("UNITEDIT_COPY_ANOTHER_UNIT", "$sab_mcm_unitedit_button_copyfrom", "$sab_mcm_unitedit_button_copyfrom_value")
     AddEmptyOption()
-    AddTextOptionST("UNITEDIT_TESTSPAWN___FAC1", "$sab_mcm_unitedit_button_spawn_testfac", "1")
-    AddTextOptionST("UNITEDIT_TESTSPAWN___FAC2", "$sab_mcm_unitedit_button_spawn_testfac", "2")
     AddEmptyOption()
     AddTextOptionST("UNITEDIT_TEST_SAVE", "(Debug) Save testGuy data", "")
     AddTextOptionST("UNITEDIT_TEST_LOAD", "(Debug) Load testGuy data", "")
 
     SetCursorPosition(1)
+
+    AddTextOptionST("UNITEDIT_TESTSPAWN___FAC1", "$sab_mcm_unitedit_button_spawn_testfac", "1")
+    AddTextOptionST("UNITEDIT_TESTSPAWN___FAC2", "$sab_mcm_unitedit_button_spawn_testfac", "2")
+
+    AddHeaderOption("$sab_mcm_unitedit_header_costs")
+    AddSliderOptionST("UNITEDIT_COST_GOLD", "$sab_mcm_unitedit_slider_cost_gold", JMap.getFlt(jEditedUnitData, "GoldCost", 10.0))
+    AddSliderOptionST("UNITEDIT_COST_EXP", "$sab_mcm_unitedit_slider_cost_exp", JMap.getFlt(jEditedUnitData, "ExpCost", 10.0))
 
     AddHeaderOption("$sab_mcm_unitedit_header_skills")
     AddSliderOptionST("UNITEDIT_SKL___SkillMarksman", "$sab_mcm_unitedit_slider_marksman", JMap.getFlt(jEditedUnitData, "SkillMarksman", 15.0))
@@ -371,6 +378,96 @@ state UNITEDIT_SKL
             return "$sab_mcm_unitedit_slider_block_desc"
         endif
     endfunction
+
+endstate
+
+
+state UNITEDIT_COST_GOLD
+
+    event OnSliderOpenST(string state_id)
+        currentFieldBeingEdited = "GoldCost"
+        currentSliderDefaultValue = 10.0
+        float curValue = JMap.getFlt(jEditedUnitData, "GoldCost", currentSliderDefaultValue)
+        SetSliderDialogStartValue(curValue)
+        SetSliderDialogDefaultValue(currentSliderDefaultValue)
+        SetSliderDialogRange(0.0, 1000.0)
+        SetSliderDialogInterval(1)
+	endEvent
+
+    event OnSliderAcceptST(string state_id, float value)
+        SetEditedUnitSliderValue(currentFieldBeingEdited, value)
+    endEvent
+
+    event OnDefaultST(string state_id)
+        SetEditedUnitSliderValue(currentFieldBeingEdited, currentSliderDefaultValue)
+    endEvent
+
+	event OnHighlightST(string state_id)
+        MainPage.ToggleQuickHotkey(true)
+        currentFieldBeingEdited = "GoldCost"
+        currentFieldTypeBeingEdited = "unitedit_slider"
+		SetInfoText("$sab_mcm_unitedit_slider_cost_gold_desc")
+	endEvent
+
+endstate
+
+
+state UNITEDIT_COST_EXP
+
+    event OnSliderOpenST(string state_id)
+        currentFieldBeingEdited = "ExpCost"
+        currentSliderDefaultValue = 10.0
+        float curValue = JMap.getFlt(jEditedUnitData, "ExpCost", currentSliderDefaultValue)
+        SetSliderDialogStartValue(curValue)
+        SetSliderDialogDefaultValue(currentSliderDefaultValue)
+        SetSliderDialogRange(0.0, 1000.0)
+        SetSliderDialogInterval(1)
+	endEvent
+
+    event OnSliderAcceptST(string state_id, float value)
+        SetEditedUnitSliderValue(currentFieldBeingEdited, value)
+    endEvent
+
+    event OnDefaultST(string state_id)
+        SetEditedUnitSliderValue(currentFieldBeingEdited, currentSliderDefaultValue)
+    endEvent
+
+	event OnHighlightST(string state_id)
+        MainPage.ToggleQuickHotkey(true)
+        currentFieldBeingEdited = "ExpCost"
+        currentFieldTypeBeingEdited = "unitedit_slider"
+		SetInfoText("$sab_mcm_unitedit_slider_cost_exp_desc")
+	endEvent
+
+endstate
+
+
+state UNITEDIT_AUTOCALC_STRENGTH
+
+    event OnSliderOpenST(string state_id)
+        currentFieldBeingEdited = "AutocalcStrength"
+        currentSliderDefaultValue = 1.0
+        float curValue = JMap.getFlt(jEditedUnitData, "AutocalcStrength", currentSliderDefaultValue)
+        SetSliderDialogStartValue(curValue)
+        SetSliderDialogDefaultValue(currentSliderDefaultValue)
+        SetSliderDialogRange(0.1, 100.0)
+        SetSliderDialogInterval(0.1)
+	endEvent
+
+    event OnSliderAcceptST(string state_id, float value)
+        SetEditedUnitSliderValue(currentFieldBeingEdited, value)
+    endEvent
+
+    event OnDefaultST(string state_id)
+        SetEditedUnitSliderValue(currentFieldBeingEdited, currentSliderDefaultValue)
+    endEvent
+
+	event OnHighlightST(string state_id)
+        MainPage.ToggleQuickHotkey(true)
+        currentFieldBeingEdited = "AutocalcStrength"
+        currentFieldTypeBeingEdited = "unitedit_slider"
+		SetInfoText("$sab_mcm_unitedit_slider_autocalc_strength_desc")
+	endEvent
 
 endstate
 
