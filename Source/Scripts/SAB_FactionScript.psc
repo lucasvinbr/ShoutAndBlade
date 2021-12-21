@@ -26,9 +26,10 @@ int Property jFactionData Auto
 ; cached index for looping over aliases. we store it to start from it instead of from 0 in the next search
 int checkedAliasIndex = 0
 
-event OnInit()
+function EnableFaction(int jEnabledFactionData)
+	jFactionData = jEnabledFactionData
 	RegisterForSingleUpdateGameTime(0.15)
-endEvent
+endfunction
 
 Event OnUpdateGameTime()
 	if jFactionData == 0
@@ -141,10 +142,11 @@ EndFunction
 Function CmderReachedDestination(SAB_CommanderScript commander)
 	ObjectReference cmderDest = CmderDestination_A.GetReference()
 	ObjectReference cmderRef = commander.GetReference()
+	string cmderDestType = commander.CmderDestinationType
 
-	if commander.CmderDestinationType == "B"
+	if cmderDestType == "b" || cmderDestType == "B"
 		cmderDest = CmderDestination_B.GetReference()
-	elseif commander.CmderDestinationType == "C"
+	elseif cmderDestType == "c" || cmderDestType == "C"
 		cmderDest = CmderDestination_C.GetReference()
 	endif
 

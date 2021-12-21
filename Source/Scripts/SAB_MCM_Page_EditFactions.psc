@@ -250,6 +250,7 @@ state FAC_EDIT_ENABLED
             jMap.removeKey(jEditedFactionData, "enabled")
         else
             JMap.setInt(jEditedFactionData, "enabled", 1)
+            MainPage.MainQuest.FactionDataHandler.SAB_FactionQuests[editedFactionIndex].EnableFaction(jEditedFactionData)
         endif
 
         SetToggleOptionValueST(jMap.hasKey(jEditedFactionData, "enabled"))
@@ -294,7 +295,9 @@ endState
 
 state FAC_EDIT_CMDER_SPAWN
     event OnSelectST(string state_id)
-        ShowMessage("TODO set cmder spawn here")
+        Actor player = Game.GetPlayer()
+        MainPage.MainQuest.FactionDataHandler.SAB_FactionQuests[editedFactionIndex].CmderSpawnPoint.GetReference().MoveTo(player)
+        ShowMessage("$sab_mcm_factionedit_popup_setcmderspawn")
 	endEvent
 
     event OnDefaultST(string state_id)

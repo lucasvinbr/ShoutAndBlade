@@ -1,7 +1,7 @@
 scriptname SAB_FactionDataHandler extends Quest
 {script for setting up and getting data for SAB factions.}
 
-FormList Property SAB_FactionQuests Auto
+SAB_FactionScript[] Property SAB_FactionQuests Auto
 {list containing each faction's quest. entries' indexes should be the same as faction indexes}
 
 ; an array of jMaps, each one defining a faction's data
