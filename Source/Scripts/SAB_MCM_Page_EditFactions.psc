@@ -13,13 +13,6 @@ string[] editedUnitIdentifiersArray
 int editedTroopLineIndex = 0
 int jEditedTroopLine = 0
 
-; the name of the jMap entry being hovered or edited in the currently opened dialog
-string currentFieldBeingEdited = ""
-
-; a descriptive type of the field being hovered or edited (like "race menu in edit unit panel").
-; Used because I'm too lazy to write the same thing too many times
-string currentFieldTypeBeingEdited = ""
-float currentSliderDefaultValue = 0.0
 
 event OnInit()
     RegisterModule("$sab_mcm_page_edit_factions", 2)

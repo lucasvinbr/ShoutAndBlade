@@ -14,9 +14,6 @@ int jEditedUnitData = 0
 ; the name of the jMap entry being hovered or edited in the currently opened dialog
 string currentFieldBeingEdited = ""
 
-; a descriptive type of the field being hovered or edited (like "race menu in edit unit panel").
-; Used because I'm too lazy to write the same thing too many times
-string currentFieldTypeBeingEdited = ""
 float currentSliderDefaultValue = 0.0
 
 string[] editedUnitIdentifiersArray
@@ -248,7 +245,6 @@ state UNITEDIT_BASEAV
 	event OnHighlightST(string state_id)
         MainPage.ToggleQuickHotkey(true)
         currentFieldBeingEdited = state_id
-        currentFieldTypeBeingEdited = "unitedit_slider"
 		SetInfoText(GetInfoTextLocaleKey(state_id))
 	endEvent
 
@@ -359,7 +355,6 @@ state UNITEDIT_SKL
 	event OnHighlightST(string state_id)
         MainPage.ToggleQuickHotkey(true)
         currentFieldBeingEdited = state_id
-        currentFieldTypeBeingEdited = "unitedit_slider"
 		SetInfoText(GetInfoTextLocaleKey(state_id))
 	endEvent
 
@@ -405,7 +400,6 @@ state UNITEDIT_COST_GOLD
 	event OnHighlightST(string state_id)
         MainPage.ToggleQuickHotkey(true)
         currentFieldBeingEdited = "GoldCost"
-        currentFieldTypeBeingEdited = "unitedit_slider"
 		SetInfoText("$sab_mcm_unitedit_slider_cost_gold_desc")
 	endEvent
 
@@ -435,7 +429,6 @@ state UNITEDIT_COST_EXP
 	event OnHighlightST(string state_id)
         MainPage.ToggleQuickHotkey(true)
         currentFieldBeingEdited = "ExpCost"
-        currentFieldTypeBeingEdited = "unitedit_slider"
 		SetInfoText("$sab_mcm_unitedit_slider_cost_exp_desc")
 	endEvent
 
@@ -465,7 +458,6 @@ state UNITEDIT_AUTOCALC_STRENGTH
 	event OnHighlightST(string state_id)
         MainPage.ToggleQuickHotkey(true)
         currentFieldBeingEdited = "AutocalcStrength"
-        currentFieldTypeBeingEdited = "unitedit_slider"
 		SetInfoText("$sab_mcm_unitedit_slider_autocalc_strength_desc")
 	endEvent
 
@@ -489,7 +481,6 @@ state UNITEDIT_RACE
     event OnHighlightST(string state_id)
         MainPage.ToggleQuickHotkey(true)
         currentFieldBeingEdited = state_id
-        currentFieldTypeBeingEdited = "unitedit_racegender_menu"
 		SetInfoText("$sab_mcm_unitedit_race_generic_desc")
 	endEvent
 
