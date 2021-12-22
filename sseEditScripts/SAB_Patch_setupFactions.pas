@@ -25,9 +25,9 @@ var
   baseCmderDestAPkg, baseCmderDestBPkg, baseCmderDestCPkg, baseFollowCmderPkg,
   cmderDestAPkg, cmderDestBPkg, cmderDestCPkg, followCmderPkg,
   factionQuestsFormList, sabMainQuest,
-  curEditedFaction, curEditedQuest, curEditedXmarker, curEditedElement, curEditedListElement: IInterface;
+  curEditedFaction, curEditedQuest, curEditedElement, curEditedElementTwo, curEditedListElement: IInterface;
   factionIndex, propertyName, createdUnitIndex: string;
-  i, j: integer;
+  i, j, nextAliasId: integer;
 
 begin
   // 6 is SAB's index if no other scripts are loaded before it
@@ -122,30 +122,30 @@ begin
 	curEditedListElement := ElementByPath(curEditedQuest, 'Aliases');
 	
 	// create xMarkers for each required referenceAlias of this faction
-	curEditedXmarker := wbCopyElementToFile(baseXmarker, sabFile, true, true);
-	SetEditValue(ElementByPath(curEditedXmarker, 'EDID'), 'SAB_FactionCmderSpawnPoint_' + factionIndex); //set editor ID
+	curEditedElementTwo := wbCopyElementToFile(baseXmarker, sabFile, true, true);
+	SetEditValue(ElementByPath(curEditedElementTwo, 'EDID'), 'SAB_FactionCmderSpawnPoint_' + factionIndex); //set editor ID
 	curEditedElement := ElementByIndex(curEditedListElement, 2);
-	SetNativeValue(ElementByPath(curEditedElement, 'ALFR'), FormID(curEditedXmarker));
+	SetNativeValue(ElementByPath(curEditedElement, 'ALFR'), FormID(curEditedElementTwo));
 	
-	curEditedXmarker := wbCopyElementToFile(baseXmarker, sabFile, true, true);
-	SetEditValue(ElementByPath(curEditedXmarker, 'EDID'), 'SAB_FactionCmderDestinationA_' + factionIndex); //set editor ID
+	curEditedElementTwo := wbCopyElementToFile(baseXmarker, sabFile, true, true);
+	SetEditValue(ElementByPath(curEditedElementTwo, 'EDID'), 'SAB_FactionCmderDestinationA_' + factionIndex); //set editor ID
 	curEditedElement := ElementByIndex(curEditedListElement, 3);
-	SetNativeValue(ElementByPath(curEditedElement, 'ALFR'), FormID(curEditedXmarker));
+	SetNativeValue(ElementByPath(curEditedElement, 'ALFR'), FormID(curEditedElementTwo));
 	
-	curEditedXmarker := wbCopyElementToFile(baseXmarker, sabFile, true, true);
-	SetEditValue(ElementByPath(curEditedXmarker, 'EDID'), 'SAB_FactionCmderDestinationB_' + factionIndex); //set editor ID
+	curEditedElementTwo := wbCopyElementToFile(baseXmarker, sabFile, true, true);
+	SetEditValue(ElementByPath(curEditedElementTwo, 'EDID'), 'SAB_FactionCmderDestinationB_' + factionIndex); //set editor ID
 	curEditedElement := ElementByIndex(curEditedListElement, 4);
-	SetNativeValue(ElementByPath(curEditedElement, 'ALFR'), FormID(curEditedXmarker));
+	SetNativeValue(ElementByPath(curEditedElement, 'ALFR'), FormID(curEditedElementTwo));
 	
-	curEditedXmarker := wbCopyElementToFile(baseXmarker, sabFile, true, true);
-	SetEditValue(ElementByPath(curEditedXmarker, 'EDID'), 'SAB_FactionCmderDestinationC_' + factionIndex); //set editor ID
+	curEditedElementTwo := wbCopyElementToFile(baseXmarker, sabFile, true, true);
+	SetEditValue(ElementByPath(curEditedElementTwo, 'EDID'), 'SAB_FactionCmderDestinationC_' + factionIndex); //set editor ID
 	curEditedElement := ElementByIndex(curEditedListElement, 5);
-	SetNativeValue(ElementByPath(curEditedElement, 'ALFR'), FormID(curEditedXmarker));
+	SetNativeValue(ElementByPath(curEditedElement, 'ALFR'), FormID(curEditedElementTwo));
 	
-	curEditedXmarker := wbCopyElementToFile(baseXmarker, sabFile, true, true);
-	SetEditValue(ElementByPath(curEditedXmarker, 'EDID'), 'SAB_FactionUnitSpawnPoint_' + factionIndex); //set editor ID
+	curEditedElementTwo := wbCopyElementToFile(baseXmarker, sabFile, true, true);
+	SetEditValue(ElementByPath(curEditedElementTwo, 'EDID'), 'SAB_FactionUnitSpawnPoint_' + factionIndex); //set editor ID
 	curEditedElement := ElementByIndex(curEditedListElement, 6);
-	SetNativeValue(ElementByPath(curEditedElement, 'ALFR'), FormID(curEditedXmarker));
+	SetNativeValue(ElementByPath(curEditedElement, 'ALFR'), FormID(curEditedElementTwo));
 	
 	
 
@@ -154,7 +154,7 @@ begin
   
   
   
-  // now that all factions exist, set faction relations!
+  // now that all factions exist with most of the basic data, fill in the rest and set faction relations!
   // since factions are copied from faction00, which already has an "ally" relation to itself (faction00),
   // we can just edit the first entry of the list
   // and add the rest
@@ -220,7 +220,7 @@ begin
 		SetNativeValue(ElementByPath(cmderDestCPkg, 'QNAM'), FormID(curEditedQuest));
 		
 		followCmderPkg := wbCopyElementToFile(baseFollowCmderPkg, sabFile, true, true);
-		SetEditValue(ElementByPath(followCmderPkg, 'EDID'), 'SAB_FactionPackage_' + factionIndex + '_FollowCmder_0'); //set editor ID
+		SetEditValue(ElementByPath(followCmderPkg, 'EDID'), 'SAB_FactionPackage_' + factionIndex + '_FollowCmder_1'); //set editor ID
 		SetNativeValue(ElementByPath(followCmderPkg, 'QNAM'), FormID(curEditedQuest));
 		
 		// set existing unit and cmder to use the new packages
@@ -236,13 +236,17 @@ begin
 	end;
 	
 	curEditedListElement := ElementByPath(curEditedQuest, 'Aliases');
+	nextAliasId := GetEditValue(ElementByPath(curEditedQuest, 'ANAM')); //get next available aliasId
+	
 	// create new cmders now
 	for j := 1 to 8 do begin
-	
+		
 		createdUnitIndex := (j + 1);
-	
+		// the first alias of the quest is the base cmder
 		curEditedElement := ElementAssign(curEditedListElement, HighInteger, ElementByIndex(curEditedListElement, 0), false);
 		SetEditValue(ElementByPath(curEditedElement, 'ALID'), 'Commander' + createdUnitIndex); //set editor ID
+		SetEditValue(ElementByPath(curEditedElement, 'ALST'), nextAliasId); //set alias ID
+		nextAliasId := nextAliasId + 1;
 		curEditedElement := ElementByPath(curEditedElement, 'Alias Package Data');
 		
 		if (j mod 3) = 0 then begin
@@ -255,8 +259,115 @@ begin
 		
 	end;
 	
+	// create script entries for the new cmders
+	curEditedListElement := ElementByPath(curEditedQuest, 'VMAD\Aliases');
+	// reset the aliasID counter, because we'll count through it again for each cmder
+	nextAliasId := nextAliasId - 8;
+	
+	for j := 1 to 8 do begin
+		
+		createdUnitIndex := (j + 1);
+	
+		// the first script in the alias scripts list is a cmder script!
+		curEditedElement := ElementAssign(curEditedListElement, HighInteger, ElementByIndex(curEditedListElement, 0), false);
+		SetEditValue(ElementByPath(curEditedElement, 'Object Union\Object v2\Alias'), nextAliasId);
+		
+		// get the properties list of the first and only script of the cmder
+		curEditedElement := ElementByIndex(ElementByPath(curEditedElement, 'Alias Scripts'), 0);
+		curEditedElement := ElementByPath(curEditedElement, 'Properties');
+		
+		// get the two properties we're interested in (0 = CmderDestinationType, 1 = CmderFollowFactionRank)
+		curEditedElementTwo := ElementByIndex(curEditedElement, 1);
+		curEditedElement := ElementByIndex(curEditedElement, 0);
+		
+		
+		if (j mod 3) = 0 then begin
+			SetEditValue(ElementByPath(curEditedElement, 'String'), 'a');
+		end else if (j mod 3) = 1 then begin
+			SetEditValue(ElementByPath(curEditedElement, 'String'), 'b');
+		end else begin
+			SetEditValue(ElementByPath(curEditedElement, 'String'), 'c');
+		end;
+		
+		SetEditValue(ElementByPath(curEditedElementTwo, 'Int32'), createdUnitIndex);
+		
+		nextAliasId := nextAliasId + 1;
+	end;
 	
 	
+	
+	// set up the base unit of this fac:
+	// create new "follow cmder" packages, one for each of the new cmders,
+	// then add them to the unit
+	curEditedListElement := ElementByPath(curEditedQuest, 'Aliases');
+	// base unit is index 1
+	curEditedElement := ElementByIndex(curEditedListElement, 1);
+	curEditedListElement := ElementByPath(curEditedElement, 'Alias Package Data');
+	
+	// reset the aliasID counter, because we'll count through it again for each cmder
+	nextAliasId := nextAliasId - 8;
+	
+	for j := 1 to 8 do begin
+		
+		createdUnitIndex := (j + 1);
+		// create new package based on the first one of this fac
+		curEditedElementTwo := wbCopyElementToFile(followCmderPkg, sabFile, true, true);
+		SetEditValue(ElementByPath(curEditedElementTwo, 'EDID'), 'SAB_FactionPackage_' + factionIndex + '_FollowCmder_' + createdUnitIndex); //set editor ID
+		
+		// the first entry in the package data is the "who to follow" variable
+		curEditedElement := ElementByIndex(ElementByPath(curEditedElementTwo, 'Package Data\Data Input Values'), 0);
+		SetEditValue(ElementByPath(curEditedElement, 'PTDA\Target Data\Alias'), nextAliasId);
+		
+		// we must also change the follower faction rank condition
+		curEditedElement := ElementByIndex(ElementByPath(curEditedElementTwo, 'Conditions'), 0);
+		SetEditValue(ElementByPath(curEditedElement, 'CTDA\Comparison Value'), createdUnitIndex);
+		
+		// with the package set up, add it to the unit's packages
+		curEditedElement := ElementAssign(curEditedListElement, HighInteger, nil, false);
+		//SetNativeValue(ElementByPath(curEditedElement, 'ALPC'), FormID(curEditedElementTwo));
+		SetNativeValue(curEditedElement, FormID(curEditedElementTwo));
+		
+		nextAliasId := nextAliasId + 1;
+	end;
+	
+	
+	// the base unit is all set now!
+	// it's time to make lots of copies of it
+	curEditedListElement := ElementByPath(curEditedQuest, 'Aliases');
+	// base unit is index 1
+	curEditedElement := ElementByIndex(curEditedListElement, 1);
+	
+	for j := 1 to 59 do begin
+		
+		createdUnitIndex := (j + 1);
+		
+		curEditedElementTwo := ElementAssign(curEditedListElement, HighInteger, curEditedElement, false);
+		SetEditValue(ElementByPath(curEditedElementTwo, 'ALID'), 'Unit' + createdUnitIndex); //set alias name
+		SetEditValue(ElementByPath(curEditedElementTwo, 'ALST'), nextAliasId); //set alias ID
+		
+		nextAliasId := nextAliasId + 1;
+	end;
+	
+	// make lots of copies of the unit script as well
+	curEditedListElement := ElementByPath(curEditedQuest, 'VMAD\Aliases');
+	// base unit script is index 1
+	curEditedElement := ElementByIndex(curEditedListElement, 1);
+	// count aliases from 1 to 60 again
+	nextAliasId := nextAliasId - 59;
+	
+	for j := 1 to 59 do begin
+		
+		createdUnitIndex := (j + 1);
+		
+		curEditedElementTwo := ElementAssign(curEditedListElement, HighInteger, curEditedElement, false);
+		SetEditValue(ElementByPath(curEditedElementTwo, 'Object Union\Object v2\Alias'), nextAliasId);
+		
+		nextAliasId := nextAliasId + 1;
+	end;
+	
+	
+	// finally, set the next available aliasID in the faction quest
+	SetEditValue(ElementByPath(curEditedQuest, 'ANAM'), nextAliasId);
 	
 	log('set up units and cmders for fac ' + factionIndex);
   
