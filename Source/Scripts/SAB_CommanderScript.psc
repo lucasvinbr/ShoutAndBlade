@@ -6,8 +6,14 @@ int jOwnedUnitsMap
 ; a map of "unit index - amount" ints describing the living units currently spawned by this commander
 int jSpawnedUnitsMap
 
+; an array of unit indexes, filled whenever we're looking for an unit index to spawn
+int jSpawnOptionsArray
+
 ; a simple counter for spawned living units, just to not have to iterate through the jMaps
 int spawnedUnitsAmount = 0
+
+; a simple counter for total owned living units, just to not have to iterate through the jMaps
+int totalOwnedUnitsAmount = 0
 
 ; a cached reference to the SAB spawner script so that we don't have to make lots of fetching whenever we want to spawn someone
 SAB_FactionScript factionScript
@@ -18,60 +24,169 @@ int Property CmderFollowFactionRank Auto
 string Property CmderDestinationType Auto
 { can be "A", "B" or "C". Defines which of the 3 faction destinations this cmder will always go to }
 
+; experience points the cmder can use to upgrade their units
+float availableExpPoints
+
+bool isNearby = false
+
 
 Function Setup(SAB_FactionScript factionScriptRef)
 	jOwnedUnitsMap = jValue.releaseAndRetain(jOwnedUnitsMap, jIntMap.object(), "ShoutAndBlade")
 	jSpawnedUnitsMap = jValue.releaseAndRetain(jSpawnedUnitsMap, jIntMap.object(), "ShoutAndBlade")
+	jSpawnOptionsArray = jValue.releaseAndRetain(jSpawnOptionsArray, jArray.object(), "ShoutAndBlade")
+	availableExpPoints = 0.0
+	totalOwnedUnitsAmount = 0
+	spawnedUnitsAmount = 0
 	factionScript = factionScriptRef
 	TryRecruitUnits()
 	RegisterForSingleUpdateGameTime(0.25)
 EndFunction
 
 Event OnCellAttach()
-	RegisterForUpdate(0.5)
+	debug.Trace("commander: on cell attach!")
+	RegisterForSingleUpdate(0.5)
+	isNearby = true
+EndEvent
+
+Event OnAttachedToCell()
+	debug.Trace("commander: on attached to cell!")
+	RegisterForSingleUpdate(0.5)
+	isNearby = true
 EndEvent
 
 Event OnCellDetach()
+	debug.Trace("commander: on cell detach!")
+	isNearby = false
+	UnregisterForUpdate()
+EndEvent
+
+Event OnDetachedFromCell()
+	debug.Trace("commander: on detached from cell!")
+	isNearby = false
 	UnregisterForUpdate()
 EndEvent
 
 Event OnUpdateGameTime()
+	debug.Trace("game time updating commander (pre check)!")
+	availableExpPoints += 500.0 ; TODO make this configurable
 	Actor meActor = GetReference() as Actor
+	
+	if !meActor.IsDead()
+		if !meActor.IsInCombat()
+			debug.Trace("game time updating commander!")
 
-	if !meActor.IsInCombat() && !meActor.IsBleedingOut()
-		debug.Trace("game time updating commander!")
-		TryRecruitUnits()
+			; if we have enough units, upgrade. If we don't, recruit some more
+			if totalOwnedUnitsAmount >= 30 * 0.7
+				TryUpgradeUnits()
+			else 
+				TryRecruitUnits()
+			endif
+			
+		endif
+	else 
+		ClearAliasIfOutOfTroops()
 	endif
+
+	RegisterForSingleUpdateGameTime(0.25) ; TODO make this configurable
 EndEvent
 
 Event OnUpdate()
+	;debug.Trace("real time updating commander!")
 	if spawnedUnitsAmount < 20 ; TODO make this configurable
 		; spawn random unit from "storage"
+		int indexToSpawn = GetUnitIndexToSpawn()
+		if indexToSpawn >= 0
+			SpawnUnit(indexToSpawn)
+		endif
 	endif
+
+	if isNearby
+		RegisterForSingleUpdate(0.5)
+	endif
+	
 EndEvent
 
 ; if we don't have too many units already, attempts to get some more basic recruits with the faction gold
 Function TryRecruitUnits()
 	debug.Trace("commander: try recruit units!")
-	int maxUnitSlots = 60 ; TODO make this configurable via MCM
-	int curUnitCount = 0
+	int maxUnitSlots = 30 ; TODO make this configurable via MCM
 
-	int curKey = jIntMap.nextKey(jOwnedUnitsMap, previousKey=0, endKey=0)
-	while curKey != ""
-		int unitCount = jIntMap.getInt(jOwnedUnitsMap, curKey)
-		curUnitCount += unitCount
-		curKey = jIntMap.nextKey(jOwnedUnitsMap, curKey, endKey=0)
-	endwhile
-
-	if curUnitCount < maxUnitSlots
-		int recruitedUnits = factionScript.PurchaseRecruits(maxUnitSlots - curUnitCount)
+	if totalOwnedUnitsAmount < maxUnitSlots
+		int recruitedUnits = factionScript.PurchaseRecruits(maxUnitSlots - totalOwnedUnitsAmount)
 
 		int unitIndex = jMap.getInt(factionScript.jFactionData, "RecruitUnitIndex")
 		int currentStoredAmount = jIntMap.getInt(jOwnedUnitsMap, unitIndex)
-		jIntMap.setInt(jOwnedUnitsMap, unitIndex, currentStoredAmount + 1)
+		jIntMap.setInt(jOwnedUnitsMap, unitIndex, currentStoredAmount + recruitedUnits)
+		totalOwnedUnitsAmount += recruitedUnits
 	endif
 	
 EndFunction
+
+;
+Function TryUpgradeUnits()
+	debug.Trace("commander: try upgrade units!")
+
+	; we should only upgrade units not currently spawned
+	; so if all units are spawned, no upgrades should be made
+	if spawnedUnitsAmount >= totalOwnedUnitsAmount
+		return
+	endif
+
+	int unitIndexToTrain = GetUnitIndexToSpawn()
+
+	int ownedUnitCount = jIntMap.getInt(jOwnedUnitsMap, unitIndexToTrain)
+	int spawnedUnitCount = jIntMap.getInt(jSpawnedUnitsMap, unitIndexToTrain)
+
+	if ownedUnitCount > spawnedUnitCount
+		int jUpgradeResultMap = factionScript.TryUpgradeUnits(unitIndexToTrain, ownedUnitCount - spawnedUnitCount, availableExpPoints)
+
+		if jUpgradeResultMap != 0
+			int upgradedAmount = jMap.getInt(jUpgradeResultMap, "NewUnitAmount")
+			int newUnitIndex = jMap.getInt(jUpgradeResultMap, "NewUnitIndex")
+			availableExpPoints = jMap.getFlt(jUpgradeResultMap, "RemainingExp")
+
+			; add units to the new index and remove from the old one
+			int curNewUnitStoredAmount = jIntMap.getInt(jOwnedUnitsMap, newUnitIndex)
+			jIntMap.setInt(jOwnedUnitsMap, newUnitIndex, curNewUnitStoredAmount + upgradedAmount)
+			
+			jIntMap.setInt(jOwnedUnitsMap, unitIndexToTrain, ownedUnitCount - upgradedAmount)
+
+			if ownedUnitCount - upgradedAmount <= 0
+				jIntMap.removeKey(jOwnedUnitsMap, unitIndexToTrain)
+			endif
+
+			jValue.release(jUpgradeResultMap)
+		endif
+	endif
+
+endFunction
+
+; returns a valid random unit index from our ownedUnits list, or -1 if it fails for some reason (no units available to spawn, for example)
+int Function GetUnitIndexToSpawn()
+	int i = 0
+
+	jArray.clear(jSpawnOptionsArray)
+
+	int curKey = jIntMap.nextKey(jOwnedUnitsMap, previousKey=0, endKey=0)
+	while curKey != 0
+		int ownedUnitCount = jIntMap.getInt(jOwnedUnitsMap, curKey)
+		int spawnedUnitCount = jIntMap.getInt(jSpawnedUnitsMap, curKey)
+		
+		if spawnedUnitCount < ownedUnitCount
+			jArray.addInt(jSpawnOptionsArray, curKey)
+		endif
+
+		curKey = jIntMap.nextKey(jOwnedUnitsMap, curKey, endKey=0)
+	endwhile
+
+	int spawnOptionsCount = jValue.count(jSpawnOptionsArray)
+	if spawnOptionsCount > 0
+		return jArray.getInt(jSpawnOptionsArray, Utility.RandomInt(0, spawnOptionsCount - 1))
+	endif
+
+	return -1
+endfunction
+
 
 Function SpawnUnit(int unitIndex)
 	ObjectReference spawnLocation = GetReference()
@@ -94,7 +209,7 @@ EndFunction
 ; removes the despawned unit from the spawnedUnits list, but not from the ownedUnits, so that it can spawn again later
 Function OwnedUnitHasDespawned(int unitIndex)
 	int currentSpawnedAmount = jIntMap.getInt(jSpawnedUnitsMap, unitIndex)
-	jIntMap.setInt(jSpawnedUnitsMap, unitIndex, currentSpawnedAmount - 1)
+	jIntMap.setInt(jSpawnedUnitsMap, unitIndex, currentSpawnedAmount + 1)
 
 	spawnedUnitsAmount -= 1
 EndFunction
@@ -105,6 +220,7 @@ Function OwnedUnitHasDied(int unitIndex)
 	jIntMap.setInt(jSpawnedUnitsMap, unitIndex, currentSpawnedAmount - 1)
 
 	spawnedUnitsAmount -= 1
+	totalOwnedUnitsAmount -= 1
 
 	int currentStoredAmount = jIntMap.getInt(jOwnedUnitsMap, unitIndex)
 	jIntMap.setInt(jOwnedUnitsMap, unitIndex, currentStoredAmount - 1)
@@ -121,29 +237,32 @@ Function OwnedUnitHasDied(int unitIndex)
 EndFunction
 
 Event OnPackageEnd(Package akOldPackage)
-	; TODO check if this is a reliable way to check if the cmder has reached their destination
+	; this is kind of reliable
 	factionScript.CmderReachedDestination(self)
 EndEvent
 
 Event OnCombatStateChanged(Actor akTarget, int aeCombatState)
 	if aeCombatState == 1 || aeCombatState == 2 ; engaging or searching
+		if !isNearby
+			RegisterForSingleUpdate(0.5)
+			isNearby = true
+		endif
 		; if the current spawn is too far away,
 		; update the faction's unit spawn point to where this cmder started combat
 		ObjectReference unitSpawn = factionScript.UnitSpawnPoint.GetReference()
 		ObjectReference cmderRef = GetReference()
-		if unitSpawn.GetDistance(cmderRef) > 25.0
+		if unitSpawn.GetDistance(cmderRef) > 140.0
 			unitSpawn.MoveTo(cmderRef)
 		endif
 	endif
 EndEvent
 
 event OnDeath(Actor akKiller)	
-	Clear()
+	ClearAliasIfOutOfTroops()
 endEvent
 
-Event OnEnterBleedout()
-	; if we don't have any stored units, die!
-	if jValue.empty(jOwnedUnitsMap)
-		(GetReference() as Actor).KillEssential()
+Function ClearAliasIfOutOfTroops()
+	if totalOwnedUnitsAmount <= 0
+		Clear()
 	endif
-EndEvent
+EndFunction

@@ -26,6 +26,8 @@ int Property jFactionData Auto
 ; cached index for looping over aliases. we store it to start from it instead of from 0 in the next search
 int checkedAliasIndex = 0
 
+bool cmderSpawnIsSet = false
+
 function EnableFaction(int jEnabledFactionData)
 	jFactionData = jEnabledFactionData
 	RegisterForSingleUpdateGameTime(0.15)
@@ -38,7 +40,7 @@ Event OnUpdateGameTime()
 
 	if jMap.hasKey(jFactionData, "enabled")
 		Debug.Trace("updating faction " + jMap.getStr(jFactionData, "name", "Faction"))
-		int baseAwardedGold = 200 ; TODO make this configurable
+		int baseAwardedGold = 500 ; TODO make this configurable
 
 		int currentGold = jMap.getInt(jFactionData, "AvailableGold")
 		jMap.setInt(jFactionData, "AvailableGold", currentGold + baseAwardedGold)
@@ -52,8 +54,9 @@ Event OnUpdateGameTime()
 		TrySpawnCommander()
 	endif
 	
-	float baseUpdateInterval = 1.0 ; TODO make this configurable
-	RegisterForSingleUpdateGameTime(Utility.RandomFloat(baseUpdateInterval - 0.2, baseUpdateInterval + 0.2))
+	float baseUpdateInterval = 0.4 ; TODO make this configurable
+	RegisterForSingleUpdateGameTime(Utility.RandomFloat(baseUpdateInterval - 0.1, baseUpdateInterval + 0.1))
+	Debug.Trace("done updating faction " + jMap.getStr(jFactionData, "name", "Faction"))
 EndEvent
 
 ; spends gold and returns a number of recruits "purchased".
@@ -84,12 +87,111 @@ int function PurchaseRecruits(int maxAmountPurchased = 100)
 
 endfunction
 
+
+; given the amount and index of the provided unit, the available experience points and the available faction gold,
+; attempts to upgrade the units to a random option of the upgrades available in the troop lines.
+; returns a jMap with new units' index and amount
+int function TryUpgradeUnits(int unitIndex, int unitAmount, float availableExp)
+	int currentGold = jMap.getInt(jFactionData, "AvailableGold")
+	int jUpgradeOptions = jArray.object()
+	jValue.retain(jUpgradeOptions, "ShoutAndBlade")
+
+	; iterate through troop lines, looking for the passed unitIndex, and store the indexes of the "next step" units
+	int jOurTroopLinesArr = jMap.getObj(jFactionData, "jTroopLinesArray")
+	int numTroopLines = jValue.count(jOurTroopLinesArr)
+	int relevantTroopLineLength = 0
+	int i = 0
+	int j = 0
+
+	while i < numTroopLines
+		int jCurTroopLineArr = jArray.getObj(jOurTroopLinesArr, i)
+		relevantTroopLineLength = jValue.count(jCurTroopLineArr) - 1 ; no need to look at the last index
+
+		while j < relevantTroopLineLength
+			if jArray.getInt(jCurTroopLineArr, j, -1) == unitIndex
+				JArray.addInt(jUpgradeOptions, jArray.getInt(jCurTroopLineArr, j + 1))
+			endif
+
+			j += 1
+		endwhile
+
+		i += 1
+	endwhile
+
+	; pick one of the upgrade options and calculate how many we can upgrade
+	; (it's ok to end up with 0 upgraded units)
+	int upgradedUnitIndex = jArray.getInt(jUpgradeOptions, Utility.RandomInt(0, jValue.count(jUpgradeOptions) - 1), -1)
+	int jUpgradedUnitData = jArray.getObj(SpawnerScript.UnitDataHandler.jSABUnitDatasArray, upgradedUnitIndex)
+
+	if jUpgradedUnitData == 0
+		return 0
+	endif
+
+	int goldCostPerUpg = jMap.getInt(jUpgradedUnitData, "GoldCost")
+	float expCostPerUpg = jMap.getFlt(jUpgradedUnitData, "ExpCost")
+	int upgradedAmountConsideringExp = 0
+	int upgradedAmount = 0
+	
+	; first consider gold, then exp
+	if goldCostPerUpg <= 0
+		upgradedAmount = unitAmount
+	else
+		upgradedAmount = currentGold / goldCostPerUpg
+		if upgradedAmount > unitAmount
+			upgradedAmount = unitAmount
+		endif	
+	endif
+
+	if expCostPerUpg > 0
+		upgradedAmountConsideringExp = (availableExp / expCostPerUpg) as int
+		if upgradedAmountConsideringExp < upgradedAmount
+			upgradedAmount = upgradedAmountConsideringExp
+		endif
+	endif
+	
+	if upgradedAmount > 0
+		jMap.setInt(jFactionData, "AvailableGold", currentGold - (upgradedAmount * goldCostPerUpg))
+
+		int jUpgradeResultMap = jMap.object()
+
+		jMap.setInt(jUpgradeResultMap, "NewUnitIndex", upgradedUnitIndex)
+		jMap.setInt(jUpgradeResultMap, "NewUnitAmount", upgradedAmount)
+		jMap.setFlt(jUpgradeResultMap, "RemainingExp", availableExp - (upgradedAmount * expCostPerUpg))
+
+		Debug.Trace("upgraded " + upgradedAmount + " units for " + (upgradedAmount * goldCostPerUpg) + " gold")
+		return jUpgradeResultMap
+	else 
+		return 0
+	endif
+
+
+	jValue.release(jUpgradeOptions)
+endfunction
+
+
+; moves the cmder spawn to the location of the target ref and marks the spawn as set...
+; unless the target ref is none; in that case we mark the spawn as "unset"
+Function SetCmderSpawnLocation(ObjectReference targetLocationRef)
+	if targetLocationRef != None
+		CmderSpawnPoint.GetReference().MoveTo(targetLocationRef)
+		cmderSpawnIsSet = true
+	else
+		cmderSpawnIsSet = false
+	endif
+endFunction
+
 ; if we can afford it and there's a free cmder slot,
 ; spawn a new cmder somewhere
 ReferenceAlias Function TrySpawnCommander()
 	; find a spawn for the cmder
 	; TODO consider owned zones
 	ObjectReference cmderSpawn = CmderSpawnPoint.GetReference()
+
+	if !cmderSpawnIsSet
+		; the cmder spawn point isn't set!
+		; TODO store a list of preset spawns somewhere and use it here instead of using the player pos
+		cmderSpawn = Game.GetPlayer()
+	endif
 
 	int cmderUnitTypeIndex = jMap.getInt(jFactionData, "CmderUnitIndex")
 
@@ -151,7 +253,7 @@ Function CmderReachedDestination(SAB_CommanderScript commander)
 	endif
 
 	if cmderRef.GetCurrentLocation() == cmderDest.GetCurrentLocation()
-		if cmderRef.GetDistance(cmderDest) < 25.0
+		if cmderRef.GetDistance(cmderDest) < 256.0
 			Debug.Notification("commander has arrived!!! do stuff")
 			Debug.Trace("commander has arrived!!! do stuff")
 		else

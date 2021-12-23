@@ -296,7 +296,7 @@ endState
 state FAC_EDIT_CMDER_SPAWN
     event OnSelectST(string state_id)
         Actor player = Game.GetPlayer()
-        MainPage.MainQuest.FactionDataHandler.SAB_FactionQuests[editedFactionIndex].CmderSpawnPoint.GetReference().MoveTo(player)
+        MainPage.MainQuest.FactionDataHandler.SAB_FactionQuests[editedFactionIndex].SetCmderSpawnLocation(player)
         ShowMessage("$sab_mcm_factionedit_popup_setcmderspawn")
 	endEvent
 
