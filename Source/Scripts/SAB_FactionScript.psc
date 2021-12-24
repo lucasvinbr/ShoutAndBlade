@@ -17,6 +17,8 @@ ReferenceAlias Property CmderDestination_C Auto
 
 SAB_SpawnerScript Property SpawnerScript Auto
 
+FormList Property DefaultCmderSpawnPointsList Auto
+
 Faction Property OurFaction Auto
 { This faction's... faction }
 
@@ -31,6 +33,9 @@ bool cmderSpawnIsSet = false
 function EnableFaction(int jEnabledFactionData)
 	jFactionData = jEnabledFactionData
 	RegisterForSingleUpdateGameTime(0.15)
+	CmderDestination_A.GetReference().MoveTo(GetRandomCmderDefaultSpawnPoint())
+	CmderDestination_B.GetReference().MoveTo(GetRandomCmderDefaultSpawnPoint())
+	CmderDestination_C.GetReference().MoveTo(GetRandomCmderDefaultSpawnPoint())
 endfunction
 
 Event OnUpdateGameTime()
@@ -45,11 +50,13 @@ Event OnUpdateGameTime()
 		int currentGold = jMap.getInt(jFactionData, "AvailableGold")
 		jMap.setInt(jFactionData, "AvailableGold", currentGold + baseAwardedGold)
 
-		; TODO make the faction get real move targets for the cmders
-		Actor playerRef = Game.GetPlayer()
-		CmderDestination_A.GetReference().MoveTo(playerRef)
-		CmderDestination_B.GetReference().MoveTo(playerRef)
-		CmderDestination_C.GetReference().MoveTo(playerRef)
+		if Utility.RandomInt(1, 10) > 8
+			; TODO make the faction get real move targets for the cmders
+			CmderDestination_A.GetReference().MoveTo(GetRandomCmderDefaultSpawnPoint())
+			CmderDestination_B.GetReference().MoveTo(GetRandomCmderDefaultSpawnPoint())
+			CmderDestination_C.GetReference().MoveTo(GetRandomCmderDefaultSpawnPoint())	
+		endif
+		
 
 		TrySpawnCommander()
 	endif
@@ -189,8 +196,8 @@ ReferenceAlias Function TrySpawnCommander()
 
 	if !cmderSpawnIsSet
 		; the cmder spawn point isn't set!
-		; TODO store a list of preset spawns somewhere and use it here instead of using the player pos
-		cmderSpawn = Game.GetPlayer()
+		; get a good random one from the preset spawns list
+		cmderSpawn = GetRandomCmderDefaultSpawnPoint()
 	endif
 
 	int cmderUnitTypeIndex = jMap.getInt(jFactionData, "CmderUnitIndex")
@@ -286,3 +293,23 @@ ReferenceAlias function FindEmptyAlias(string aliasPrefix)
 		endif
 	endwhile
 endfunction
+
+
+ObjectReference function GetRandomCmderDefaultSpawnPoint()
+	ObjectReference pickedSpawnPoint = DefaultCmderSpawnPointsList.GetAt(0) as ObjectReference
+	Actor player = Game.GetPlayer()
+	int numRandomAttempts = 0
+
+	while numRandomAttempts < 10
+		pickedSpawnPoint = DefaultCmderSpawnPointsList.GetAt(Utility.RandomInt(0, DefaultCmderSpawnPointsList.GetSize() - 1)) as ObjectReference
+
+		if pickedSpawnPoint.GetDistance(player) >= 800.0
+			return pickedSpawnPoint
+		endif
+
+		numRandomAttempts += 1
+
+	endwhile
+
+	return pickedSpawnPoint
+EndFunction

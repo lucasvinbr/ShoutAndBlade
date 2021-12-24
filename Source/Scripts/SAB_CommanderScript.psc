@@ -82,6 +82,8 @@ Event OnUpdateGameTime()
 				TryRecruitUnits()
 			endif
 			
+		else 
+			meActor.EvaluatePackage()
 		endif
 	else 
 		ClearAliasIfOutOfTroops()
