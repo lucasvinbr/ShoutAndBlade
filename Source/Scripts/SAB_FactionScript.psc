@@ -32,7 +32,7 @@ bool cmderSpawnIsSet = false
 
 function EnableFaction(int jEnabledFactionData)
 	jFactionData = jEnabledFactionData
-	RegisterForSingleUpdateGameTime(0.15)
+	RegisterForSingleUpdateGameTime(0.1 + Utility.RandomFloat(0.01, 0.09))
 	CmderDestination_A.GetReference().MoveTo(GetRandomCmderDefaultSpawnPoint())
 	CmderDestination_B.GetReference().MoveTo(GetRandomCmderDefaultSpawnPoint())
 	CmderDestination_C.GetReference().MoveTo(GetRandomCmderDefaultSpawnPoint())
@@ -114,6 +114,7 @@ int function TryUpgradeUnits(int unitIndex, int unitAmount, float availableExp)
 		int jCurTroopLineArr = jArray.getObj(jOurTroopLinesArr, i)
 		relevantTroopLineLength = jValue.count(jCurTroopLineArr) - 1 ; no need to look at the last index
 
+		j = 0
 		while j < relevantTroopLineLength
 			if jArray.getInt(jCurTroopLineArr, j, -1) == unitIndex
 				JArray.addInt(jUpgradeOptions, jArray.getInt(jCurTroopLineArr, j + 1))
@@ -260,7 +261,7 @@ Function CmderReachedDestination(SAB_CommanderScript commander)
 	endif
 
 	if cmderRef.GetCurrentLocation() == cmderDest.GetCurrentLocation()
-		if cmderRef.GetDistance(cmderDest) < 256.0
+		if cmderRef.GetDistance(cmderDest) < 800.0
 			Debug.Notification("commander has arrived!!! do stuff")
 			Debug.Trace("commander has arrived!!! do stuff")
 		else
@@ -303,7 +304,7 @@ ObjectReference function GetRandomCmderDefaultSpawnPoint()
 	while numRandomAttempts < 10
 		pickedSpawnPoint = DefaultCmderSpawnPointsList.GetAt(Utility.RandomInt(0, DefaultCmderSpawnPointsList.GetSize() - 1)) as ObjectReference
 
-		if pickedSpawnPoint.GetDistance(player) >= 800.0
+		if pickedSpawnPoint.GetDistance(player) >= 2500.0
 			return pickedSpawnPoint
 		endif
 

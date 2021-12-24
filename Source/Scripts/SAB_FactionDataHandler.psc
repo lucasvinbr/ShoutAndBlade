@@ -99,6 +99,27 @@ string[] Function CreateStringArrayWithTroopLineIdentifiers(int jTargetFactionDa
     return stringArr
 EndFunction
 
+; for each faction, attempts to set up their quest using the data stored in jSABUnitDatasArray
+Function UpdateAllFactionQuestsAccordingToJMap()
+    int i = jArray.count(jSABFactionDatasArray)
+
+    While (i > 0)
+        i -= 1
+        
+        int jFactionData = jArray.getObj(jSABFactionDatasArray, i)
+
+        if jFactionData != 0
+            if jMap.hasKey(jFactionData, "enabled")
+                SAB_FactionQuests[i].EnableFaction(jFactionData)
+            endif
+        endif
+        
+    EndWhile
+    
+    ; SetupRaceGendersLvlActorAccordingToUnitData(jTestGuyData, SAB_UnitLooks_TestGuy)
+    ; SetupGearListAccordingToUnitData(jTestGuyData, SAB_UnitGear_TestGuy)
+EndFunction
+
 ; factionData jmap entries:
 
 ; string Name

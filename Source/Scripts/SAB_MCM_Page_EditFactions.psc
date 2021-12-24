@@ -393,7 +393,7 @@ state FAC_EDIT_TEST_LOAD
             ForcePageReset()
             MainPage.MainQuest.FactionDataHandler.jSABFactionDatasArray = JValue.releaseAndRetain(MainPage.MainQuest.FactionDataHandler.jSABFactionDatasArray, jReadData, "ShoutAndBlade")
             MainPage.MainQuest.FactionDataHandler.EnsureArrayCounts()
-            ;MainPage.MainQuest.FactionDataHandler.UpdateAllGearAndRaceListsAccordingToJMap()
+            MainPage.MainQuest.FactionDataHandler.UpdateAllFactionQuestsAccordingToJMap()
             MainPage.isLoadingData = false
             ShowMessage("$sab_mcm_shared_popup_msg_load_success", false)
             ForcePageReset()

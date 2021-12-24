@@ -39,19 +39,19 @@ Function Setup(SAB_FactionScript factionScriptRef)
 	spawnedUnitsAmount = 0
 	factionScript = factionScriptRef
 	TryRecruitUnits()
-	RegisterForSingleUpdateGameTime(0.25)
+	RegisterForSingleUpdateGameTime(0.25 + Utility.RandomFloat(0.01, 0.09))
 EndFunction
 
 Event OnCellAttach()
 	debug.Trace("commander: on cell attach!")
-	RegisterForSingleUpdate(0.5)
 	isNearby = true
+	RegisterForSingleUpdate(0.5)
 EndEvent
 
 Event OnAttachedToCell()
 	debug.Trace("commander: on attached to cell!")
-	RegisterForSingleUpdate(0.5)
 	isNearby = true
+	RegisterForSingleUpdate(0.5)
 EndEvent
 
 Event OnCellDetach()
@@ -67,13 +67,20 @@ Event OnDetachedFromCell()
 EndEvent
 
 Event OnUpdateGameTime()
-	debug.Trace("game time updating commander (pre check)!")
+	;debug.Trace("game time updating commander (pre check)!")
 	availableExpPoints += 500.0 ; TODO make this configurable
 	Actor meActor = GetReference() as Actor
-	
+
+	if meActor == None
+		debug.Trace("WARNING: attempted to update commander which reference was None!")
+		ClearCmderData()
+		return
+	endif
+
+
 	if !meActor.IsDead()
 		if !meActor.IsInCombat()
-			debug.Trace("game time updating commander!")
+			;debug.Trace("game time updating commander!")
 
 			; if we have enough units, upgrade. If we don't, recruit some more
 			if totalOwnedUnitsAmount >= 30 * 0.7
@@ -82,14 +89,38 @@ Event OnUpdateGameTime()
 				TryRecruitUnits()
 			endif
 			
-		else 
 			meActor.EvaluatePackage()
+
+			float distToPlayer = game.GetPlayer().GetDistance(meActor)
+
+			debug.Trace("dist to player from cmder of faction " + jMap.getStr(factionScript.jFactionData, "name", "Faction") + ": " + distToPlayer)
+
+			if !isNearby
+				if distToPlayer <= 2500.0
+					isNearby = true
+					RegisterForSingleUpdate(0.5)
+				endif
+			endif
+			
 		endif
 	else 
-		ClearAliasIfOutOfTroops()
+		if ClearAliasIfOutOfTroops()
+			return
+		else
+			float distToPlayer = game.GetPlayer().GetDistance(meActor)
+
+			debug.Trace("dist to player from dead cmder of faction " + jMap.getStr(factionScript.jFactionData, "name", "Faction") + ": " + distToPlayer)
+
+			if !isNearby
+				if distToPlayer <= 2500.0
+					isNearby = true
+					RegisterForSingleUpdate(0.5)
+				endif
+			endif
+		endif
 	endif
 
-	RegisterForSingleUpdateGameTime(0.25) ; TODO make this configurable
+	RegisterForSingleUpdateGameTime(0.25 + Utility.RandomFloat(0.01, 0.09)) ; TODO make this configurable
 EndEvent
 
 Event OnUpdate()
@@ -110,7 +141,7 @@ EndEvent
 
 ; if we don't have too many units already, attempts to get some more basic recruits with the faction gold
 Function TryRecruitUnits()
-	debug.Trace("commander: try recruit units!")
+	; debug.Trace("commander: try recruit units!")
 	int maxUnitSlots = 30 ; TODO make this configurable via MCM
 
 	if totalOwnedUnitsAmount < maxUnitSlots
@@ -126,7 +157,7 @@ EndFunction
 
 ;
 Function TryUpgradeUnits()
-	debug.Trace("commander: try upgrade units!")
+	;debug.Trace("commander: try upgrade units!")
 
 	; we should only upgrade units not currently spawned
 	; so if all units are spawned, no upgrades should be made
@@ -246,25 +277,40 @@ EndEvent
 Event OnCombatStateChanged(Actor akTarget, int aeCombatState)
 	if aeCombatState == 1 || aeCombatState == 2 ; engaging or searching
 		if !isNearby
-			RegisterForSingleUpdate(0.5)
 			isNearby = true
+			RegisterForSingleUpdate(0.5)
 		endif
 		; if the current spawn is too far away,
 		; update the faction's unit spawn point to where this cmder started combat
 		ObjectReference unitSpawn = factionScript.UnitSpawnPoint.GetReference()
 		ObjectReference cmderRef = GetReference()
-		if unitSpawn.GetDistance(cmderRef) > 140.0
+		if unitSpawn.GetDistance(cmderRef) > 800.0
 			unitSpawn.MoveTo(cmderRef)
 		endif
 	endif
 EndEvent
 
 event OnDeath(Actor akKiller)	
+	debug.Trace("commander: dead!")
 	ClearAliasIfOutOfTroops()
 endEvent
 
-Function ClearAliasIfOutOfTroops()
+; returns true if out of troops and cleared
+bool Function ClearAliasIfOutOfTroops()
+	debug.Trace("commander (" + jMap.getStr(factionScript.jFactionData, "name", "Faction") + "): clear alias if out of troops!")
 	if totalOwnedUnitsAmount <= 0
-		Clear()
+		ClearCmderData()
+		return true
 	endif
+
+	return false
+EndFunction
+
+; clears the alias and stops updates
+Function ClearCmderData()
+	debug.Trace("commander: clear cmder data!")
+	Clear()
+	UnregisterForUpdate()
+	UnregisterForUpdateGameTime()
+	isNearby = false
 EndFunction
