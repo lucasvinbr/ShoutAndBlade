@@ -93,7 +93,7 @@ begin
 	// get script's properties...
 	curEditedListElement := ElementByPath(curEditedElement, 'Properties');
 	
-	//faction script has 7 properties, almost all of them (except two, 'OurFaction' and 'SpawnerScript') point to our quest
+	// almost all properties of the faction script (except two, 'OurFaction' and 'SpawnerScript') point to our quest
 	for j := 0 to ElementCount(curEditedListElement) do
 	begin
 		curEditedElement := ElementByIndex(curEditedListElement, j);
@@ -103,7 +103,7 @@ begin
 		if propertyName = 'OurFaction' then begin
 			SetNativeValue(ElementByPath(curEditedElement, 'Value\Object Union\Object v2\FormID'), FormID(curEditedFaction));
 		end else begin
-			if propertyName <> 'SpawnerScript' then begin
+			if (propertyName <> 'SpawnerScript') and (propertyName <> 'DefaultCmderSpawnPointsList') then begin
 				SetNativeValue(ElementByPath(curEditedElement, 'Value\Object Union\Object v2\FormID'), FormID(curEditedQuest));
 			end;
 		end;
