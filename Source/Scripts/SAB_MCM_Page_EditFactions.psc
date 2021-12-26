@@ -30,7 +30,7 @@ Event OnVersionUpdate(Int a_version)
 EndEvent
 
 Event OnPageDraw()
-    SetLandingPage("$sab_mcm_page_edit_units")
+    SetLandingPage("$sab_mcm_page_edit_factions")
     SetupPage()
 EndEvent
 
