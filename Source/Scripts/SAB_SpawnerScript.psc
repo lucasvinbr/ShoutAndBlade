@@ -100,6 +100,8 @@ Function CustomizeActorAccordingToData(Actor targetActor, int jUnitData)
 	targetActor.SetAV("Magicka", JMap.getFlt(jUnitData, "Magicka", 50.0))
 	targetActor.SetAV("Stamina", JMap.getFlt(jUnitData, "Stamina", 50.0))
 
+	Utility.Wait(0.01)
+
 	targetActor.SetAV("LightArmor", JMap.getFlt(jUnitData, "SkillLightArmor", 15.0))
 	targetActor.SetAV("HeavyArmor", JMap.getFlt(jUnitData, "SkillHeavyArmor", 15.0))
 	targetActor.SetAV("Block", JMap.getFlt(jUnitData, "SkillBlock", 15.0))

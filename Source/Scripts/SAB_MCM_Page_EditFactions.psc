@@ -297,7 +297,7 @@ state FAC_EDIT_CMDER_SPAWN
     event OnSelectST(string state_id)
         Actor player = Game.GetPlayer()
         MainPage.MainQuest.FactionDataHandler.SAB_FactionQuests[editedFactionIndex].SetCmderSpawnLocation(player)
-        ShowMessage("$sab_mcm_factionedit_popup_setcmderspawn")
+        ShowMessage("$sab_mcm_factionedit_popup_setcmderspawn", false)
 	endEvent
 
     event OnDefaultST(string state_id)
@@ -395,6 +395,7 @@ state FAC_EDIT_TEST_LOAD
             MainPage.MainQuest.FactionDataHandler.EnsureArrayCounts()
             MainPage.MainQuest.FactionDataHandler.UpdateAllFactionQuestsAccordingToJMap()
             MainPage.isLoadingData = false
+            Debug.Notification("SAB: Load complete!")
             ShowMessage("$sab_mcm_shared_popup_msg_load_success", false)
             ForcePageReset()
         else

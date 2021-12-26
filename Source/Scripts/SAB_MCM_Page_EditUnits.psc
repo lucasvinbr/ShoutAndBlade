@@ -518,6 +518,7 @@ state UNITEDIT_TEST_LOAD
             MainPage.MainQuest.UnitDataHandler.EnsureUnitDataArrayCount()
             MainPage.MainQuest.UnitDataHandler.UpdateAllGearAndRaceListsAccordingToJMap()
             MainPage.isLoadingData = false
+            Debug.Notification("SAB: Load complete!")
             ShowMessage("$sab_mcm_shared_popup_msg_load_success", false)
             ForcePageReset()
         else

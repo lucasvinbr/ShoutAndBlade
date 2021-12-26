@@ -38,7 +38,7 @@ Function Setup(SAB_FactionScript factionScriptRef)
 	totalOwnedUnitsAmount = 0
 	spawnedUnitsAmount = 0
 	factionScript = factionScriptRef
-	TryRecruitUnits()
+	; TryRecruitUnits()
 	RegisterForSingleUpdateGameTime(0.25 + Utility.RandomFloat(0.01, 0.09))
 EndFunction
 
@@ -89,10 +89,10 @@ Event OnUpdateGameTime()
 				TryRecruitUnits()
 			endif
 			
+			Utility.Wait(0.01)
 			meActor.EvaluatePackage()
 
 			float distToPlayer = game.GetPlayer().GetDistance(meActor)
-
 			debug.Trace("dist to player from cmder of faction " + jMap.getStr(factionScript.jFactionData, "name", "Faction") + ": " + distToPlayer)
 
 			if !isNearby
@@ -134,7 +134,7 @@ Event OnUpdate()
 	endif
 
 	if isNearby
-		RegisterForSingleUpdate(0.5)
+		RegisterForSingleUpdate(0.7 + Utility.RandomFloat(0.01, 0.2))
 	endif
 	
 EndEvent
@@ -196,12 +196,10 @@ endFunction
 
 ; returns a valid random unit index from our ownedUnits list, or -1 if it fails for some reason (no units available to spawn, for example)
 int Function GetUnitIndexToSpawn()
-	int i = 0
-
 	jArray.clear(jSpawnOptionsArray)
 
-	int curKey = jIntMap.nextKey(jOwnedUnitsMap, previousKey=0, endKey=0)
-	while curKey != 0
+	int curKey = jIntMap.nextKey(jOwnedUnitsMap, previousKey = -1, endKey = -1)
+	while curKey != -1
 		int ownedUnitCount = jIntMap.getInt(jOwnedUnitsMap, curKey)
 		int spawnedUnitCount = jIntMap.getInt(jSpawnedUnitsMap, curKey)
 		
@@ -209,7 +207,8 @@ int Function GetUnitIndexToSpawn()
 			jArray.addInt(jSpawnOptionsArray, curKey)
 		endif
 
-		curKey = jIntMap.nextKey(jOwnedUnitsMap, curKey, endKey=0)
+		curKey = jIntMap.nextKey(jOwnedUnitsMap, curKey, endKey=-1)
+		Utility.Wait(0.01)
 	endwhile
 
 	int spawnOptionsCount = jValue.count(jSpawnOptionsArray)
@@ -260,12 +259,6 @@ Function OwnedUnitHasDied(int unitIndex)
 
 	if currentStoredAmount - 1 <= 0
 		jIntMap.removeKey(jOwnedUnitsMap, unitIndex)
-
-		; if we just lost our last unit and we were in bleedout, die right away
-		Actor meActor = GetReference() as Actor
-		if jValue.empty(jOwnedUnitsMap) && meActor.IsBleedingOut()
-			meActor.KillEssential()
-		endif
 	endif
 EndFunction
 
@@ -275,6 +268,7 @@ Event OnPackageEnd(Package akOldPackage)
 EndEvent
 
 Event OnCombatStateChanged(Actor akTarget, int aeCombatState)
+	debug.Trace("commander: combat state changed!")
 	if aeCombatState == 1 || aeCombatState == 2 ; engaging or searching
 		if !isNearby
 			isNearby = true

@@ -119,7 +119,7 @@ int function TryUpgradeUnits(int unitIndex, int unitAmount, float availableExp)
 			if jArray.getInt(jCurTroopLineArr, j, -1) == unitIndex
 				JArray.addInt(jUpgradeOptions, jArray.getInt(jCurTroopLineArr, j + 1))
 			endif
-
+			Utility.Wait(0.01)
 			j += 1
 		endwhile
 
@@ -228,7 +228,7 @@ EndFunction
 ; find a free unit slot and spawn a unit of the desired type
 ReferenceAlias Function SpawnUnitForCmder(SAB_CommanderScript commander, int unitIndex, ObjectReference spawnLocation)
 	
-	ReferenceAlias unitAlias = FindEmptyAlias("Unit")
+	ReferenceAlias unitAlias = GetFreeUnitAliasSlot()
 
 	if unitAlias == None
 		return None
@@ -282,7 +282,9 @@ ReferenceAlias function FindEmptyAlias(string aliasPrefix)
 		checkedAliasIndex += 1
 		ref = getAliasByName(aliasPrefix + checkedAliasIndex) as ReferenceAlias
 
-		if !ref
+		Utility.Wait(0.01)
+
+		if ref == None
 			; we couldn't find an alias with the provided name!
 			; return none and reset our checked index
 			checkedAliasIndex = 0
@@ -295,6 +297,21 @@ ReferenceAlias function FindEmptyAlias(string aliasPrefix)
 	endwhile
 endfunction
 
+ReferenceAlias Function GetFreeUnitAliasSlot()
+	;the alias ids used by units range from 21 to 79
+	Int i = 80
+	While i > 21
+		i -= 1
+		;debug.Trace(GetAlias(i))
+		ReferenceAlias unitAlias = GetAlias(i) as ReferenceAlias
+		
+		if(!unitAlias.GetReference())
+			return unitAlias
+		endif
+	EndWhile
+	
+	return None
+endFunction
 
 ObjectReference function GetRandomCmderDefaultSpawnPoint()
 	ObjectReference pickedSpawnPoint = DefaultCmderSpawnPointsList.GetAt(0) as ObjectReference
