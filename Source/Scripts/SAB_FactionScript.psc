@@ -65,6 +65,7 @@ bool Function RunUpdate()
 		return false
 	endif
 	
+	return true
 	Debug.Trace("done updating faction " + jMap.getStr(jFactionData, "name", "Faction"))
 EndFunction
 
