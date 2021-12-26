@@ -300,8 +300,8 @@ ReferenceAlias function FindEmptyAlias(string aliasPrefix)
 endfunction
 
 ReferenceAlias Function GetFreeUnitAliasSlot()
-	;the alias ids used by units range from 21 to 79
-	Int i = 80
+	;the alias ids used by units range from 21 to 80
+	Int i = 81
 	While i > 21
 		i -= 1
 		;debug.Trace(GetAlias(i))
