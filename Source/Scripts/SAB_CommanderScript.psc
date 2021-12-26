@@ -18,6 +18,16 @@ int totalOwnedUnitsAmount = 0
 ; a cached reference to the SAB spawner script so that we don't have to make lots of fetching whenever we want to spawn someone
 SAB_FactionScript factionScript
 
+SAB_BackgroundUpdater Property BackgroundUpdater Auto
+int indexInBackgroundUpdater
+
+SAB_CloseByUpdater Property CloseByUpdater Auto
+int indexInCloseByUpdater
+
+; cached refs for not fetching all the time
+Actor playerActor 
+Actor meActor
+
 int Property CmderFollowFactionRank Auto
 { the rank in the "cmderFollowerFaction" referring to this commander. Units in this rank should follow this cmder }
 
@@ -29,7 +39,6 @@ float availableExpPoints
 
 bool isNearby = false
 
-
 Function Setup(SAB_FactionScript factionScriptRef)
 	jOwnedUnitsMap = jValue.releaseAndRetain(jOwnedUnitsMap, jIntMap.object(), "ShoutAndBlade")
 	jSpawnedUnitsMap = jValue.releaseAndRetain(jSpawnedUnitsMap, jIntMap.object(), "ShoutAndBlade")
@@ -38,45 +47,60 @@ Function Setup(SAB_FactionScript factionScriptRef)
 	totalOwnedUnitsAmount = 0
 	spawnedUnitsAmount = 0
 	factionScript = factionScriptRef
-	; TryRecruitUnits()
-	RegisterForSingleUpdateGameTime(0.25 + Utility.RandomFloat(0.01, 0.09))
+	indexInBackgroundUpdater = BackgroundUpdater.RegisterCmderForUpdates(self)
+	isNearby = false
+	indexInCloseByUpdater = -1
+	meActor = GetReference() as Actor
+	playerActor = Game.GetPlayer()
 EndFunction
 
 Event OnCellAttach()
 	debug.Trace("commander: on cell attach!")
-	isNearby = true
-	RegisterForSingleUpdate(0.5)
+	ToggleNearbyUpdates(true)
 EndEvent
 
 Event OnAttachedToCell()
 	debug.Trace("commander: on attached to cell!")
-	isNearby = true
-	RegisterForSingleUpdate(0.5)
+	ToggleNearbyUpdates(true)
 EndEvent
 
 Event OnCellDetach()
 	debug.Trace("commander: on cell detach!")
-	isNearby = false
-	UnregisterForUpdate()
+	ToggleNearbyUpdates(false)
 EndEvent
 
 Event OnDetachedFromCell()
 	debug.Trace("commander: on detached from cell!")
-	isNearby = false
-	UnregisterForUpdate()
+	ToggleNearbyUpdates(false)
 EndEvent
 
-Event OnUpdateGameTime()
-	;debug.Trace("game time updating commander (pre check)!")
-	availableExpPoints += 500.0 ; TODO make this configurable
-	Actor meActor = GetReference() as Actor
-
-	if meActor == None
-		debug.Trace("WARNING: attempted to update commander which reference was None!")
-		ClearCmderData()
-		return
+; sets isNearby and enables or disables closeBy updates
+Function ToggleNearbyUpdates(bool updatesEnabled)
+	
+	if updatesEnabled && !isNearby
+		isNearby = true
+		indexInCloseByUpdater = CloseByUpdater.RegisterCmderForUpdates(self)
+	elseif !updatesEnabled && isNearby
+		isNearby = false
+		CloseByUpdater.UnregisterCmderFromUpdates(indexInCloseByUpdater)
 	endif
 
+EndFunction
+
+bool function RunUpdate()
+	;debug.Trace("game time updating commander (pre check)!")
+	availableExpPoints += 500.0 ; TODO make this configurable
+
+	if !meActor
+		debug.Trace("WARNING: attempted to update commander which had an invalid (maybe None?) reference!")
+		ClearCmderData()
+		return true
+	endif
+
+	float distToPlayer = game.GetPlayer().GetDistance(meActor)
+	debug.Trace("dist to player from cmder of faction " + jMap.getStr(factionScript.jFactionData, "name", "Faction") + ": " + distToPlayer)
+
+	ToggleNearbyUpdates(distToPlayer <= 4000.0)
 
 	if !meActor.IsDead()
 		if !meActor.IsInCombat()
@@ -91,39 +115,22 @@ Event OnUpdateGameTime()
 			
 			Utility.Wait(0.01)
 			meActor.EvaluatePackage()
-
-			float distToPlayer = game.GetPlayer().GetDistance(meActor)
-			debug.Trace("dist to player from cmder of faction " + jMap.getStr(factionScript.jFactionData, "name", "Faction") + ": " + distToPlayer)
-
-			if !isNearby
-				if distToPlayer <= 2500.0
-					isNearby = true
-					RegisterForSingleUpdate(0.5)
-				endif
-			endif
 			
 		endif
 	else 
 		if ClearAliasIfOutOfTroops()
-			return
+			return true
 		else
-			float distToPlayer = game.GetPlayer().GetDistance(meActor)
-
-			debug.Trace("dist to player from dead cmder of faction " + jMap.getStr(factionScript.jFactionData, "name", "Faction") + ": " + distToPlayer)
-
 			if !isNearby
-				if distToPlayer <= 2500.0
-					isNearby = true
-					RegisterForSingleUpdate(0.5)
-				endif
+				ClearCmderData()
 			endif
 		endif
 	endif
 
-	RegisterForSingleUpdateGameTime(0.25 + Utility.RandomFloat(0.01, 0.09)) ; TODO make this configurable
-EndEvent
+	return true
+endfunction
 
-Event OnUpdate()
+bool function RunCloseByUpdate()
 	;debug.Trace("real time updating commander!")
 	if spawnedUnitsAmount < 20 ; TODO make this configurable
 		; spawn random unit from "storage"
@@ -133,11 +140,9 @@ Event OnUpdate()
 		endif
 	endif
 
-	if isNearby
-		RegisterForSingleUpdate(0.7 + Utility.RandomFloat(0.01, 0.2))
-	endif
+	return true
 	
-EndEvent
+endfunction
 
 ; if we don't have too many units already, attempts to get some more basic recruits with the faction gold
 Function TryRecruitUnits()
@@ -221,9 +226,9 @@ endfunction
 
 
 Function SpawnUnit(int unitIndex)
-	ObjectReference spawnLocation = GetReference()
+	ObjectReference spawnLocation = meActor
 
-	if (spawnLocation as Actor).IsInCombat()
+	if meActor.IsInCombat()
 		spawnLocation = factionScript.UnitSpawnPoint.GetReference()
 	endif
 
@@ -271,15 +276,13 @@ Event OnCombatStateChanged(Actor akTarget, int aeCombatState)
 	debug.Trace("commander: combat state changed!")
 	if aeCombatState == 1 || aeCombatState == 2 ; engaging or searching
 		if !isNearby
-			isNearby = true
-			RegisterForSingleUpdate(0.5)
+			ToggleNearbyUpdates(true)
 		endif
 		; if the current spawn is too far away,
 		; update the faction's unit spawn point to where this cmder started combat
 		ObjectReference unitSpawn = factionScript.UnitSpawnPoint.GetReference()
-		ObjectReference cmderRef = GetReference()
-		if unitSpawn.GetDistance(cmderRef) > 800.0
-			unitSpawn.MoveTo(cmderRef)
+		if unitSpawn.GetDistance(meActor) > 800.0
+			unitSpawn.MoveTo(meActor)
 		endif
 	endif
 EndEvent
@@ -304,7 +307,11 @@ EndFunction
 Function ClearCmderData()
 	debug.Trace("commander: clear cmder data!")
 	Clear()
-	UnregisterForUpdate()
-	UnregisterForUpdateGameTime()
-	isNearby = false
+
+	if isNearby
+		isNearby = false
+		CloseByUpdater.UnregisterCmderFromUpdates(indexInCloseByUpdater)
+	endif
+
+	BackgroundUpdater.UnregisterCmderFromUpdates(indexInBackgroundUpdater)
 EndFunction

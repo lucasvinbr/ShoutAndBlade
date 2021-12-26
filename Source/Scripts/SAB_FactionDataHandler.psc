@@ -108,10 +108,10 @@ Function UpdateAllFactionQuestsAccordingToJMap()
         
         int jFactionData = jArray.getObj(jSABFactionDatasArray, i)
 
-        if jFactionData != 0
-            if jMap.hasKey(jFactionData, "enabled")
-                SAB_FactionQuests[i].EnableFaction(jFactionData)
-            endif
+        if jMap.hasKey(jFactionData, "enabled")
+            SAB_FactionQuests[i].EnableFaction(jFactionData)
+        ; else 
+        ;     SAB_FactionQuests[i].DisableFaction()
         endif
         
     EndWhile

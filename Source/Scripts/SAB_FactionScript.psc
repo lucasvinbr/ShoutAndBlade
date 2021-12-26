@@ -30,17 +30,19 @@ int checkedAliasIndex = 0
 
 bool cmderSpawnIsSet = false
 
+; prepares this faction's data and registers it for updating
 function EnableFaction(int jEnabledFactionData)
 	jFactionData = jEnabledFactionData
-	RegisterForSingleUpdateGameTime(0.1 + Utility.RandomFloat(0.01, 0.09))
 	CmderDestination_A.GetReference().MoveTo(GetRandomCmderDefaultSpawnPoint())
 	CmderDestination_B.GetReference().MoveTo(GetRandomCmderDefaultSpawnPoint())
 	CmderDestination_C.GetReference().MoveTo(GetRandomCmderDefaultSpawnPoint())
 endfunction
 
-Event OnUpdateGameTime()
+
+; returns true if the faction was updated, false if the faction can't be updated (because it's disabled, for example)
+bool Function RunUpdate()
 	if jFactionData == 0
-		return
+		return false
 	endif
 
 	if jMap.hasKey(jFactionData, "enabled")
@@ -59,12 +61,12 @@ Event OnUpdateGameTime()
 		
 
 		TrySpawnCommander()
+	else 
+		return false
 	endif
 	
-	float baseUpdateInterval = 0.4 ; TODO make this configurable
-	RegisterForSingleUpdateGameTime(Utility.RandomFloat(baseUpdateInterval - 0.1, baseUpdateInterval + 0.1))
 	Debug.Trace("done updating faction " + jMap.getStr(jFactionData, "name", "Faction"))
-EndEvent
+EndFunction
 
 ; spends gold and returns a number of recruits "purchased".
 ; the caller should do something with this number
