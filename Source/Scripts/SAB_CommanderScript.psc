@@ -77,12 +77,17 @@ EndEvent
 ; sets isNearby and enables or disables closeBy updates
 Function ToggleNearbyUpdates(bool updatesEnabled)
 	
-	if updatesEnabled && !isNearby
+	if updatesEnabled
 		isNearby = true
-		indexInCloseByUpdater = CloseByUpdater.RegisterCmderForUpdates(self)
-	elseif !updatesEnabled && isNearby
+		if indexInCloseByUpdater == -1
+			indexInCloseByUpdater = CloseByUpdater.RegisterCmderForUpdates(self)
+		endif
+	elseif !updatesEnabled
 		isNearby = false
-		CloseByUpdater.UnregisterCmderFromUpdates(indexInCloseByUpdater)
+		if indexInCloseByUpdater != -1
+			CloseByUpdater.UnregisterCmderFromUpdates(indexInCloseByUpdater)
+			indexInCloseByUpdater = -1
+		endif
 	endif
 
 EndFunction
@@ -275,9 +280,7 @@ EndEvent
 Event OnCombatStateChanged(Actor akTarget, int aeCombatState)
 	debug.Trace("commander: combat state changed!")
 	if aeCombatState == 1 || aeCombatState == 2 ; engaging or searching
-		if !isNearby
-			ToggleNearbyUpdates(true)
-		endif
+		ToggleNearbyUpdates(true)
 		; if the current spawn is too far away,
 		; update the faction's unit spawn point to where this cmder started combat
 		ObjectReference unitSpawn = factionScript.UnitSpawnPoint.GetReference()
@@ -308,10 +311,7 @@ Function ClearCmderData()
 	debug.Trace("commander: clear cmder data!")
 	Clear()
 
-	if isNearby
-		isNearby = false
-		CloseByUpdater.UnregisterCmderFromUpdates(indexInCloseByUpdater)
-	endif
+	ToggleNearbyUpdates(false)
 
 	BackgroundUpdater.UnregisterCmderFromUpdates(indexInBackgroundUpdater)
 EndFunction

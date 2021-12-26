@@ -16,6 +16,7 @@ int jKnownVacantCmderSlots
 bool hasUpdatedCmder = false
 
 function Initialize()
+	debug.Trace("close by updater: initialize!")
 	SAB_ActiveCommandersOne = new SAB_CommanderScript[128]
 	SAB_ActiveCommandersTwo = new SAB_CommanderScript[128]
 	jKnownVacantCmderSlots = jArray.object()
@@ -25,29 +26,34 @@ endfunction
 
 
 Event OnUpdate()
+	debug.Trace("close by updater: start loop!")
 
-	hasUpdatedCmder = false
+	while true
+		debug.Trace("close by updater loop begin")
+		hasUpdatedCmder = false
 
-	while !hasUpdatedCmder && updatedCmderIndex >= 0
-		int indexInArray = updatedCmderIndex % 128
-		if updatedCmderIndex > 127
-			if SAB_ActiveCommandersOne[indexInArray] != None
-				hasUpdatedCmder = SAB_ActiveCommandersOne[indexInArray].RunCloseByUpdate()
+		while !hasUpdatedCmder && updatedCmderIndex >= 0
+			int indexInArray = updatedCmderIndex % 128
+			if updatedCmderIndex > 127
+				if SAB_ActiveCommandersOne[indexInArray] != None
+					hasUpdatedCmder = SAB_ActiveCommandersOne[indexInArray].RunCloseByUpdate()
+				endif
+			else
+				if SAB_ActiveCommandersTwo[indexInArray] != None
+					hasUpdatedCmder = SAB_ActiveCommandersTwo[indexInArray].RunCloseByUpdate()
+				endif
 			endif
-		else
-			if SAB_ActiveCommandersTwo[indexInArray] != None
-				hasUpdatedCmder = SAB_ActiveCommandersTwo[indexInArray].RunCloseByUpdate()
-			endif
+
+			updatedCmderIndex -= 1
+		endwhile
+
+		if updatedCmderIndex < 0
+			updatedCmderIndex = topCmderIndex
 		endif
 
-		updatedCmderIndex -= 1
+		Utility.Wait(0.2)
+		debug.Trace("close by updater loop end")
 	endwhile
-
-	if updatedCmderIndex < 0
-		updatedCmderIndex = topCmderIndex
-	endif
-
-	RegisterForSingleUpdate(0.4)
 
 EndEvent
 

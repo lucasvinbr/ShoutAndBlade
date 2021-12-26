@@ -6,13 +6,18 @@ SAB_FactionDataHandler Property FactionDataHandler Auto
 SAB_BackgroundUpdater Property BackgroundUpdater Auto
 SAB_CloseByUpdater Property CloseByUpdater Auto
 
+bool hasInitialized = false
+
 event OnInit()
-	Debug.Notification("SAB initializing...")
-	
-    UnitDataHandler.InitializeJData()
-	FactionDataHandler.InitializeJData()
-	BackgroundUpdater.Initialize(FactionDataHandler.SAB_FactionQuests)
-	CloseByUpdater.Initialize()
-	
-	Debug.Notification("SAB initialized!")
+	if !hasInitialized
+		hasInitialized = true
+		Debug.Notification("SAB initializing...")
+		Debug.Trace("SAB OnInit begin")
+		UnitDataHandler.InitializeJData()
+		FactionDataHandler.InitializeJData()
+		BackgroundUpdater.Initialize(FactionDataHandler.SAB_FactionQuests)
+		CloseByUpdater.Initialize()
+		
+		Debug.Notification("SAB initialized!")
+	endif
 endEvent

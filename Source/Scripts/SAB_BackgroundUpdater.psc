@@ -21,6 +21,7 @@ bool hasUpdatedFaction = false
 bool hasUpdatedCmder = false
 
 function Initialize(SAB_FactionScript[] factionScriptsArray)
+	debug.Trace("background updater: initialize!")
 	SAB_FactionScripts = factionScriptsArray
 	SAB_ActiveCommandersOne = new SAB_CommanderScript[128]
 	SAB_ActiveCommandersTwo = new SAB_CommanderScript[128]
@@ -31,42 +32,47 @@ endfunction
 
 
 Event OnUpdate()
+	debug.Trace("background updater: start loop!")
 
-	hasUpdatedFaction = false
+	while true
+		debug.Trace("background updater loop begin")
+		hasUpdatedFaction = false
 
-	while !hasUpdatedFaction && updatedFactionIndex >= 0
-		hasUpdatedFaction = SAB_FactionScripts[updatedFactionIndex].RunUpdate()
-		updatedFactionIndex -= 1
-	endwhile
+		while !hasUpdatedFaction && updatedFactionIndex >= 0
+			hasUpdatedFaction = SAB_FactionScripts[updatedFactionIndex].RunUpdate()
+			updatedFactionIndex -= 1
+		endwhile
 
-	if updatedFactionIndex < 0
-		updatedFactionIndex = SAB_FactionScripts.Length - 1
-	endif
-	
-	Utility.Wait(0.4)
+		if updatedFactionIndex < 0
+			updatedFactionIndex = SAB_FactionScripts.Length - 1
+		endif
+		
+		Utility.Wait(0.4)
 
-	hasUpdatedCmder = false
+		hasUpdatedCmder = false
 
-	while !hasUpdatedCmder && updatedCmderIndex >= 0
-		int indexInArray = updatedCmderIndex % 128
-		if updatedCmderIndex > 127
-			if SAB_ActiveCommandersOne[indexInArray] != None
-				hasUpdatedCmder = SAB_ActiveCommandersOne[indexInArray].RunUpdate()
+		while !hasUpdatedCmder && updatedCmderIndex >= 0
+			int indexInArray = updatedCmderIndex % 128
+			if updatedCmderIndex > 127
+				if SAB_ActiveCommandersOne[indexInArray] != None
+					hasUpdatedCmder = SAB_ActiveCommandersOne[indexInArray].RunUpdate()
+				endif
+			else
+				if SAB_ActiveCommandersTwo[indexInArray] != None
+					hasUpdatedCmder = SAB_ActiveCommandersTwo[indexInArray].RunUpdate()
+				endif
 			endif
-		else
-			if SAB_ActiveCommandersTwo[indexInArray] != None
-				hasUpdatedCmder = SAB_ActiveCommandersTwo[indexInArray].RunUpdate()
-			endif
+
+			updatedCmderIndex -= 1
+		endwhile
+
+		if updatedCmderIndex < 0
+			updatedCmderIndex = topCmderIndex
 		endif
 
-		updatedCmderIndex -= 1
+		Utility.Wait(0.4)
+		debug.Trace("background updater loop end")
 	endwhile
-
-	if updatedCmderIndex < 0
-		updatedCmderIndex = topCmderIndex
-	endif
-
-	RegisterForSingleUpdate(0.4)
 EndEvent
 
 

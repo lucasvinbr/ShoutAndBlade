@@ -12,11 +12,15 @@ Function Setup(int thisUnitIndex, SAB_CommanderScript cmderRef)
 EndFunction
 
 Event OnCellDetach()
-	;debug.Trace("unit: on cell detach!")
+	debug.Trace("unit: on cell detach!")
 	; if we're not dead, despawn (onDeath handles our "dead" situation)
 	; TODO check if we're units spawned by the player; in that case, don't despawn
 	Actor meActor = GetReference() as Actor
-	if !meActor.IsDead()
+
+	if !meActor
+		ownerCommander.OwnedUnitHasDespawned(unitIndex)
+		Clear()
+	elseif !meActor.IsDead()
 		ownerCommander.OwnedUnitHasDespawned(unitIndex)
 		Clear()
 		meActor.Disable(true)
@@ -25,10 +29,13 @@ Event OnCellDetach()
 EndEvent
 
 Event OnDetachedFromCell()
-	;debug.Trace("unit: on detached from cell!")
+	debug.Trace("unit: on detached from cell!")
 	; if we're not dead, despawn (onDeath handles our "dead" situation)
 	Actor meActor = GetReference() as Actor
-	if !meActor.IsDead()
+	if !meActor
+		ownerCommander.OwnedUnitHasDespawned(unitIndex)
+		Clear()
+	elseif !meActor.IsDead()
 		ownerCommander.OwnedUnitHasDespawned(unitIndex)
 		Clear()
 		meActor.Disable(true)
