@@ -77,8 +77,8 @@ begin
 	
 	// add the faction quest to the factions array in the main quest factionsHandler script!
 	curEditedListElement := ElementByPath(sabMainQuest, 'VMAD\Scripts');
-	// factionsHandler is index 0
-	curEditedElement := ElementByIndex(curEditedListElement, 0); 
+	// factionsHandler is index 2
+	curEditedElement := ElementByIndex(curEditedListElement, 2); 
     curEditedListElement := ElementByPath(curEditedElement, 'Properties');
 	curEditedElement := ElementByIndex(curEditedListElement, 0);
 	curEditedListElement := ElementByPath(curEditedElement, 'Value\Array of Object');
@@ -276,9 +276,9 @@ begin
 		curEditedElement := ElementByIndex(ElementByPath(curEditedElement, 'Alias Scripts'), 0);
 		curEditedElement := ElementByPath(curEditedElement, 'Properties');
 		
-		// get the two properties we're interested in (0 = CmderDestinationType, 1 = CmderFollowFactionRank)
-		curEditedElementTwo := ElementByIndex(curEditedElement, 1);
-		curEditedElement := ElementByIndex(curEditedElement, 0);
+		// get the two properties we're interested in (2 = CmderDestinationType, 3 = CmderFollowFactionRank)
+		curEditedElementTwo := ElementByIndex(curEditedElement, 3);
+		curEditedElement := ElementByIndex(curEditedElement, 2);
 		
 		
 		if (j mod 3) = 0 then begin
@@ -337,6 +337,16 @@ begin
 	// base unit is index 1
 	curEditedElement := ElementByIndex(curEditedListElement, 1);
 	
+	// set the base unit's aliasID to the next ID, so that we can have all units in one block over which we can iterate by ID
+	SetEditValue(ElementByPath(curEditedElement, 'ALST'), nextAliasId); //set alias ID
+	
+	//we've got to update the script alias ID too
+	curEditedElementTwo := ElementByPath(curEditedQuest, 'VMAD\Aliases');
+	curEditedElementTwo := ElementByIndex(curEditedElementTwo, 1);
+	SetEditValue(ElementByPath(curEditedElementTwo, 'Object Union\Object v2\Alias'), nextAliasId);
+	
+	nextAliasId := nextAliasId + 1;
+	
 	for j := 1 to 59 do begin
 		
 		createdUnitIndex := (j + 1);
@@ -350,8 +360,8 @@ begin
 	
 	// make lots of copies of the unit script as well
 	curEditedListElement := ElementByPath(curEditedQuest, 'VMAD\Aliases');
-	// base unit script is index 1
-	curEditedElement := ElementByIndex(curEditedListElement, 1);
+	// since we've edited unit1's ID and the list is sorted, it should have moved to the end of the list!
+	curEditedElement := ElementByIndex(curEditedListElement, ElementCount(curEditedListElement) - 1);
 	// count aliases from 1 to 60 again
 	nextAliasId := nextAliasId - 59;
 	
