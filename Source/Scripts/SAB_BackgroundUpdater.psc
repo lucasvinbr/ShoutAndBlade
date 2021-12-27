@@ -20,10 +20,10 @@ endfunction
 
 
 Event OnUpdate()
-	debug.Trace("background updater: start loop!")
+	 debug.Trace("background updater: start loop!")
 
 	while true
-		debug.Trace("background updater loop begin")
+		; debug.Trace("background updater loop begin")
 
 		UpdateCurrentInstanceGlobal(GameDaysPassed)
 		float daysPassed = GameDaysPassed.GetValue()
@@ -39,11 +39,11 @@ Event OnUpdate()
 			updatedFactionIndex = SAB_FactionScripts.Length - 1
 		endif
 		
-		Utility.Wait(0.4)
+		Utility.Wait(0.12)
 
 		BackgroundCmderUpdater.RunUpdate(daysPassed, 0)
 
-		Utility.Wait(0.4)
-		debug.Trace("background updater loop end")
+		Utility.Wait(0.12)
+		; debug.Trace("background updater loop end")
 	endwhile
 EndEvent

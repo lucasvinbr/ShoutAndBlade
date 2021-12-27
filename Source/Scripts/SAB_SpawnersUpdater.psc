@@ -14,13 +14,13 @@ Event OnUpdate()
 	debug.Trace("spawners updater: start loop!")
 
 	while true
-		debug.Trace("spawners updater loop begin")
+		;debug.Trace("spawners updater loop begin")
 		
 		CmderUpdater.RunUpdate(0.0, 1)
 
-		Utility.Wait(0.3)
+		Utility.Wait(0.1)
 
-		debug.Trace("spawners updater loop end")
+		;debug.Trace("spawners updater loop end")
 	endwhile
 
 EndEvent

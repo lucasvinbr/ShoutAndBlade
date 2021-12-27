@@ -60,39 +60,23 @@ Function Setup(SAB_FactionScript factionScriptRef)
 	gameTimeOfLastUnitUpgrade = 0.0
 EndFunction
 
-Event OnCellAttach()
-	debug.Trace("commander: on cell attach!")
-	ToggleNearbyUpdates(true)
-EndEvent
-
-Event OnAttachedToCell()
-	debug.Trace("commander: on attached to cell!")
-	ToggleNearbyUpdates(true)
-EndEvent
-
-Event OnCellDetach()
-	debug.Trace("commander: on cell detach!")
-	ToggleNearbyUpdates(false)
-EndEvent
-
-Event OnDetachedFromCell()
-	debug.Trace("commander: on detached from cell!")
-	ToggleNearbyUpdates(false)
-EndEvent
-
 ; sets isNearby and enables or disables closeBy updates
 Function ToggleNearbyUpdates(bool updatesEnabled)
 	
+	debug.Trace("commander: toggleNearbyUpdates " + updatesEnabled)
+	debug.Trace("commander: indexInCloseByUpdater " + indexInCloseByUpdater)
 	if updatesEnabled
 		isNearby = true
 		if indexInCloseByUpdater == -1
 			indexInCloseByUpdater = CloseByUpdater.CmderUpdater.RegisterAliasForUpdates(self)
+			debug.Trace("commander: began closebyupdating!")
 		endif
 	elseif !updatesEnabled
 		isNearby = false
 		if indexInCloseByUpdater != -1
 			CloseByUpdater.CmderUpdater.UnregisterAliasFromUpdates(indexInCloseByUpdater)
 			indexInCloseByUpdater = -1
+			debug.Trace("commander: stopped closebyupdating!")
 		endif
 	endif
 
@@ -120,7 +104,7 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 	float distToPlayer = playerActor.GetDistance(meActor)
 	debug.Trace("dist to player from cmder of faction " + jMap.getStr(factionScript.jFactionData, "name", "Faction") + ": " + distToPlayer)
 
-	isNearby = (distToPlayer <= 4000.0)
+	ToggleNearbyUpdates(distToPlayer <= 8000.0)
 
 	if !meActor.IsDead()
 		if !meActor.IsInCombat()
@@ -187,7 +171,7 @@ EndFunction
 
 ;
 Function TryUpgradeUnits()
-	;debug.Trace("commander: try upgrade units!")
+	debug.Trace("commander: try upgrade units!")
 
 	; we should only upgrade units not currently spawned
 	; so if all units are spawned, no upgrades should be made
@@ -235,6 +219,8 @@ int Function GetUnitIndexToSpawn()
 		
 		if spawnedUnitCount < ownedUnitCount
 			jArray.addInt(jSpawnOptionsArray, curKey)
+		else
+			Debug.Trace("GetUnitIndexToSpawn: cmder has spawned " + spawnedUnitCount + " of " + ownedUnitCount)
 		endif
 
 		curKey = jIntMap.nextKey(jOwnedUnitsMap, curKey, endKey=-1)
@@ -246,11 +232,14 @@ int Function GetUnitIndexToSpawn()
 		return jArray.getInt(jSpawnOptionsArray, Utility.RandomInt(0, spawnOptionsCount - 1))
 	endif
 
+	Debug.Trace("GetUnitIndexToSpawn: ended up with -1 as index!")
+	Debug.Trace("GetUnitIndexToSpawn: spawnOptionsCount = " + spawnOptionsCount)
 	return -1
 endfunction
 
 
 Function SpawnUnit(int unitIndex)
+	Debug.Trace("cmder: spawn unit begin!")
 	ObjectReference spawnLocation = meActor
 
 	if meActor.IsInCombat()
@@ -318,6 +307,9 @@ endEvent
 ; returns true if out of troops and cleared
 bool Function ClearAliasIfOutOfTroops()
 	debug.Trace("commander (" + jMap.getStr(factionScript.jFactionData, "name", "Faction") + "): clear alias if out of troops!")
+	debug.Trace("dead commander: totalOwnedUnitsAmount: " + totalOwnedUnitsAmount)
+	debug.Trace("dead commander: spawnedUnitsAmount: " + spawnedUnitsAmount)
+	debug.Trace("dead commander: troops left: " + totalOwnedUnitsAmount)
 	if totalOwnedUnitsAmount <= 0
 		ClearCmderData()
 		return true

@@ -60,16 +60,19 @@ endFunction
 Actor Function SpawnUnit( ObjectReference LocationRef, Faction ownerFaction, int unitIndex, int jUnitDataMap = -1, int cmderFollowIndex = -1)
 	
 	if LocationRef == None
+		debug.Trace("spawn unit: location ref is null!")
 		return None
 	endif
 
 	if unitIndex == -1
+		debug.Trace("spawn unit: unit index is -1!")
 		return None
 	endif
 
 	ActorBase unitActorBase = UnitDataHandler.SAB_UnitActorBases.GetAt(unitIndex) as ActorBase
 
 	if unitActorBase == None
+		debug.Trace("spawn unit: unit base at index "+ unitIndex +" is -1!")
 		return None
 	endif
 

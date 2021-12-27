@@ -243,18 +243,21 @@ ReferenceAlias Function SpawnUnitForCmder(SAB_CommanderScript commander, int uni
 	ReferenceAlias unitAlias = GetFreeUnitAliasSlot()
 
 	if unitAlias == None
+		debug.Trace("spawn unit for cmder: no free alias slot!")
 		return None
 	endif
 
 	int unitIndexInUnitUpdater = UnitUpdater.UnitUpdater.RegisterAliasForUpdates(unitAlias as SAB_UnitScript)
 
 	if unitIndexInUnitUpdater == -1
+		debug.Trace("spawn unit for cmder: unitIndexInUnitUpdater is -1!")
 		return None
 	endif
 
 	Actor spawnedUnit = SpawnerScript.SpawnUnit(spawnLocation, OurFaction, unitIndex, -1, commander.CmderFollowFactionRank)
 
 	if spawnedUnit == None
+		debug.Trace("spawn unit for cmder: got none as spawnedUnit, aborting!")
 		UnitUpdater.UnitUpdater.UnregisterAliasFromUpdates(unitIndexInUnitUpdater)
 		return None
 	endif

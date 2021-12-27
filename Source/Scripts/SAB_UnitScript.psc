@@ -14,7 +14,8 @@ Function Setup(int thisUnitIndex, SAB_CommanderScript cmderRef, int indexInUnitU
 	unitIndex = thisUnitIndex
 	meActor = GetReference() as Actor
 	indexInUpdater = indexInUnitUpdater
-	ToggleUpdates(true)
+	; ToggleUpdates(true)
+	debug.Trace("unit: setup end!")
 EndFunction
 
 bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
@@ -22,17 +23,25 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 		; the unit went poof!
 		; if we get to the update before knowing what happened here,
 		; give the commander another chance to spawn this same unit type
-		ownerCommander.OwnedUnitHasDespawned(unitIndex)
-		ClearAliasData()
+		if unitIndex == -1
+			; since all units should have a valid unit index,
+			; this means this unit is probably being cleared
+			debug.Trace("unit: updated while being cleared!")
+		else 
+			debug.Trace("unit: went poof!")
+			ownerCommander.OwnedUnitHasDespawned(unitIndex)
+			ClearAliasData()
+		endif
+		
 		return true
 	endif
 
 	float distToPlayer = meActor.GetDistance(playerActor)
 
-	if distToPlayer > 4100.0
+	if distToPlayer > 8100.0
 		debug.Trace("unit: too far, despawn!")
 		ClearAliasData()
-		meActor.Disable(true)
+		meActor.Disable(false)
 		meActor.Delete()
 	endif
 
@@ -44,3 +53,9 @@ event OnDeath(Actor akKiller)
 	ownerCommander.OwnedUnitHasDied(unitIndex)
 	ClearAliasData()
 endEvent
+
+Function ClearAliasData()
+	debug.Trace("unit: clear alias data!")
+	unitIndex = -1
+	parent.ClearAliasData()
+EndFunction

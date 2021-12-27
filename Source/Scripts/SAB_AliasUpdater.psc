@@ -5,7 +5,7 @@ scriptname SAB_AliasUpdater extends Quest
 SAB_UpdatedReferenceAlias[] SAB_ActiveElementsOne
 SAB_UpdatedReferenceAlias[] SAB_ActiveElementsTwo
 
-int updatedIndex = -1
+int updatedAliasIndex = -1
 
 ; the "maximum" currently used index
 int topFilledIndex = -1
@@ -24,31 +24,35 @@ function Initialize()
 endfunction
 
 
-function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
-	debug.Trace("alias updater: start loop!")
+function RunUpdate(float curGameTime = 0.0, int updateIndexToUse = 0)
+	; debug.Trace("alias updater: start loop!")
 
 	hasUpdatedAnElement = false
 
-	while !hasUpdatedAnElement && updatedIndex >= 0
-		int indexInArray = updatedIndex % 128
-		if updatedIndex > 127
+	while !hasUpdatedAnElement && updatedAliasIndex >= 0
+		int indexInArray = updatedAliasIndex % 128
+		if updatedAliasIndex > 127
 			if SAB_ActiveElementsOne[indexInArray] != None
-				hasUpdatedAnElement = SAB_ActiveElementsOne[indexInArray].RunUpdate(curGameTime, updatedIndex)
+				hasUpdatedAnElement = SAB_ActiveElementsOne[indexInArray].RunUpdate(curGameTime, updateIndexToUse)
 			endif
 		else
 			if SAB_ActiveElementsTwo[indexInArray] != None
-				hasUpdatedAnElement = SAB_ActiveElementsTwo[indexInArray].RunUpdate(curGameTime, updatedIndex)
+				hasUpdatedAnElement = SAB_ActiveElementsTwo[indexInArray].RunUpdate(curGameTime, updateIndexToUse)
 			endif
 		endif
 
-		updatedIndex -= 1
+		if hasUpdatedAnElement
+			debug.Trace("updated alias with index " + updatedAliasIndex)
+		endif
+
+		updatedAliasIndex -= 1
 	endwhile
 
-	if updatedIndex < 0
-		updatedIndex = topFilledIndex
+	if updatedAliasIndex < 0
+		updatedAliasIndex = topFilledIndex
 	endif
 
-	debug.Trace("alias updater loop end")
+	; debug.Trace("alias updater loop end")
 
 endFunction
 
