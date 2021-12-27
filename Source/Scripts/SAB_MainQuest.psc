@@ -4,7 +4,8 @@ SAB_SpawnerScript Property SpawnerScript Auto
 SAB_UnitDataHandler Property UnitDataHandler Auto
 SAB_FactionDataHandler Property FactionDataHandler Auto
 SAB_BackgroundUpdater Property BackgroundUpdater Auto
-SAB_CloseByUpdater Property CloseByUpdater Auto
+SAB_SpawnersUpdater Property SpawnersUpdater Auto
+SAB_UnitsUpdater Property UnitsUpdater Auto
 
 bool hasInitialized = false
 
@@ -16,8 +17,8 @@ event OnInit()
 		UnitDataHandler.InitializeJData()
 		FactionDataHandler.InitializeJData()
 		BackgroundUpdater.Initialize(FactionDataHandler.SAB_FactionQuests)
-		CloseByUpdater.Initialize()
-		
+		SpawnersUpdater.Initialize()
+		UnitsUpdater.Initialize()
 		Debug.Notification("SAB initialized!")
 	endif
 endEvent

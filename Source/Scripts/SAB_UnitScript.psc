@@ -1,4 +1,4 @@
-Scriptname SAB_UnitScript extends ReferenceAlias  
+Scriptname SAB_UnitScript extends SAB_UpdatedReferenceAlias  
 
 ; the unit type index of this unit
 int unitIndex
@@ -6,46 +6,41 @@ int unitIndex
 ; reference to the commander that spawned us. If we die/despawn, we should tell them
 SAB_CommanderScript ownerCommander
 
-Function Setup(int thisUnitIndex, SAB_CommanderScript cmderRef)
+Actor meActor
+Actor Property playerActor Auto
+
+Function Setup(int thisUnitIndex, SAB_CommanderScript cmderRef, int indexInUnitUpdater)
 	ownerCommander = cmderRef
 	unitIndex = thisUnitIndex
+	meActor = GetReference() as Actor
+	indexInUpdater = indexInUnitUpdater
+	ToggleUpdates(true)
 EndFunction
 
-Event OnCellDetach()
-	debug.Trace("unit: on cell detach!")
-	; if we're not dead, despawn (onDeath handles our "dead" situation)
-	; TODO check if we're units spawned by the player; in that case, don't despawn
-	Actor meActor = GetReference() as Actor
-
+bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 	if !meActor
+		; the unit went poof!
+		; if we get to the update before knowing what happened here,
+		; give the commander another chance to spawn this same unit type
 		ownerCommander.OwnedUnitHasDespawned(unitIndex)
-		Clear()
-	elseif !meActor.IsDead()
-		ownerCommander.OwnedUnitHasDespawned(unitIndex)
-		Clear()
+		ClearAliasData()
+		return true
+	endif
+
+	float distToPlayer = meActor.GetDistance(playerActor)
+
+	if distToPlayer > 4100.0
+		debug.Trace("unit: too far, despawn!")
+		ClearAliasData()
 		meActor.Disable(true)
 		meActor.Delete()
 	endif
-EndEvent
 
-Event OnDetachedFromCell()
-	debug.Trace("unit: on detached from cell!")
-	; if we're not dead, despawn (onDeath handles our "dead" situation)
-	Actor meActor = GetReference() as Actor
-	if !meActor
-		ownerCommander.OwnedUnitHasDespawned(unitIndex)
-		Clear()
-	elseif !meActor.IsDead()
-		ownerCommander.OwnedUnitHasDespawned(unitIndex)
-		Clear()
-		meActor.Disable(true)
-		meActor.Delete()
-	endif
-EndEvent
-
+	return true
+EndFunction
 
 event OnDeath(Actor akKiller)	
 	debug.Trace("unit: dead!")
 	ownerCommander.OwnedUnitHasDied(unitIndex)
-	Clear()
+	ClearAliasData()
 endEvent

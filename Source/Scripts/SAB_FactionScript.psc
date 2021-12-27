@@ -22,6 +22,8 @@ FormList Property DefaultCmderSpawnPointsList Auto
 Faction Property OurFaction Auto
 { This faction's... faction }
 
+SAB_UnitsUpdater Property UnitUpdater Auto
+
 int Property jFactionData Auto
 { This faction's data jMap }
 
@@ -29,6 +31,9 @@ int Property jFactionData Auto
 int checkedAliasIndex = 0
 
 bool cmderSpawnIsSet = false
+
+; measured in days (1.0 is a day)
+float gameTimeOfLastRealUpdate = 0.0
 
 ; prepares this faction's data and registers it for updating
 function EnableFaction(int jEnabledFactionData)
@@ -40,27 +45,31 @@ endfunction
 
 
 ; returns true if the faction was updated, false if the faction can't be updated (because it's disabled, for example)
-bool Function RunUpdate()
+bool Function RunUpdate(float daysPassed)
 	if jFactionData == 0
 		return false
 	endif
 
 	if jMap.hasKey(jFactionData, "enabled")
-		Debug.Trace("updating faction " + jMap.getStr(jFactionData, "name", "Faction"))
-		int baseAwardedGold = 500 ; TODO make this configurable
+		if daysPassed - gameTimeOfLastRealUpdate >= 0.1 ; TODO make this configurable
+			int numAwardsObtained = ((daysPassed - gameTimeOfLastRealUpdate) / 0.1) as int
+			gameTimeOfLastRealUpdate = daysPassed
+			Debug.Trace("updating faction " + jMap.getStr(jFactionData, "name", "Faction"))
+			int baseAwardedGold = 500 * numAwardsObtained ; TODO make this configurable
 
-		int currentGold = jMap.getInt(jFactionData, "AvailableGold")
-		jMap.setInt(jFactionData, "AvailableGold", currentGold + baseAwardedGold)
+			int currentGold = jMap.getInt(jFactionData, "AvailableGold")
+			jMap.setInt(jFactionData, "AvailableGold", currentGold + baseAwardedGold)
 
-		if Utility.RandomInt(1, 10) > 8
-			; TODO make the faction get real move targets for the cmders
-			CmderDestination_A.GetReference().MoveTo(GetRandomCmderDefaultSpawnPoint())
-			CmderDestination_B.GetReference().MoveTo(GetRandomCmderDefaultSpawnPoint())
-			CmderDestination_C.GetReference().MoveTo(GetRandomCmderDefaultSpawnPoint())	
+			if Utility.RandomInt(1, 10) > 8
+				; TODO make the faction get real move targets for the cmders
+				CmderDestination_A.GetReference().MoveTo(GetRandomCmderDefaultSpawnPoint())
+				CmderDestination_B.GetReference().MoveTo(GetRandomCmderDefaultSpawnPoint())
+				CmderDestination_C.GetReference().MoveTo(GetRandomCmderDefaultSpawnPoint())	
+			endif
+			
+			TrySpawnCommander()
 		endif
 		
-
-		TrySpawnCommander()
 	else 
 		return false
 	endif
@@ -237,14 +246,21 @@ ReferenceAlias Function SpawnUnitForCmder(SAB_CommanderScript commander, int uni
 		return None
 	endif
 
+	int unitIndexInUnitUpdater = UnitUpdater.UnitUpdater.RegisterAliasForUpdates(unitAlias as SAB_UnitScript)
+
+	if unitIndexInUnitUpdater == -1
+		return None
+	endif
+
 	Actor spawnedUnit = SpawnerScript.SpawnUnit(spawnLocation, OurFaction, unitIndex, -1, commander.CmderFollowFactionRank)
 
 	if spawnedUnit == None
+		UnitUpdater.UnitUpdater.UnregisterAliasFromUpdates(unitIndexInUnitUpdater)
 		return None
 	endif
 
 	unitAlias.ForceRefTo(spawnedUnit)
-	(unitAlias as SAB_UnitScript).Setup(unitIndex, commander)
+	(unitAlias as SAB_UnitScript).Setup(unitIndex, commander, unitIndexInUnitUpdater)
 
 	return unitAlias
 

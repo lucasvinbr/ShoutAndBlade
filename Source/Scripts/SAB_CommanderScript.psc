@@ -1,4 +1,4 @@
-Scriptname SAB_CommanderScript extends ReferenceAlias  
+Scriptname SAB_CommanderScript extends SAB_UpdatedReferenceAlias  
 
 ; a map of "unit index - amount" ints describing the units currently controlled by this commander
 int jOwnedUnitsMap
@@ -18,10 +18,8 @@ int totalOwnedUnitsAmount = 0
 ; a cached reference to the SAB spawner script so that we don't have to make lots of fetching whenever we want to spawn someone
 SAB_FactionScript factionScript
 
-SAB_BackgroundUpdater Property BackgroundUpdater Auto
-int indexInBackgroundUpdater
-
-SAB_CloseByUpdater Property CloseByUpdater Auto
+; cmders need a second updater for when they're close, so that they can spawn units fast
+SAB_SpawnersUpdater Property CloseByUpdater Auto
 int indexInCloseByUpdater
 
 ; cached refs for not fetching all the time
@@ -39,6 +37,12 @@ float availableExpPoints
 
 bool isNearby = false
 
+; measured in days (1.0 is a day)
+float gameTimeOfLastExpAward = 0.0
+
+; measured in days (1.0 is a day)
+float gameTimeOfLastUnitUpgrade = 0.0
+
 Function Setup(SAB_FactionScript factionScriptRef)
 	jOwnedUnitsMap = jValue.releaseAndRetain(jOwnedUnitsMap, jIntMap.object(), "ShoutAndBlade")
 	jSpawnedUnitsMap = jValue.releaseAndRetain(jSpawnedUnitsMap, jIntMap.object(), "ShoutAndBlade")
@@ -47,11 +51,13 @@ Function Setup(SAB_FactionScript factionScriptRef)
 	totalOwnedUnitsAmount = 0
 	spawnedUnitsAmount = 0
 	factionScript = factionScriptRef
-	indexInBackgroundUpdater = BackgroundUpdater.RegisterCmderForUpdates(self)
+	indexInUpdater = AliasUpdater.RegisterAliasForUpdates(self)
 	isNearby = false
 	indexInCloseByUpdater = -1
 	meActor = GetReference() as Actor
 	playerActor = Game.GetPlayer()
+	gameTimeOfLastExpAward = 0.0
+	gameTimeOfLastUnitUpgrade = 0.0
 EndFunction
 
 Event OnCellAttach()
@@ -80,43 +86,57 @@ Function ToggleNearbyUpdates(bool updatesEnabled)
 	if updatesEnabled
 		isNearby = true
 		if indexInCloseByUpdater == -1
-			indexInCloseByUpdater = CloseByUpdater.RegisterCmderForUpdates(self)
+			indexInCloseByUpdater = CloseByUpdater.CmderUpdater.RegisterAliasForUpdates(self)
 		endif
 	elseif !updatesEnabled
 		isNearby = false
 		if indexInCloseByUpdater != -1
-			CloseByUpdater.UnregisterCmderFromUpdates(indexInCloseByUpdater)
+			CloseByUpdater.CmderUpdater.UnregisterAliasFromUpdates(indexInCloseByUpdater)
 			indexInCloseByUpdater = -1
 		endif
 	endif
 
 EndFunction
 
-bool function RunUpdate()
-	;debug.Trace("game time updating commander (pre check)!")
-	availableExpPoints += 500.0 ; TODO make this configurable
+bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 
+	if updateIndex == 1
+		return RunCloseByUpdate()
+	endif
+
+	;debug.Trace("game time updating commander (pre check)!")
+	if curGameTime - gameTimeOfLastExpAward >= 0.1 ; TODO make this configurable
+		int numAwardsObtained = ((curGameTime - gameTimeOfLastExpAward) / 0.1) as int
+		availableExpPoints += 500.0 * numAwardsObtained ; TODO make this configurable
+		gameTimeOfLastExpAward = curGameTime
+	endif
+	
 	if !meActor
 		debug.Trace("WARNING: attempted to update commander which had an invalid (maybe None?) reference!")
 		ClearCmderData()
 		return true
 	endif
 
-	float distToPlayer = game.GetPlayer().GetDistance(meActor)
+	float distToPlayer = playerActor.GetDistance(meActor)
 	debug.Trace("dist to player from cmder of faction " + jMap.getStr(factionScript.jFactionData, "name", "Faction") + ": " + distToPlayer)
 
-	ToggleNearbyUpdates(distToPlayer <= 4000.0)
+	isNearby = (distToPlayer <= 4000.0)
 
 	if !meActor.IsDead()
 		if !meActor.IsInCombat()
 			;debug.Trace("game time updating commander!")
 
-			; if we have enough units, upgrade. If we don't, recruit some more
-			if totalOwnedUnitsAmount >= 30 * 0.7
-				TryUpgradeUnits()
-			else 
-				TryRecruitUnits()
+			if curGameTime - gameTimeOfLastUnitUpgrade >= 0.1 ; TODO make this configurable
+				gameTimeOfLastUnitUpgrade = curGameTime
+
+				; if we have enough units, upgrade. If we don't, recruit some more
+				if totalOwnedUnitsAmount >= 30 * 0.7
+					TryUpgradeUnits()
+				else 
+					TryRecruitUnits()
+				endif
 			endif
+			
 			
 			Utility.Wait(0.01)
 			meActor.EvaluatePackage()
@@ -312,6 +332,6 @@ Function ClearCmderData()
 	Clear()
 
 	ToggleNearbyUpdates(false)
+	ToggleUpdates(false)
 
-	BackgroundUpdater.UnregisterCmderFromUpdates(indexInBackgroundUpdater)
 EndFunction
