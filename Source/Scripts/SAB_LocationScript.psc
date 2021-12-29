@@ -6,9 +6,19 @@ ObjectReference[] Property InternalSpawnPoints Auto
 ObjectReference Property DefaultLocationsContentParent Auto
 { The xmarker that should be the enable parent of all content that should be disabled when this location is taken by one of the SAB factions }
 
+int Property jNearbyLocationsArray Auto
+{ a jArray filled with the locationDataHandler indexes of locations near this one }
+
 Location Property ThisLocation Auto
 
+float Property GoldRewardMultiplier = 1.0 Auto
+{ a multiplier applied on this location's gold award to the owner. Can make locations more or less valuable to control }
+
 bool playerIsInside = false
+
+float timeOfLastUnitLoss = 0.0
+; used for knowing whether this location is under attack or not
+float timeSinceLastUnitLoss = 0.0
 
 Function Setup(SAB_FactionScript factionScriptRef)
 	parent.Setup(factionScriptRef)
@@ -61,10 +71,19 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 		return RunCloseByUpdate()
 	endif
 
-	if curGameTime != 0.0 && gameTimeOfLastExpAward == 0.0
-		; set initial values for "gameTime" variables, to avoid them from getting huge accumulated awards
-		gameTimeOfLastExpAward = curGameTime
-		gameTimeOfLastUnitUpgrade = curGameTime
+	if curGameTime != 0.0
+		if gameTimeOfLastExpAward == 0.0
+			; set initial values for "gameTime" variables, to avoid them from getting huge accumulated awards
+			gameTimeOfLastExpAward = curGameTime
+			gameTimeOfLastUnitUpgrade = curGameTime
+		endif
+
+		if timeOfLastUnitLoss == 0.0
+			timeOfLastUnitLoss = curGameTime
+			timeSinceLastUnitLoss = 0.0
+		else 
+			timeSinceLastUnitLoss = curGameTime - timeOfLastUnitLoss
+		endif
 	endif
 
 	;debug.Trace("game time updating commander (pre check)!")
@@ -118,6 +137,16 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 	return true
 endfunction
 
+
+; returns true if this location has recently lost a unit
+bool Function IsBeingContested()
+	return timeSinceLastUnitLoss > 0.1
+endfunction
+
+Function OwnedUnitHasDied(int unitIndex)
+	parent.OwnedUnitHasDied(unitIndex)
+	timeOfLastUnitLoss = 0.0 ; will refresh the time of/since last loss in the next update
+EndFunction
 
 ObjectReference Function GetSpawnLocationForUnit()
 	if playerIsInside && InternalSpawnPoints.Length > 0

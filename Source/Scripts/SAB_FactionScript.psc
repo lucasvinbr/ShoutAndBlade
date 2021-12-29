@@ -17,6 +17,12 @@ ReferenceAlias Property CmderDestination_C Auto
 
 SAB_SpawnerScript Property SpawnerScript Auto
 
+SAB_LocationDataHandler Property LocationDataHandler Auto
+
+SAB_LocationScript destinationScript_A
+SAB_LocationScript destinationScript_B
+SAB_LocationScript destinationScript_C
+
 FormList Property DefaultCmderSpawnPointsList Auto
 
 Faction Property OurFaction Auto
@@ -27,13 +33,15 @@ SAB_UnitsUpdater Property UnitUpdater Auto
 int Property jFactionData Auto
 { This faction's data jMap }
 
-; cached index for looping over aliases. we store it to start from it instead of from 0 in the next search
-int checkedAliasIndex = 0
+int Property jOwnedLocationIndexesArray Auto
+{ indexes of the LocationDataHandler array that contain locations owned by this faction }
 
 bool cmderSpawnIsSet = false
 
 ; measured in days (1.0 is a day)
 float gameTimeOfLastRealUpdate = 0.0
+
+float gameTimeOfLastDestinationChange = 0.0
 
 ; prepares this faction's data and registers it for updating
 function EnableFaction(int jEnabledFactionData)
@@ -41,6 +49,10 @@ function EnableFaction(int jEnabledFactionData)
 	CmderDestination_A.GetReference().MoveTo(GetRandomCmderDefaultSpawnPoint())
 	CmderDestination_B.GetReference().MoveTo(GetRandomCmderDefaultSpawnPoint())
 	CmderDestination_C.GetReference().MoveTo(GetRandomCmderDefaultSpawnPoint())
+	destinationScript_A = None
+	destinationScript_B = None
+	destinationScript_C = None
+	jOwnedLocationIndexesArray = jValue.releaseAndRetain(jOwnedLocationIndexesArray, LocationDataHandler.GetLocationIndexesOwnedByFaction(self), "ShoutAndBlade")
 endfunction
 
 
@@ -55,16 +67,14 @@ bool Function RunUpdate(float daysPassed)
 			int numAwardsObtained = ((daysPassed - gameTimeOfLastRealUpdate) / 0.1) as int
 			gameTimeOfLastRealUpdate = daysPassed
 			Debug.Trace("updating faction " + jMap.getStr(jFactionData, "name", "Faction"))
-			int baseAwardedGold = 500 * numAwardsObtained ; TODO make this configurable
+
+			int goldPerAward = CalculateTotalGoldAward()
 
 			int currentGold = jMap.getInt(jFactionData, "AvailableGold")
-			jMap.setInt(jFactionData, "AvailableGold", currentGold + baseAwardedGold)
+			jMap.setInt(jFactionData, "AvailableGold", currentGold + (goldPerAward * numAwardsObtained))
 
-			if Utility.RandomInt(1, 10) > 8
-				; TODO make the faction get real move targets for the cmders
-				CmderDestination_A.GetReference().MoveTo(GetRandomCmderDefaultSpawnPoint())
-				CmderDestination_B.GetReference().MoveTo(GetRandomCmderDefaultSpawnPoint())
-				CmderDestination_C.GetReference().MoveTo(GetRandomCmderDefaultSpawnPoint())	
+			if daysPassed - gameTimeOfLastDestinationChange >= 0.15 ; TODO make this configurable
+				RunDestinationsUpdate()
 			endif
 			
 			TrySpawnCommander()
@@ -77,6 +87,36 @@ bool Function RunUpdate(float daysPassed)
 	return true
 	Debug.Trace("done updating faction " + jMap.getStr(jFactionData, "name", "Faction"))
 EndFunction
+
+; makes the faction "think" about where its commanders should go to.
+; the faction should try to both attack other locations and defend their own
+Function RunDestinationsUpdate()
+	
+EndFunction
+
+
+; returns the total gold amount the faction gets in one "gold award cycle"
+int Function CalculateTotalGoldAward()
+	int baseAwardedGold = 450 ; TODO make this configurable
+	int baseGoldPerLoc = 350 ; TODO make this configurable
+	int totalAward = baseAwardedGold
+
+	; add more gold per zone owned
+	int i = jArray.count(jOwnedLocationIndexesArray)
+
+	while i > 0
+		int locIndex = jArray.getInt(jOwnedLocationIndexesArray, i, -1)
+
+		if locIndex != -1
+			totalAward += (baseGoldPerLoc * LocationDataHandler.Locations[locIndex].GoldRewardMultiplier) as int
+		endif
+
+		i -= 1
+	endwhile
+
+	return totalAward
+EndFunction
+
 
 ; spends gold and returns a number of recruits "purchased".
 ; the caller should do something with this number
@@ -204,20 +244,10 @@ endFunction
 ; spawn a new cmder somewhere
 ReferenceAlias Function TrySpawnCommander()
 	; find a spawn for the cmder
-	; TODO consider owned zones
-	ObjectReference cmderSpawn = CmderSpawnPoint.GetReference()
-
-	if !cmderSpawnIsSet
-		; the cmder spawn point isn't set!
-		; get a good random one from the preset spawns list
-		cmderSpawn = GetRandomCmderDefaultSpawnPoint()
-	endif
+	ObjectReference cmderSpawn = GetCmderSpawnPoint()
 
 	int cmderUnitTypeIndex = jMap.getInt(jFactionData, "CmderUnitIndex")
 
-	; restart the cached alias index check, to help the alias finding to fail less often for commanders
-	; (since it's shared with the units' alias finding, there's a high chance the index will be high and fail)
-	checkedAliasIndex = 0
 	ReferenceAlias cmderAlias = FindEmptyAlias("Commander")
 
 	if cmderAlias == None
@@ -299,6 +329,7 @@ EndFunction
 ; returns none if no empty aliases are found
 ReferenceAlias function FindEmptyAlias(string aliasPrefix)
 	ReferenceAlias ref
+	int checkedAliasIndex = 0
  
 	while true
 		checkedAliasIndex += 1
@@ -334,6 +365,30 @@ ReferenceAlias Function GetFreeUnitAliasSlot()
 	
 	return None
 endFunction
+
+; returns a spawn point from one of our locations, or a random preset one if we don't control any location and we haven't set the fallback point
+ObjectReference function GetCmderSpawnPoint()
+	int i = jArray.count(jOwnedLocationIndexesArray)
+
+	while i > 0
+		int locIndex = jArray.getInt(jOwnedLocationIndexesArray, i, -1)
+
+		if locIndex != -1
+			; cmders shouldn't spawn in a contested zone
+			if !LocationDataHandler.Locations[locIndex].IsBeingContested()
+				return LocationDataHandler.Locations[locIndex].GetSpawnLocationForUnit()
+			endif
+		endif
+
+		i -= 1
+	endwhile
+
+	if !cmderSpawnIsSet
+		return GetRandomCmderDefaultSpawnPoint()
+	else
+		return CmderSpawnPoint.GetReference()
+	endif
+endfunction
 
 ObjectReference function GetRandomCmderDefaultSpawnPoint()
 	ObjectReference pickedSpawnPoint = DefaultCmderSpawnPointsList.GetAt(0) as ObjectReference

@@ -257,6 +257,28 @@ Function CopyUnitDataFromAnotherIndex(int indexToCopyTo, int indexToCopyFrom)
         SAB_UnitGearSets.GetAt(indexToCopyTo) as LeveledItem, SAB_UnitDuplicateItemSets.GetAt(indexToCopyTo) as LeveledItem)
 EndFunction
 
+; expects a map of "unit index - amount" ints.
+; returns the sum of all units' autocalc power values
+float Function GetTotalAutocalcPowerFromArmy(int jArmyMap)
+    float totalValue = 0.0
+    float curUnitPower = 0.0
+    int curKey = jIntMap.nextKey(jArmyMap, previousKey = -1, endKey = -1)
+
+	while curKey != -1
+		int ownedUnitCount = jIntMap.getInt(jArmyMap, curKey)
+		
+        if ownedUnitCount > 0
+            int jUnitData = jArray.getObj(jSABUnitDatasArray, curKey)
+            curUnitPower = jMap.getFlt(jUnitData, "AutocalcStrength")
+            totalValue += curUnitPower * ownedUnitCount
+        endif
+
+		curKey = jIntMap.nextKey(jArmyMap, curKey, endKey=-1)
+	endwhile
+
+    return totalValue
+EndFunction
+
 ; unitData jmap entries:
 
 ; string Name
