@@ -4,6 +4,7 @@ scriptname SAB_BackgroundUpdater extends Quest
 SAB_FactionScript[] SAB_FactionScripts
 
 SAB_AliasUpdater Property BackgroundCmderUpdater Auto
+SAB_AliasUpdater Property BackgroundLocationUpdater Auto
 
 GlobalVariable Property GameDaysPassed Auto
 
@@ -39,11 +40,15 @@ Event OnUpdate()
 			updatedFactionIndex = SAB_FactionScripts.Length - 1
 		endif
 		
-		Utility.Wait(0.12)
+		Utility.Wait(0.08)
 
 		BackgroundCmderUpdater.RunUpdate(daysPassed, 0)
 
-		Utility.Wait(0.12)
+		Utility.Wait(0.08)
+
+		BackgroundLocationUpdater.RunUpdate(daysPassed, 0)
+
+		Utility.Wait(0.08)
 		; debug.Trace("background updater loop end")
 	endwhile
 EndEvent

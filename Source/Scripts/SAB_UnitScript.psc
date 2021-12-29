@@ -3,14 +3,14 @@ Scriptname SAB_UnitScript extends SAB_UpdatedReferenceAlias
 ; the unit type index of this unit
 int unitIndex
 
-; reference to the commander that spawned us. If we die/despawn, we should tell them
-SAB_CommanderScript ownerCommander
+; reference to the troop container that spawned us. If we die/despawn, we should tell them
+SAB_TroopContainerScript ownerTroopContainer
 
 Actor meActor
 Actor Property playerActor Auto
 
-Function Setup(int thisUnitIndex, SAB_CommanderScript cmderRef, int indexInUnitUpdater)
-	ownerCommander = cmderRef
+Function Setup(int thisUnitIndex, SAB_TroopContainerScript containerRef, int indexInUnitUpdater)
+	ownerTroopContainer = containerRef
 	unitIndex = thisUnitIndex
 	meActor = GetReference() as Actor
 	indexInUpdater = indexInUnitUpdater
@@ -29,7 +29,7 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 			debug.Trace("unit: updated while being cleared!")
 		else 
 			debug.Trace("unit: went poof!")
-			ownerCommander.OwnedUnitHasDespawned(unitIndex)
+			ownerTroopContainer.OwnedUnitHasDespawned(unitIndex)
 			ClearAliasData()
 		endif
 		
@@ -50,7 +50,7 @@ EndFunction
 
 event OnDeath(Actor akKiller)	
 	debug.Trace("unit: dead!")
-	ownerCommander.OwnedUnitHasDied(unitIndex)
+	ownerTroopContainer.OwnedUnitHasDied(unitIndex)
 	ClearAliasData()
 endEvent
 

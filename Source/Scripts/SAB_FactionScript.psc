@@ -238,7 +238,7 @@ ReferenceAlias Function TrySpawnCommander()
 EndFunction
 
 ; find a free unit slot and spawn a unit of the desired type
-ReferenceAlias Function SpawnUnitForCmder(SAB_CommanderScript commander, int unitIndex, ObjectReference spawnLocation)
+ReferenceAlias Function SpawnUnitForTroopContainer(SAB_TroopContainerScript troopContainer, int unitIndex, ObjectReference spawnLocation, int cmderFollowRank = -1)
 	
 	ReferenceAlias unitAlias = GetFreeUnitAliasSlot()
 
@@ -254,7 +254,7 @@ ReferenceAlias Function SpawnUnitForCmder(SAB_CommanderScript commander, int uni
 		return None
 	endif
 
-	Actor spawnedUnit = SpawnerScript.SpawnUnit(spawnLocation, OurFaction, unitIndex, -1, commander.CmderFollowFactionRank)
+	Actor spawnedUnit = SpawnerScript.SpawnUnit(spawnLocation, OurFaction, unitIndex, -1, cmderFollowRank)
 
 	if spawnedUnit == None
 		debug.Trace("spawn unit for cmder: got none as spawnedUnit, aborting!")
@@ -263,7 +263,7 @@ ReferenceAlias Function SpawnUnitForCmder(SAB_CommanderScript commander, int uni
 	endif
 
 	unitAlias.ForceRefTo(spawnedUnit)
-	(unitAlias as SAB_UnitScript).Setup(unitIndex, commander, unitIndexInUnitUpdater)
+	(unitAlias as SAB_UnitScript).Setup(unitIndex, troopContainer, unitIndexInUnitUpdater)
 
 	return unitAlias
 
