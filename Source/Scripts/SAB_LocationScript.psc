@@ -20,11 +20,12 @@ float timeOfLastUnitLoss = 0.0
 ; used for knowing whether this location is under attack or not
 float timeSinceLastUnitLoss = 0.0
 
-Function Setup(SAB_FactionScript factionScriptRef)
-	parent.Setup(factionScriptRef)
+Function Setup(SAB_FactionScript factionScriptRef, float curGameTime = 0.0)
+	parent.Setup(factionScriptRef, curGameTime)
 EndFunction
 
 Function BeTakenByFaction(SAB_FactionScript factionScriptRef)
+	ToggleNearbyUpdates(false)
 	jOwnedUnitsMap = jValue.releaseAndRetain(jOwnedUnitsMap, jIntMap.object(), "ShoutAndBlade")
 	jSpawnedUnitsMap = jValue.releaseAndRetain(jSpawnedUnitsMap, jIntMap.object(), "ShoutAndBlade")
 	jSpawnOptionsArray = jValue.releaseAndRetain(jSpawnOptionsArray, jArray.object(), "ShoutAndBlade")
@@ -34,6 +35,9 @@ Function BeTakenByFaction(SAB_FactionScript factionScriptRef)
 	factionScript = factionScriptRef
 	gameTimeOfLastExpAward = 0.0
 	gameTimeOfLastUnitUpgrade = 0.0
+	gameTimeOfLastSetup = 0.0
+	Debug.Trace(ThisLocation.GetName() + " has been taken by the " + jMap.getStr(factionScript.jFactionData, "name", "Faction"))
+	Debug.Notification(ThisLocation.GetName() + " has been taken by the " + jMap.getStr(factionScript.jFactionData, "name", "Faction"))
 EndFunction
 
 ; stops nearby updates and sets this location as neutral
@@ -76,6 +80,7 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 			; set initial values for "gameTime" variables, to avoid them from getting huge accumulated awards
 			gameTimeOfLastExpAward = curGameTime
 			gameTimeOfLastUnitUpgrade = curGameTime
+			gameTimeOfLastSetup = curGameTime
 		endif
 
 		if timeOfLastUnitLoss == 0.0
@@ -115,7 +120,7 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 			gameTimeOfLastUnitUpgrade = curGameTime
 
 			; if we have enough units, upgrade. If we don't, recruit some more
-			if totalOwnedUnitsAmount >= 30 * 0.7
+			if totalOwnedUnitsAmount >= GetMaxOwnedUnitsAmount() * 0.7
 				TryUpgradeUnits()
 			else 
 				TryRecruitUnits()
@@ -143,8 +148,8 @@ bool Function IsBeingContested()
 	return timeSinceLastUnitLoss > 0.1
 endfunction
 
-Function OwnedUnitHasDied(int unitIndex)
-	parent.OwnedUnitHasDied(unitIndex)
+Function OwnedUnitHasDied(int unitIndex, float timeOwnerWasSetup)
+	parent.OwnedUnitHasDied(unitIndex, timeOwnerWasSetup)
 	timeOfLastUnitLoss = 0.0 ; will refresh the time of/since last loss in the next update
 EndFunction
 
@@ -161,7 +166,7 @@ Function SpawnUnit(int unitIndex)
 	Debug.Trace("location: spawn unit begin!")
 	ObjectReference spawnLocation = GetSpawnLocationForUnit()
 
-	ReferenceAlias spawnedUnit = factionScript.SpawnUnitForTroopContainer(self, unitIndex, spawnLocation)
+	ReferenceAlias spawnedUnit = factionScript.SpawnUnitForTroopContainer(self, unitIndex, spawnLocation, gameTimeOfLastSetup)
 
 	if spawnedUnit != None
 		; add spawned unit index to spawneds list
@@ -186,3 +191,6 @@ bool Function BecomeNeutralIfOutOfTroops()
 	return false
 EndFunction
 
+int Function GetMaxOwnedUnitsAmount()
+	return 45 ; TODO make this configurable
+EndFunction

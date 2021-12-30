@@ -23,6 +23,10 @@ SAB_LocationScript destinationScript_A
 SAB_LocationScript destinationScript_B
 SAB_LocationScript destinationScript_C
 
+float gameTimeOfLastDestinationChange_A = 0.0
+float gameTimeOfLastDestinationChange_B = 0.0
+float gameTimeOfLastDestinationChange_C = 0.0
+
 FormList Property DefaultCmderSpawnPointsList Auto
 
 Faction Property OurFaction Auto
@@ -41,7 +45,7 @@ bool cmderSpawnIsSet = false
 ; measured in days (1.0 is a day)
 float gameTimeOfLastRealUpdate = 0.0
 
-float gameTimeOfLastDestinationChange = 0.0
+float gameTimeOfLastDestinationUpdate = 0.0
 
 ; prepares this faction's data and registers it for updating
 function EnableFaction(int jEnabledFactionData)
@@ -73,11 +77,12 @@ bool Function RunUpdate(float daysPassed)
 			int currentGold = jMap.getInt(jFactionData, "AvailableGold")
 			jMap.setInt(jFactionData, "AvailableGold", currentGold + (goldPerAward * numAwardsObtained))
 
-			if daysPassed - gameTimeOfLastDestinationChange >= 0.15 ; TODO make this configurable
-				RunDestinationsUpdate()
+			if daysPassed - gameTimeOfLastDestinationUpdate >= 0.15 ; TODO make this configurable
+				gameTimeOfLastDestinationUpdate = daysPassed
+				RunDestinationsUpdate(daysPassed)
 			endif
 			
-			TrySpawnCommander()
+			TrySpawnCommander(daysPassed)
 		endif
 		
 	else 
@@ -88,17 +93,210 @@ bool Function RunUpdate(float daysPassed)
 	Debug.Trace("done updating faction " + jMap.getStr(jFactionData, "name", "Faction"))
 EndFunction
 
+
 ; makes the faction "think" about where its commanders should go to.
 ; the faction should try to both attack other locations and defend their own
-Function RunDestinationsUpdate()
+Function RunDestinationsUpdate(float curGameTime)
+
+	int jAttackTargetsArray = FindAttackTargets()
+	int jDefenseTargetsArray = FindDefenseTargets()
+	int targetLocIndex = -1
+	float gameTimeBeforeChangeDestination = 0.75 ; TODO make this configurable
+
+	; A should be an attack destination!
+	if curGameTime - gameTimeOfLastDestinationChange_A > gameTimeBeforeChangeDestination || \
+		destinationScript_A == None || destinationScript_A.factionScript == self
+
+		targetLocIndex = jArray.getInt(jAttackTargetsArray, Utility.RandomInt(0, jArray.count(jAttackTargetsArray) - 1), -1)
+
+		if targetLocIndex == -1
+			destinationScript_A = LocationDataHandler.GetRandomLocation()
+		else
+			destinationScript_A = LocationDataHandler.Locations[targetLocIndex]
+		endif
+
+		CmderDestination_A.GetReference().MoveTo(destinationScript_A.GetReference())
+		gameTimeOfLastDestinationChange_A = curGameTime
+	endif
+
+	; B can be an attack or defend destination. If no "good" targets are available, fall back to a random loc, like A
+	if curGameTime - gameTimeOfLastDestinationChange_B > gameTimeBeforeChangeDestination || \
+		 destinationScript_B == None || destinationScript_B == destinationScript_A || destinationScript_B.factionScript == self
+
+		targetLocIndex = jArray.getInt(jDefenseTargetsArray, Utility.RandomInt(0, jArray.count(jDefenseTargetsArray) - 1), -1)
+
+		if targetLocIndex == -1
+			targetLocIndex = jArray.getInt(jAttackTargetsArray, Utility.RandomInt(0, jArray.count(jAttackTargetsArray) - 1), -1)
+		endif
+
+		if targetLocIndex == -1
+			destinationScript_B = LocationDataHandler.GetRandomLocation()
+		else
+			destinationScript_B = LocationDataHandler.Locations[targetLocIndex]
+		endif
+
+		CmderDestination_B.GetReference().MoveTo(destinationScript_B.GetReference())
+		gameTimeOfLastDestinationChange_B = curGameTime
+	endif
+
+	; destination C should be defensive. Look for locations we control that are currently contested and go there, 
+	; or just randomly patrol our locations
+	if curGameTime - gameTimeOfLastDestinationChange_C > gameTimeBeforeChangeDestination || \
+		destinationScript_C == None || destinationScript_C.factionScript != self
+
+		targetLocIndex = jArray.getInt(jDefenseTargetsArray, Utility.RandomInt(0, jArray.count(jDefenseTargetsArray) - 1), -1)
+
+		if targetLocIndex == -1
+			destinationScript_C = LocationDataHandler.GetRandomLocation()
+		else
+			destinationScript_C = LocationDataHandler.Locations[targetLocIndex]
+		endif
+
+		CmderDestination_C.GetReference().MoveTo(destinationScript_C.GetReference())
+		gameTimeOfLastDestinationChange_C = curGameTime
+	endif
+
+
+	JValue.release(jAttackTargetsArray)
+EndFunction
+
+
+; returns a jArray with zones this faction could attack
+int Function FindAttackTargets()
+	int i = jArray.count(jOwnedLocationIndexesArray)
+	int j = 0
+
 	
+	int jPossibleAttackTargets = jArray.object()
+	JValue.retain(jPossibleAttackTargets, "ShoutAndBlade")
+
+	if i > 0
+		; look at the locations near our own and add them to the "candidates" list
+		while i > 0
+			i -= 1
+			int locIndex = jArray.getInt(jOwnedLocationIndexesArray, i, -1)
+
+			if locIndex != -1
+				SAB_LocationScript locScript = LocationDataHandler.Locations[locIndex]
+				; check if this location is still owned by us
+				if locScript.factionScript != self
+					JArray.eraseIndex(jOwnedLocationIndexesArray, i)
+				else
+					int jNearbyLocsArray = locScript.jNearbyLocationsArray	
+					j = jArray.count(jNearbyLocsArray)
+
+					while j > 0
+						locIndex = jArray.getInt(jNearbyLocsArray, j, -1)
+
+						if locIndex != -1
+							; if we don't own the location with index locIndex, add it as a candidate for attacking
+							if jArray.findInt(jOwnedLocationIndexesArray, locIndex) == -1
+								JArray.addInt(jPossibleAttackTargets, locIndex)
+							endif
+						endif
+					endwhile
+
+				endif
+			endif
+		endwhile	
+	else 
+		; we don't have any location!
+		; look for neutral ones for an easier target
+		SAB_LocationScript[] locScripts = LocationDataHandler.Locations
+		i = locScripts.Length
+
+		while i > 0
+			i -= 1
+			
+			SAB_LocationScript locScript = LocationDataHandler.Locations[i]
+
+			if locScript.factionScript == None
+				JArray.addInt(jPossibleAttackTargets, i)
+			endif
+		endwhile
+	endif
+
+	return jPossibleAttackTargets
+
+EndFunction
+
+
+; returns a jArray with zones this faction should defend (because they're under attack or are poorly defended)
+int Function FindDefenseTargets()
+	int i = jArray.count(jOwnedLocationIndexesArray)
+	int j = 0
+	
+	int jPossibleDefenseTargets = jArray.object()
+	JValue.retain(jPossibleDefenseTargets, "ShoutAndBlade")
+
+	while i > 0
+		i -= 1
+		int locIndex = jArray.getInt(jOwnedLocationIndexesArray, i, -1)
+
+		if locIndex != -1
+			SAB_LocationScript locScript = LocationDataHandler.Locations[locIndex]
+			; check if this location is still owned by us
+			if locScript.factionScript != self
+				JArray.eraseIndex(jOwnedLocationIndexesArray, i)
+			else
+
+				if locScript.IsBeingContested()
+					JArray.addInt(jPossibleDefenseTargets, locIndex)
+				else
+					float locationPower = SpawnerScript.UnitDataHandler.GetTotalAutocalcPowerFromArmy(locScript.jOwnedUnitsMap)
+
+					if locationPower < 32.0 ; TODO make this configurable
+						JArray.addInt(jPossibleDefenseTargets, locIndex)
+					endif
+					
+					debug.Trace("location " + locScript.ThisLocation.GetName() + " autocalc power = " + locationPower)
+				endif
+
+			endif
+		endif
+	endwhile
+
+	return jPossibleDefenseTargets
+
+EndFunction
+
+
+; destination code can be A, B or C.
+; we should check if the cmder really is close to the respective xmarker, and, if it really is the case, do stuff
+Function ValidateCmderReachedDestination(SAB_CommanderScript commander)
+	ObjectReference cmderDest = CmderDestination_A.GetReference()
+	ObjectReference cmderRef = commander.GetReference()
+	SAB_LocationScript targetLocScript = destinationScript_A
+	string cmderDestType = commander.CmderDestinationType
+
+	if cmderDestType == "b" || cmderDestType == "B"
+		cmderDest = CmderDestination_B.GetReference()
+		targetLocScript = destinationScript_B
+	elseif cmderDestType == "c" || cmderDestType == "C"
+		cmderDest = CmderDestination_C.GetReference()
+		targetLocScript = destinationScript_C
+	endif
+
+	if cmderRef.GetCurrentLocation() == cmderDest.GetCurrentLocation()
+		if cmderRef.GetDistance(cmderDest) < 800.0
+			; the commander has really arrived! Do stuff like autocalc battles now.
+			; assign the location to the cmder, and then they'll figure out what to do when updating
+			Debug.Trace("commander has arrived and has been assigned the loc script!")
+			commander.TargetLocationScript = targetLocScript
+		else
+			Debug.Trace("commander is too far away")
+		endif
+	else
+		Debug.Trace("commander is somewhere other than their dest!")
+	endif
+
 EndFunction
 
 
 ; returns the total gold amount the faction gets in one "gold award cycle"
 int Function CalculateTotalGoldAward()
 	int baseAwardedGold = 450 ; TODO make this configurable
-	int baseGoldPerLoc = 350 ; TODO make this configurable
+	int baseGoldPerLoc = 450 ; TODO make this configurable
 	int totalAward = baseAwardedGold
 
 	; add more gold per zone owned
@@ -229,20 +427,9 @@ int function TryUpgradeUnits(int unitIndex, int unitAmount, float availableExp)
 endfunction
 
 
-; moves the cmder spawn to the location of the target ref and marks the spawn as set...
-; unless the target ref is none; in that case we mark the spawn as "unset"
-Function SetCmderSpawnLocation(ObjectReference targetLocationRef)
-	if targetLocationRef != None
-		CmderSpawnPoint.GetReference().MoveTo(targetLocationRef)
-		cmderSpawnIsSet = true
-	else
-		cmderSpawnIsSet = false
-	endif
-endFunction
-
 ; if we can afford it and there's a free cmder slot,
 ; spawn a new cmder somewhere
-ReferenceAlias Function TrySpawnCommander()
+ReferenceAlias Function TrySpawnCommander(float curGameTime)
 	; find a spawn for the cmder
 	ObjectReference cmderSpawn = GetCmderSpawnPoint()
 
@@ -261,14 +448,14 @@ ReferenceAlias Function TrySpawnCommander()
 	endif
 
 	cmderAlias.ForceRefTo(cmderUnit)
-	(cmderAlias as SAB_CommanderScript).Setup(self)
+	(cmderAlias as SAB_CommanderScript).Setup(self, curGameTime)
 
 	return cmderAlias
 
 EndFunction
 
 ; find a free unit slot and spawn a unit of the desired type
-ReferenceAlias Function SpawnUnitForTroopContainer(SAB_TroopContainerScript troopContainer, int unitIndex, ObjectReference spawnLocation, int cmderFollowRank = -1)
+ReferenceAlias Function SpawnUnitForTroopContainer(SAB_TroopContainerScript troopContainer, int unitIndex, ObjectReference spawnLocation, float containerSetupTime, int cmderFollowRank = -1)
 	
 	ReferenceAlias unitAlias = GetFreeUnitAliasSlot()
 
@@ -293,37 +480,12 @@ ReferenceAlias Function SpawnUnitForTroopContainer(SAB_TroopContainerScript troo
 	endif
 
 	unitAlias.ForceRefTo(spawnedUnit)
-	(unitAlias as SAB_UnitScript).Setup(unitIndex, troopContainer, unitIndexInUnitUpdater)
+	(unitAlias as SAB_UnitScript).Setup(unitIndex, troopContainer, unitIndexInUnitUpdater, containerSetupTime)
 
 	return unitAlias
 
 EndFunction
 
-; destination code can be A, B or C.
-; we should check if the cmder really is close to the respective xmarker, and, if it really is the case, do stuff
-Function CmderReachedDestination(SAB_CommanderScript commander)
-	ObjectReference cmderDest = CmderDestination_A.GetReference()
-	ObjectReference cmderRef = commander.GetReference()
-	string cmderDestType = commander.CmderDestinationType
-
-	if cmderDestType == "b" || cmderDestType == "B"
-		cmderDest = CmderDestination_B.GetReference()
-	elseif cmderDestType == "c" || cmderDestType == "C"
-		cmderDest = CmderDestination_C.GetReference()
-	endif
-
-	if cmderRef.GetCurrentLocation() == cmderDest.GetCurrentLocation()
-		if cmderRef.GetDistance(cmderDest) < 800.0
-			Debug.Notification("commander has arrived!!! do stuff")
-			Debug.Trace("commander has arrived!!! do stuff")
-		else
-			Debug.Trace("commander is too far away")
-		endif
-	else
-		Debug.Trace("commander is somewhere other than their dest!")
-	endif
-
-EndFunction
 
 ; Returns an open alias reference with a name starting with aliasPrefix followed by a number.
 ; returns none if no empty aliases are found
@@ -364,6 +526,17 @@ ReferenceAlias Function GetFreeUnitAliasSlot()
 	EndWhile
 	
 	return None
+endFunction
+
+; moves the cmder spawn to the location of the target ref and marks the spawn as set...
+; unless the target ref is none; in that case we mark the spawn as "unset"
+Function SetCmderSpawnLocation(ObjectReference targetLocationRef)
+	if targetLocationRef != None
+		CmderSpawnPoint.GetReference().MoveTo(targetLocationRef)
+		cmderSpawnIsSet = true
+	else
+		cmderSpawnIsSet = false
+	endif
 endFunction
 
 ; returns a spawn point from one of our locations, or a random preset one if we don't control any location and we haven't set the fallback point

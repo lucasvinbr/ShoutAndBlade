@@ -9,11 +9,16 @@ SAB_TroopContainerScript ownerTroopContainer
 Actor meActor
 Actor Property playerActor Auto
 
-Function Setup(int thisUnitIndex, SAB_TroopContainerScript containerRef, int indexInUnitUpdater)
+; since there are times when units outlive their owners,
+; this is used to know whether the owner container is still the same as when this unit was created
+float gameTimeOwnerContainerWasSetup = 0.0
+
+Function Setup(int thisUnitIndex, SAB_TroopContainerScript containerRef, int indexInUnitUpdater, float gameTimeSetupOfParentContainer)
 	ownerTroopContainer = containerRef
 	unitIndex = thisUnitIndex
 	meActor = GetReference() as Actor
 	indexInUpdater = indexInUnitUpdater
+	gameTimeOwnerContainerWasSetup = gameTimeSetupOfParentContainer
 	; ToggleUpdates(true)
 	debug.Trace("unit: setup end!")
 EndFunction

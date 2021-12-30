@@ -37,7 +37,10 @@ float Property gameTimeOfLastExpAward = 0.0 Auto
 ; measured in days (1.0 is a day)
 float Property gameTimeOfLastUnitUpgrade = 0.0 Auto
 
-Function Setup(SAB_FactionScript factionScriptRef)
+; measured in days (1.0 is a day). This is used to know whether a unit is ours or of the previous container filling this alias
+float Property gameTimeOfLastSetup Auto
+
+Function Setup(SAB_FactionScript factionScriptRef, float curGameTime = 0.0)
 	jOwnedUnitsMap = jValue.releaseAndRetain(jOwnedUnitsMap, jIntMap.object(), "ShoutAndBlade")
 	jSpawnedUnitsMap = jValue.releaseAndRetain(jSpawnedUnitsMap, jIntMap.object(), "ShoutAndBlade")
 	jSpawnOptionsArray = jValue.releaseAndRetain(jSpawnOptionsArray, jArray.object(), "ShoutAndBlade")
@@ -51,6 +54,7 @@ Function Setup(SAB_FactionScript factionScriptRef)
 	playerActor = Game.GetPlayer()
 	gameTimeOfLastExpAward = 0.0
 	gameTimeOfLastUnitUpgrade = 0.0
+	gameTimeOfLastSetup = curGameTime
 EndFunction
 
 ; sets isNearby and enables or disables closeBy updates
@@ -85,6 +89,7 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 		; set initial values for "gameTime" variables, to avoid them from getting huge accumulated awards
 		gameTimeOfLastExpAward = curGameTime
 		gameTimeOfLastUnitUpgrade = curGameTime
+		gameTimeOfLastSetup = curGameTime
 	endif
 	
 endfunction
@@ -106,7 +111,7 @@ endfunction
 ; if we don't have too many units already, attempts to get some more basic recruits with the faction gold
 Function TryRecruitUnits()
 	; debug.Trace("commander: try recruit units!")
-	int maxUnitSlots = 30 ; TODO make this configurable via MCM
+	int maxUnitSlots = GetMaxOwnedUnitsAmount() ; TODO make this configurable via MCM
 
 	if totalOwnedUnitsAmount < maxUnitSlots
 		int recruitedUnits = factionScript.PurchaseRecruits(maxUnitSlots - totalOwnedUnitsAmount)
@@ -158,6 +163,56 @@ Function TryUpgradeUnits()
 
 endFunction
 
+
+; attempts to transfer some of our units (picked randomly) to the other container, respecting their maxOwnedUnitsAmount
+Function TryTransferUnitsToAnotherContainer(SAB_TroopContainerScript otherContainer)
+	debug.Trace("troop container: try transfer units!")
+
+	; we should only transfer units not currently spawned
+	; so if all units are spawned, no transfers should be made
+	if spawnedUnitsAmount >= totalOwnedUnitsAmount
+		return
+	endif
+
+	; we should only transfer units if the other container isn't full
+	int availableSlotsInOtherContainer = otherContainer.GetMaxOwnedUnitsAmount() - otherContainer.totalOwnedUnitsAmount
+
+	if availableSlotsInOtherContainer <= 0
+		return
+	endif
+
+	int unitIndexToTransfer = GetUnitIndexToSpawn()
+
+	int ownedUnitCount = jIntMap.getInt(jOwnedUnitsMap, unitIndexToTransfer)
+	int spawnedUnitCount = jIntMap.getInt(jSpawnedUnitsMap, unitIndexToTransfer)
+
+	if ownedUnitCount > spawnedUnitCount
+		int unitAmountToTransfer = ownedUnitCount - spawnedUnitCount
+		if unitAmountToTransfer > availableSlotsInOtherContainer
+			unitAmountToTransfer = availableSlotsInOtherContainer
+		endif
+
+		if unitIndexToTransfer >= 0
+			
+			; remove units from this container...
+			jIntMap.setInt(jOwnedUnitsMap, unitIndexToTransfer, ownedUnitCount - unitAmountToTransfer)
+			if ownedUnitCount - unitAmountToTransfer <= 0
+				jIntMap.removeKey(jOwnedUnitsMap, unitIndexToTransfer)
+			endif
+			totalOwnedUnitsAmount -= unitAmountToTransfer
+
+			; and add them to the other!
+			ownedUnitCount = jIntMap.getInt(otherContainer.jOwnedUnitsMap, unitIndexToTransfer)
+			JIntMap.setInt(otherContainer.jOwnedUnitsMap, unitIndexToTransfer, ownedUnitCount + unitAmountToTransfer)
+			otherContainer.totalOwnedUnitsAmount += unitAmountToTransfer
+
+			debug.Trace("transferred " + unitAmountToTransfer + " units of index " + unitIndexToTransfer)
+		endif
+	endif
+
+endFunction
+
+
 ; returns a valid random unit index from our ownedUnits list, or -1 if it fails for some reason (no units available to spawn, for example)
 int Function GetUnitIndexToSpawn()
 	jArray.clear(jSpawnOptionsArray)
@@ -196,7 +251,7 @@ Function SpawnUnit(int unitIndex)
 	Debug.Trace("troop container: spawn unit begin!")
 	ObjectReference spawnLocation = GetSpawnLocationForUnit()
 
-	ReferenceAlias spawnedUnit = factionScript.SpawnUnitForTroopContainer(self, unitIndex, spawnLocation)
+	ReferenceAlias spawnedUnit = factionScript.SpawnUnitForTroopContainer(self, unitIndex, spawnLocation, gameTimeOfLastSetup)
 
 	if spawnedUnit != None
 		; add spawned unit index to spawneds list
@@ -208,7 +263,12 @@ Function SpawnUnit(int unitIndex)
 EndFunction
 
 ; removes the despawned unit from the spawnedUnits list, but not from the ownedUnits, so that it can spawn again later
-Function OwnedUnitHasDespawned(int unitIndex)
+Function OwnedUnitHasDespawned(int unitIndex, float timeOwnerWasSetup)
+
+	if gameTimeOfLastSetup > timeOwnerWasSetup
+		return
+	endif
+
 	int currentSpawnedAmount = jIntMap.getInt(jSpawnedUnitsMap, unitIndex)
 	jIntMap.setInt(jSpawnedUnitsMap, unitIndex, currentSpawnedAmount + 1)
 
@@ -216,7 +276,12 @@ Function OwnedUnitHasDespawned(int unitIndex)
 EndFunction
 
 ; removes the dead unit from the ownedUnits and spawnedUnits lists
-Function OwnedUnitHasDied(int unitIndex)
+Function OwnedUnitHasDied(int unitIndex, float timeOwnerWasSetup)
+
+	if gameTimeOfLastSetup > timeOwnerWasSetup
+		return
+	endif
+
 	int currentSpawnedAmount = jIntMap.getInt(jSpawnedUnitsMap, unitIndex)
 	jIntMap.setInt(jSpawnedUnitsMap, unitIndex, currentSpawnedAmount - 1)
 
@@ -230,3 +295,14 @@ Function OwnedUnitHasDied(int unitIndex)
 		jIntMap.removeKey(jOwnedUnitsMap, unitIndex)
 	endif
 EndFunction
+
+; this container has been completely defeated in an autocalc battle and has no units left!
+; this function should do whatever happens in that case
+Function HandleAutocalcDefeat()
+	Debug.Trace("Override me!")
+EndFunction
+
+; returns the maximum amount of units this container should be able to own
+int Function GetMaxOwnedUnitsAmount()
+	return 30
+endfunction

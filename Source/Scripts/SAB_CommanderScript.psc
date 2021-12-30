@@ -9,10 +9,13 @@ int Property CmderFollowFactionRank Auto
 string Property CmderDestinationType Auto
 { can be "A", "B" or "C". Defines which of the 3 faction destinations this cmder will always go to }
 
+; reference to the location we're fighting against or trying to take over.
+; this should only have a real value if we're close enough to this location
+SAB_LocationScript Property TargetLocationScript Auto
 
-Function Setup(SAB_FactionScript factionScriptRef)
+Function Setup(SAB_FactionScript factionScriptRef, float curGameTime = 0.0)
 	meActor = GetReference() as Actor
-	parent.Setup(factionScriptRef)
+	parent.Setup(factionScriptRef, curGameTime)
 EndFunction
 
 ; sets isNearby and enables or disables closeBy updates
@@ -71,11 +74,34 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 		if !meActor.IsInCombat()
 			;debug.Trace("game time updating commander!")
 
+			if TargetLocationScript != None
+				float distToLoc = TargetLocationScript.GetReference().GetDistance(meActor)
+
+				debug.Trace("dist to target loc from cmder of faction " + jMap.getStr(factionScript.jFactionData, "name", "Faction") + ": " + distToLoc)
+
+				if distToLoc > 1000
+					; we're too far away from the target loc, disengage
+					TargetLocationScript = None
+				else
+					if TargetLocationScript.factionScript == factionScript
+						; attempt to reinforce the location if it's undermanned
+						if TargetLocationScript.totalOwnedUnitsAmount < TargetLocationScript.GetMaxOwnedUnitsAmount()
+							TryTransferUnitsToAnotherContainer(TargetLocationScript)
+						endif
+					else
+						; if the player is far away, do an autocalc fight against the location's units!
+						if !isNearby
+
+						endif
+					endif
+				endif
+			endif
+
 			if curGameTime - gameTimeOfLastUnitUpgrade >= 0.1 ; TODO make this configurable
 				gameTimeOfLastUnitUpgrade = curGameTime
 
 				; if we have enough units, upgrade. If we don't, recruit some more
-				if totalOwnedUnitsAmount >= 30 * 0.7
+				if totalOwnedUnitsAmount >= GetMaxOwnedUnitsAmount() * 0.7
 					TryUpgradeUnits()
 				else 
 					TryRecruitUnits()
@@ -122,7 +148,7 @@ EndFunction
 
 Event OnPackageEnd(Package akOldPackage)
 	; this is kind of reliable
-	factionScript.CmderReachedDestination(self)
+	factionScript.ValidateCmderReachedDestination(self)
 EndEvent
 
 Event OnCombatStateChanged(Actor akTarget, int aeCombatState)
@@ -157,6 +183,12 @@ bool Function ClearAliasIfOutOfTroops()
 	return false
 EndFunction
 
+Function HandleAutocalcDefeat()
+	ClearCmderData()
+	meActor.Disable(false)
+	meActor.Delete()
+EndFunction
+
 ; clears the alias and stops updates
 Function ClearCmderData()
 	debug.Trace("commander: clear cmder data!")
@@ -165,4 +197,8 @@ Function ClearCmderData()
 	ToggleNearbyUpdates(false)
 	ToggleUpdates(false)
 
+EndFunction
+
+int Function GetMaxOwnedUnitsAmount()
+	return 30 ; TODO make this configurable
 EndFunction

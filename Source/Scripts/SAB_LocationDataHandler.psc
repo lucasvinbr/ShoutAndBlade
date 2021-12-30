@@ -92,3 +92,9 @@ int Function GetLocationIndexesOwnedByFaction(SAB_FactionScript factionScript)
 
     return jReturnedArray
 EndFunction
+
+
+; returns a random location from the list
+SAB_LocationScript Function GetRandomLocation()
+    return Locations[Utility.RandomInt(0, Locations.Length - 1)]
+endfunction
