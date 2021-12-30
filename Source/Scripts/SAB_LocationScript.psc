@@ -83,6 +83,7 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 			gameTimeOfLastSetup = curGameTime
 		endif
 
+		; a timeOfLastUnitLoss equal to 0.0 means a unit has been lost recently
 		if timeOfLastUnitLoss == 0.0
 			timeOfLastUnitLoss = curGameTime
 			timeSinceLastUnitLoss = 0.0
@@ -177,7 +178,7 @@ Function SpawnUnit(int unitIndex)
 	endif
 EndFunction
 
-; returns true if out of troops and cleared
+; returns true if out of troops and "neutralized"
 bool Function BecomeNeutralIfOutOfTroops()
 	debug.Trace("location (" + jMap.getStr(factionScript.jFactionData, "name", "Faction") + "): become neutral if out of troops!")
 	debug.Trace("location: totalOwnedUnitsAmount: " + totalOwnedUnitsAmount)
@@ -189,6 +190,15 @@ bool Function BecomeNeutralIfOutOfTroops()
 	endif
 
 	return false
+EndFunction
+
+Function TakeAutocalcDamage(float enemyPower, int jSABUnitDatasArrayCached = -1)
+	parent.TakeAutocalcDamage(enemyPower, jSABUnitDatasArrayCached)
+	timeOfLastUnitLoss = 0.0 ; will refresh the time of/since last loss in the next update
+EndFunction
+
+Function HandleAutocalcDefeat()
+	BecomeNeutralIfOutOfTroops()
 EndFunction
 
 int Function GetMaxOwnedUnitsAmount()

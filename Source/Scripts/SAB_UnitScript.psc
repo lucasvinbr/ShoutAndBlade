@@ -34,7 +34,7 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 			debug.Trace("unit: updated while being cleared!")
 		else 
 			debug.Trace("unit: went poof!")
-			ownerTroopContainer.OwnedUnitHasDespawned(unitIndex)
+			ownerTroopContainer.OwnedUnitHasDespawned(unitIndex, gameTimeOwnerContainerWasSetup)
 			ClearAliasData()
 		endif
 		
@@ -55,7 +55,7 @@ EndFunction
 
 event OnDeath(Actor akKiller)	
 	debug.Trace("unit: dead!")
-	ownerTroopContainer.OwnedUnitHasDied(unitIndex)
+	ownerTroopContainer.OwnedUnitHasDied(unitIndex, gameTimeOwnerContainerWasSetup)
 	ClearAliasData()
 endEvent
 

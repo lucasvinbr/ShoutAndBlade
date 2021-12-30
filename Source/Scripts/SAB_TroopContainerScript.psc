@@ -296,10 +296,76 @@ Function OwnedUnitHasDied(int unitIndex, float timeOwnerWasSetup)
 	endif
 EndFunction
 
+
+; makes our units "fight" the enemyContainer's units.
+; the result is decided based on the units' autocalcpower values
+Function DoAutocalcBattle(SAB_TroopContainerScript enemyContainer)
+
+	debug.Trace("autocalc fight start!")
+	SAB_UnitDataHandler unitDataHandler = factionScript.SpawnerScript.UnitDataHandler
+
+	; we want there to be a high chance of the fight not being instantly resolved
+	float ourPower = unitDataHandler.GetTotalAutocalcPowerFromArmy(jOwnedUnitsMap) * Utility.RandomFloat(0.125, 1.1)
+	float theirPower = unitDataHandler.GetTotalAutocalcPowerFromArmy(enemyContainer.jOwnedUnitsMap) * Utility.RandomFloat(0.125, 1.1)
+
+	TakeAutocalcDamage(theirPower)
+	enemyContainer.TakeAutocalcDamage(ourPower)
+
+	if enemyContainer.totalOwnedUnitsAmount <= 0
+		enemyContainer.HandleAutocalcDefeat()
+	endif
+
+	if totalOwnedUnitsAmount <= 0
+		HandleAutocalcDefeat()
+	endif
+	debug.Trace("autocalc fight end!")
+	
+EndFunction
+
+
+; removes some of our units based on the power of the enemy
+Function TakeAutocalcDamage(float enemyPower, int jSABUnitDatasArrayCached = -1)
+	
+	int i = jIntMap.count(jOwnedUnitsMap)
+
+	if jSABUnitDatasArrayCached == -1
+		jSABUnitDatasArrayCached = factionScript.SpawnerScript.UnitDataHandler.jSABUnitDatasArray
+	endif
+
+	while enemyPower > 0.0 && totalOwnedUnitsAmount > 0
+		i -= 1
+		int unitIndex = jIntMap.getNthKey(jOwnedUnitsMap, i)
+		int ownedUnitCount = jIntMap.getInt(jOwnedUnitsMap, unitIndex)
+		int jUnitMap = jArray.getObj(jSABUnitDatasArrayCached, unitIndex)
+		float unitPower = jMap.getFlt(jUnitMap, "AutocalcStrength", 1.0)
+		; get the amount of units we'd have to lose to compensate the enemy power...
+		; then clamp the units lost to the amount we actually have, and find out how much power that takes care of
+		int unitsLost = Math.Ceiling(enemyPower / unitPower)
+
+		if unitsLost > ownedUnitCount
+			unitsLost = ownedUnitCount
+		endif
+
+		; lose the units!
+		jIntMap.setInt(jOwnedUnitsMap, unitIndex, ownedUnitCount - unitsLost)
+
+		if ownedUnitCount - unitsLost <= 0
+			jIntMap.removeKey(jOwnedUnitsMap, unitIndex)
+		endif
+
+		totalOwnedUnitsAmount -= unitsLost
+
+		enemyPower -= (unitsLost * unitPower)
+
+	endwhile
+
+EndFunction
+
+
 ; this container has been completely defeated in an autocalc battle and has no units left!
 ; this function should do whatever happens in that case
 Function HandleAutocalcDefeat()
-	Debug.Trace("Override me!")
+	Debug.Trace("HandleAutocalcDefeat: Override me!")
 EndFunction
 
 ; returns the maximum amount of units this container should be able to own

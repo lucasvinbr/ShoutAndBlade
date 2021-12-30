@@ -88,10 +88,15 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 						if TargetLocationScript.totalOwnedUnitsAmount < TargetLocationScript.GetMaxOwnedUnitsAmount()
 							TryTransferUnitsToAnotherContainer(TargetLocationScript)
 						endif
-					else
-						; if the player is far away, do an autocalc fight against the location's units!
+					else 
 						if !isNearby
-
+							; if the player is far away, do an autocalc fight against the location's units!
+							if TargetLocationScript.factionScript != None
+								DoAutocalcBattle(TargetLocationScript)	
+							else
+								; the location is neutral! Let's take it
+								TargetLocationScript.BeTakenByFaction(factionScript)
+							endif
 						endif
 					endif
 				endif
