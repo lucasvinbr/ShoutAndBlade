@@ -77,8 +77,8 @@ begin
 	
 	// add the faction quest to the factions array in the main quest factionsHandler script!
 	curEditedListElement := ElementByPath(sabMainQuest, 'VMAD\Scripts');
-	// factionsHandler is index 2
-	curEditedElement := ElementByIndex(curEditedListElement, 2); 
+	// factionsHandler is index 0
+	curEditedElement := ElementByIndex(curEditedListElement, 0); 
     curEditedListElement := ElementByPath(curEditedElement, 'Properties');
 	curEditedElement := ElementByIndex(curEditedListElement, 0);
 	curEditedListElement := ElementByPath(curEditedElement, 'Value\Array of Object');
@@ -93,7 +93,8 @@ begin
 	// get script's properties...
 	curEditedListElement := ElementByPath(curEditedElement, 'Properties');
 	
-	// almost all properties of the faction script (except two, 'OurFaction' and 'SpawnerScript') point to our quest
+	// most of the properties of the faction script point to our quest
+	// (we avoid the exceptions below)
 	for j := 0 to ElementCount(curEditedListElement) do
 	begin
 		curEditedElement := ElementByIndex(curEditedListElement, j);
@@ -103,7 +104,8 @@ begin
 		if propertyName = 'OurFaction' then begin
 			SetNativeValue(ElementByPath(curEditedElement, 'Value\Object Union\Object v2\FormID'), FormID(curEditedFaction));
 		end else begin
-			if (propertyName <> 'SpawnerScript') and (propertyName <> 'DefaultCmderSpawnPointsList') then begin
+			if (propertyName <> 'SpawnerScript') and (propertyName <> 'DefaultCmderSpawnPointsList') and (propertyName <> 'UnitUpdater')
+				and (propertyName <> 'LocationDataHandler') then begin
 				SetNativeValue(ElementByPath(curEditedElement, 'Value\Object Union\Object v2\FormID'), FormID(curEditedQuest));
 			end;
 		end;
