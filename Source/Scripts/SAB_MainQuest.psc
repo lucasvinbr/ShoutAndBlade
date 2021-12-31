@@ -18,10 +18,10 @@ event OnInit()
 		Debug.Trace("SAB OnInit begin")
 		UnitDataHandler.InitializeJData()
 		FactionDataHandler.InitializeJData()
-		LocationDataHandler.Initialize()
 		BackgroundUpdater.Initialize(FactionDataHandler.SAB_FactionQuests)
 		SpawnersUpdater.Initialize()
 		UnitsUpdater.Initialize()
+		LocationDataHandler.Initialize()
 		Debug.Notification("SAB initialized!")
 	endif
 endEvent

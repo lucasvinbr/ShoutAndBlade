@@ -16,6 +16,7 @@ function Initialize(SAB_FactionScript[] factionScriptsArray)
 	debug.Trace("background updater: initialize!")
 	SAB_FactionScripts = factionScriptsArray
 	BackgroundCmderUpdater.Initialize()
+	BackgroundLocationUpdater.Initialize()
 	RegisterForSingleUpdate(1.0)
 endfunction
 

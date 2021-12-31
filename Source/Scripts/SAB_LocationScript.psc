@@ -106,7 +106,7 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 	
 
 	float distToPlayer = playerActor.GetDistance(GetReference())
-	debug.Trace("dist to player from location of faction " + jMap.getStr(factionScript.jFactionData, "name", "NEUTRAL") + ": " + distToPlayer)
+	; debug.Trace("dist to player from location of faction " + jMap.getStr(factionScript.jFactionData, "name", "NEUTRAL") + ": " + distToPlayer)
 
 	playerIsInside = ThisLocation.IsSameLocation(playerActor.GetCurrentLocation())
 

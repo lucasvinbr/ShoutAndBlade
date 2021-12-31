@@ -7,6 +7,7 @@ SAB_AliasUpdater Property LocationUpdater Auto
 function Initialize()
 	debug.Trace("spawners updater: initialize!")
 	CmderUpdater.Initialize()
+	LocationUpdater.Initialize()
 	RegisterForSingleUpdate(1.0)
 endfunction
 
