@@ -15,6 +15,7 @@ SAB_LocationScript Property TargetLocationScript Auto
 
 Function Setup(SAB_FactionScript factionScriptRef, float curGameTime = 0.0)
 	meActor = GetReference() as Actor
+	TargetLocationScript = None
 	parent.Setup(factionScriptRef, curGameTime)
 EndFunction
 
@@ -49,7 +50,6 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 	if curGameTime != 0.0 && gameTimeOfLastExpAward == 0.0
 		; set initial values for "gameTime" variables, to avoid them from getting huge accumulated awards
 		gameTimeOfLastExpAward = curGameTime
-		gameTimeOfLastUnitUpgrade = curGameTime
 	endif
 
 	;debug.Trace("game time updating commander (pre check)!")

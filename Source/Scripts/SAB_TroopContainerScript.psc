@@ -53,7 +53,7 @@ Function Setup(SAB_FactionScript factionScriptRef, float curGameTime = 0.0)
 	indexInCloseByUpdater = -1
 	playerActor = Game.GetPlayer()
 	gameTimeOfLastExpAward = 0.0
-	gameTimeOfLastUnitUpgrade = 0.0
+	gameTimeOfLastUnitUpgrade = -10.0 ; assign a big negative value to make sure the container recruits/upgrades ASAP
 	gameTimeOfLastSetup = curGameTime
 EndFunction
 
