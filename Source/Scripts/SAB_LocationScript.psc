@@ -1,4 +1,6 @@
-Scriptname SAB_LocationScript extends SAB_TroopContainerScript  
+Scriptname SAB_LocationScript extends SAB_TroopContainerScript
+{ script for a location that can be captured by SAB factions.
+ This script should be added to an xmarker in the exterior world, where distance checks should work.}
 
 ObjectReference[] Property ExternalSpawnPoints Auto
 ObjectReference[] Property InternalSpawnPoints Auto
@@ -8,6 +10,9 @@ ObjectReference Property DefaultLocationsContentParent Auto
 
 int Property jNearbyLocationsArray Auto
 { a jArray filled with the locationDataHandler indexes of locations near this one }
+
+ObjectReference Property MoveDestination Auto
+{ this is the destination commanders will head to. It can be inside the location itself }
 
 Location Property ThisLocation Auto
 
@@ -148,6 +153,22 @@ endfunction
 bool Function IsBeingContested()
 	return timeSinceLastUnitLoss > 0.1
 endfunction
+
+
+bool Function IsActorCloseEnoughForAutocalc(Actor targetActor)
+	float distToLoc = GetReference().GetDistance(targetActor)
+	debug.Trace("dist to loc from actor: " + distToLoc)
+	if distToLoc <= 1000.0
+		return true
+	endif
+
+	distToLoc = MoveDestination.GetDistance(targetActor)
+	debug.Trace("dist to loc movedest from actor: " + distToLoc)
+	if distToLoc <= 1000.0
+		return true
+	endif
+EndFunction
+
 
 Function OwnedUnitHasDied(int unitIndex, float timeOwnerWasSetup)
 	parent.OwnedUnitHasDied(unitIndex, timeOwnerWasSetup)

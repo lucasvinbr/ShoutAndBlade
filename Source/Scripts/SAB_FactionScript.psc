@@ -115,7 +115,7 @@ Function RunDestinationsUpdate(float curGameTime)
 			destinationScript_A = LocationDataHandler.Locations[targetLocIndex]
 		endif
 
-		CmderDestination_A.GetReference().MoveTo(destinationScript_A.GetReference())
+		CmderDestination_A.GetReference().MoveTo(destinationScript_A.MoveDestination)
 		gameTimeOfLastDestinationChange_A = curGameTime
 	endif
 
@@ -135,7 +135,7 @@ Function RunDestinationsUpdate(float curGameTime)
 			destinationScript_B = LocationDataHandler.Locations[targetLocIndex]
 		endif
 
-		CmderDestination_B.GetReference().MoveTo(destinationScript_B.GetReference())
+		CmderDestination_B.GetReference().MoveTo(destinationScript_B.MoveDestination)
 		gameTimeOfLastDestinationChange_B = curGameTime
 	endif
 
@@ -152,7 +152,7 @@ Function RunDestinationsUpdate(float curGameTime)
 			destinationScript_C = LocationDataHandler.Locations[targetLocIndex]
 		endif
 
-		CmderDestination_C.GetReference().MoveTo(destinationScript_C.GetReference())
+		CmderDestination_C.GetReference().MoveTo(destinationScript_C.MoveDestination)
 		gameTimeOfLastDestinationChange_C = curGameTime
 	endif
 

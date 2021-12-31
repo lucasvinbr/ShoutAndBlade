@@ -75,11 +75,9 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 			;debug.Trace("game time updating commander!")
 
 			if TargetLocationScript != None
-				float distToLoc = TargetLocationScript.GetReference().GetDistance(meActor)
+				bool cmderCanAutocalc = TargetLocationScript.IsActorCloseEnoughForAutocalc(meActor)
 
-				debug.Trace("dist to target loc from cmder of faction " + jMap.getStr(factionScript.jFactionData, "name", "Faction") + ": " + distToLoc)
-
-				if distToLoc > 1000
+				if !cmderCanAutocalc
 					; we're too far away from the target loc, disengage
 					TargetLocationScript = None
 				else
