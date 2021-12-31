@@ -124,21 +124,21 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 		elseif factionScript == None && DefaultLocationsContentParent.IsDisabled()
 			DefaultLocationsContentParent.Enable()
 		endif
-
-		if curGameTime - gameTimeOfLastUnitUpgrade >= 0.1 ; TODO make this configurable
-			gameTimeOfLastUnitUpgrade = curGameTime
-
-			; if we have enough units, upgrade. If we don't, recruit some more
-			if totalOwnedUnitsAmount >= GetMaxOwnedUnitsAmount() * 0.7
-				TryUpgradeUnits()
-			else 
-				TryRecruitUnits()
-			endif
-		endif
-		
-		Utility.Wait(0.01)
 			
 	endif
+
+	if curGameTime - gameTimeOfLastUnitUpgrade >= 0.1 ; TODO make this configurable
+		gameTimeOfLastUnitUpgrade = curGameTime
+
+		; if we have enough units, upgrade. If we don't, recruit some more
+		if totalOwnedUnitsAmount >= GetMaxOwnedUnitsAmount() * 0.7
+			TryUpgradeUnits()
+		else 
+			TryRecruitUnits()
+		endif
+	endif
+	
+	Utility.Wait(0.01)
 
 	return true
 endfunction
@@ -177,6 +177,8 @@ bool Function IsActorCloseEnoughForAutocalc(Actor targetActor)
 	if distToLoc <= 1000.0
 		return true
 	endif
+
+	return false
 EndFunction
 
 
