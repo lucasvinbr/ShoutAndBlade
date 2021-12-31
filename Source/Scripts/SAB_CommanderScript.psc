@@ -74,33 +74,7 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 		if !meActor.IsInCombat()
 			;debug.Trace("game time updating commander!")
 
-			if TargetLocationScript != None
-				bool cmderCanAutocalc = TargetLocationScript.IsActorCloseEnoughForAutocalc(meActor)
-
-				if !cmderCanAutocalc
-					; we're too far away from the target loc, disengage
-					TargetLocationScript = None
-				else
-					if TargetLocationScript.factionScript == factionScript
-						; attempt to reinforce the location if it's undermanned
-						if TargetLocationScript.totalOwnedUnitsAmount < TargetLocationScript.GetMaxOwnedUnitsAmount()
-							TryTransferUnitsToAnotherContainer(TargetLocationScript)
-						endif
-					else 
-						if !isNearby
-							; if the player is far away, do an autocalc fight against the location's units!
-							if TargetLocationScript.factionScript != None
-								DoAutocalcBattle(TargetLocationScript)	
-							else
-								; the location is neutral! Let's take it
-								TargetLocationScript.BeTakenByFaction(factionScript)
-							endif
-						endif
-					endif
-				endif
-			endif
-
-			if curGameTime - gameTimeOfLastUnitUpgrade >= 0.1 ; TODO make this configurable
+			if curGameTime - gameTimeOfLastUnitUpgrade >= 0.06 ; TODO make this configurable
 				gameTimeOfLastUnitUpgrade = curGameTime
 
 				; if we have enough units, upgrade. If we don't, recruit some more
@@ -110,7 +84,53 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 					TryRecruitUnits()
 				endif
 			endif
-			
+
+			if TargetLocationScript != None
+				bool cmderCanAutocalc = TargetLocationScript.IsActorCloseEnoughForAutocalc(meActor)
+
+				if !cmderCanAutocalc
+					; we're too far away from the target loc, disengage
+					if TargetLocationScript.InteractingCommander == self
+						TargetLocationScript.InteractingCommander = None
+					endif
+					TargetLocationScript = None
+				else
+					if TargetLocationScript.factionScript == factionScript
+						; attempt to reinforce the location if it's undermanned
+						if TargetLocationScript.totalOwnedUnitsAmount < TargetLocationScript.GetMaxOwnedUnitsAmount()
+							; mark ourselves as interacting so that we can be attacked instead of the location
+							TargetLocationScript.InteractingCommander = self
+							TryTransferUnitsToAnotherContainer(TargetLocationScript)
+						endif
+					else 
+						if !isNearby
+							; if the player is far away, do autocalc fights!
+							; if any cmder is currently interacting with the location, we fight them first
+							if TargetLocationScript.InteractingCommander != None && TargetLocationScript.InteractingCommander != self
+								if TargetLocationScript.InteractingCommander.factionScript != factionScript
+
+									DoAutocalcBattle(TargetLocationScript.InteractingCommander)
+									; if the interacting cmder has just been defeated and we're still standing,
+									; mark ourselves as the currently interacting ones
+									if totalOwnedUnitsAmount > 0 && TargetLocationScript.InteractingCommander == None
+										TargetLocationScript.InteractingCommander = self
+									endif
+									return true
+								endif
+							elseif TargetLocationScript.factionScript != None
+								; do an autocalc fight against the location's units!
+								TargetLocationScript.InteractingCommander = self
+								DoAutocalcBattle(TargetLocationScript)
+								return true
+							else
+								; the location is neutral! Let's take it
+								TargetLocationScript.InteractingCommander = self
+								TargetLocationScript.BeTakenByFaction(factionScript)
+							endif
+						endif
+					endif
+				endif
+			endif
 			
 			Utility.Wait(0.01)
 			meActor.EvaluatePackage()
@@ -195,8 +215,14 @@ EndFunction
 ; clears the alias and stops updates
 Function ClearCmderData()
 	debug.Trace("commander: clear cmder data!")
-	Clear()
 
+	if TargetLocationScript != None
+		if TargetLocationScript.InteractingCommander == self
+			TargetLocationScript.InteractingCommander = None
+		endif
+	endif
+
+	Clear()
 	ToggleNearbyUpdates(false)
 	ToggleUpdates(false)
 

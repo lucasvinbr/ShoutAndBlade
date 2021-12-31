@@ -25,6 +25,9 @@ float timeOfLastUnitLoss = 0.0
 ; used for knowing whether this location is under attack or not
 float timeSinceLastUnitLoss = 0.0
 
+SAB_CommanderScript Property InteractingCommander Auto
+{ a reference to the commander currently either attacking or reinforcing this location }
+
 Function Setup(SAB_FactionScript factionScriptRef, float curGameTime = 0.0)
 	parent.Setup(factionScriptRef, curGameTime)
 EndFunction
@@ -135,17 +138,24 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 		
 		Utility.Wait(0.01)
 			
-	else 
-		if BecomeNeutralIfOutOfTroops()
-			return true
-		else
-			if !isNearby
-				BecomeNeutral()
-			endif
+	endif
+
+	return true
+endfunction
+
+
+bool function RunCloseByUpdate()
+	;debug.Trace("real time updating commander!")
+	if factionScript != None && spawnedUnitsAmount < 20 ; TODO make this configurable
+		; spawn random unit from "storage"
+		int indexToSpawn = GetUnitIndexToSpawn()
+		if indexToSpawn >= 0
+			SpawnUnit(indexToSpawn)
 		endif
 	endif
 
 	return true
+	
 endfunction
 
 
@@ -173,6 +183,7 @@ EndFunction
 Function OwnedUnitHasDied(int unitIndex, float timeOwnerWasSetup)
 	parent.OwnedUnitHasDied(unitIndex, timeOwnerWasSetup)
 	timeOfLastUnitLoss = 0.0 ; will refresh the time of/since last loss in the next update
+	BecomeNeutralIfOutOfTroops()
 EndFunction
 
 ObjectReference Function GetSpawnLocationForUnit()
@@ -201,13 +212,15 @@ EndFunction
 
 ; returns true if out of troops and "neutralized"
 bool Function BecomeNeutralIfOutOfTroops()
-	debug.Trace("location (" + jMap.getStr(factionScript.jFactionData, "name", "Faction") + "): become neutral if out of troops!")
-	debug.Trace("location: totalOwnedUnitsAmount: " + totalOwnedUnitsAmount)
-	debug.Trace("location: spawnedUnitsAmount: " + spawnedUnitsAmount)
-	debug.Trace("location: troops left: " + totalOwnedUnitsAmount)
-	if totalOwnedUnitsAmount <= 0
-		BecomeNeutral()
-		return true
+	if factionScript != None
+		debug.Trace("location (" + jMap.getStr(factionScript.jFactionData, "name", "Faction") + "): become neutral if out of troops!")
+		debug.Trace("location: totalOwnedUnitsAmount: " + totalOwnedUnitsAmount)
+		debug.Trace("location: spawnedUnitsAmount: " + spawnedUnitsAmount)
+		debug.Trace("location: troops left: " + totalOwnedUnitsAmount)
+		if totalOwnedUnitsAmount <= 0
+			BecomeNeutral()
+			return true
+		endif
 	endif
 
 	return false

@@ -44,8 +44,8 @@ bool cmderSpawnIsSet = false
 
 ; measured in days (1.0 is a day)
 float gameTimeOfLastRealUpdate = 0.0
-
 float gameTimeOfLastDestinationUpdate = 0.0
+float gameTimeOfLastGoldAward = 0.0
 
 ; prepares this faction's data and registers it for updating
 function EnableFaction(int jEnabledFactionData)
@@ -67,15 +67,17 @@ bool Function RunUpdate(float daysPassed)
 	endif
 
 	if jMap.hasKey(jFactionData, "enabled")
-		if daysPassed - gameTimeOfLastRealUpdate >= 0.1 ; TODO make this configurable
-			int numAwardsObtained = ((daysPassed - gameTimeOfLastRealUpdate) / 0.1) as int
+		if daysPassed - gameTimeOfLastRealUpdate >= 0.05 ; TODO make this configurable
 			gameTimeOfLastRealUpdate = daysPassed
 			Debug.Trace("updating faction " + jMap.getStr(jFactionData, "name", "Faction"))
 
-			int goldPerAward = CalculateTotalGoldAward()
-
-			int currentGold = jMap.getInt(jFactionData, "AvailableGold")
-			jMap.setInt(jFactionData, "AvailableGold", currentGold + (goldPerAward * numAwardsObtained))
+			if daysPassed - gameTimeOfLastGoldAward >= 0.15 ; TODO make this configurable
+				gameTimeOfLastGoldAward = daysPassed
+				int numAwardsObtained = ((daysPassed - gameTimeOfLastGoldAward) / 0.05) as int
+				int goldPerAward = CalculateTotalGoldAward()
+				int currentGold = jMap.getInt(jFactionData, "AvailableGold")
+				jMap.setInt(jFactionData, "AvailableGold", currentGold + (goldPerAward * numAwardsObtained))
+			endif
 
 			if daysPassed - gameTimeOfLastDestinationUpdate >= 0.15 ; TODO make this configurable
 				gameTimeOfLastDestinationUpdate = daysPassed
