@@ -229,7 +229,7 @@ int Function GetUnitIndexToSpawn()
 		endif
 
 		curKey = jIntMap.nextKey(jOwnedUnitsMap, curKey, endKey=-1)
-		Utility.Wait(0.01)
+		; Utility.Wait(0.01)
 	endwhile
 
 	int spawnOptionsCount = jValue.count(jSpawnOptionsArray)

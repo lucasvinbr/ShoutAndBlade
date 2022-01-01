@@ -371,7 +371,7 @@ int function TryUpgradeUnits(int unitIndex, int unitAmount, float availableExp)
 			if jArray.getInt(jCurTroopLineArr, j, -1) == unitIndex
 				JArray.addInt(jUpgradeOptions, jArray.getInt(jCurTroopLineArr, j + 1))
 			endif
-			Utility.Wait(0.01)
+			; Utility.Wait(0.01)
 			j += 1
 		endwhile
 
@@ -499,7 +499,7 @@ ReferenceAlias function FindEmptyAlias(string aliasPrefix)
 		checkedAliasIndex += 1
 		ref = getAliasByName(aliasPrefix + checkedAliasIndex) as ReferenceAlias
 
-		Utility.Wait(0.01)
+		; Utility.Wait(0.01)
 
 		if ref == None
 			; we couldn't find an alias with the provided name!

@@ -13,14 +13,15 @@ endfunction
 Event OnUpdate()
 	debug.Trace("unit updater: start loop!")
 
-	while true
+	; while true
 		;debug.Trace("unit updater loop begin")
 		
 		UnitUpdater.RunUpdate(0.0, 0)
 
-		Utility.Wait(0.35)
+		; Utility.Wait(0.35)
 
 		;debug.Trace("unit updater loop end")
-	endwhile
+	; endwhile
+	RegisterForSingleUpdate(0.25)
 
 EndEvent

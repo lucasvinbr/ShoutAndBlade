@@ -15,7 +15,7 @@ endfunction
 Event OnUpdate()
 	debug.Trace("spawners updater: start loop!")
 
-	while true
+	; while true
 		;debug.Trace("spawners updater loop begin")
 		
 		CmderUpdater.RunUpdate(0.0, 1)
@@ -24,9 +24,10 @@ Event OnUpdate()
 
 		LocationUpdater.RunUpdate(0.0, 1)
 
-		Utility.Wait(0.08)
+		; Utility.Wait(0.08)
 
 		;debug.Trace("spawners updater loop end")
-	endwhile
+	; endwhile
+	RegisterForSingleUpdate(0.1)
 
 EndEvent

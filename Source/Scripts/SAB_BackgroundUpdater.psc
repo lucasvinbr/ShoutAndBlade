@@ -24,7 +24,7 @@ endfunction
 Event OnUpdate()
 	 debug.Trace("background updater: start loop!")
 
-	while true
+	; while true
 		; debug.Trace("background updater loop begin")
 
 		UpdateCurrentInstanceGlobal(GameDaysPassed)
@@ -49,7 +49,8 @@ Event OnUpdate()
 
 		BackgroundLocationUpdater.RunUpdate(daysPassed, 0)
 
-		Utility.Wait(0.08)
 		; debug.Trace("background updater loop end")
-	endwhile
+	; endwhile
+
+	RegisterForSingleUpdate(0.1)
 EndEvent

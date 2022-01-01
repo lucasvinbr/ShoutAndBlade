@@ -59,6 +59,8 @@ endFunction
 ; spawns a unit in the target location, customized according to the passed jMap (we fetch the map by unit index if it isn't passed) 
 Actor Function SpawnUnit( ObjectReference LocationRef, Faction ownerFaction, int unitIndex, int jUnitDataMap = -1, int cmderFollowIndex = -1)
 	
+	debug.StartStackProfiling()
+
 	if LocationRef == None
 		debug.Trace("spawn unit: location ref is null!")
 		return None
@@ -89,6 +91,8 @@ Actor Function SpawnUnit( ObjectReference LocationRef, Faction ownerFaction, int
 		createdActor.SetFactionRank(SAB_CommanderRanksFaction, cmderFollowIndex)
 	endif
 
+	debug.StopStackProfiling()
+
 	return createdActor
 	
 endFunction
@@ -99,18 +103,18 @@ Function CustomizeActorAccordingToData(Actor targetActor, int jUnitData)
 
 	targetActor.SetDisplayName(JMap.getStr(jUnitData, "Name", "Recruit"))
 
-	targetActor.SetAV("Health", JMap.getFlt(jUnitData, "Health", 50.0))
-	targetActor.SetAV("Magicka", JMap.getFlt(jUnitData, "Magicka", 50.0))
-	targetActor.SetAV("Stamina", JMap.getFlt(jUnitData, "Stamina", 50.0))
+	targetActor.SetActorValue("Health", JMap.getFlt(jUnitData, "Health", 50.0))
+	targetActor.SetActorValue("Magicka", JMap.getFlt(jUnitData, "Magicka", 50.0))
+	targetActor.SetActorValue("Stamina", JMap.getFlt(jUnitData, "Stamina", 50.0))
 
-	Utility.Wait(0.01)
+	; Utility.Wait(0.01)
 
-	targetActor.SetAV("LightArmor", JMap.getFlt(jUnitData, "SkillLightArmor", 15.0))
-	targetActor.SetAV("HeavyArmor", JMap.getFlt(jUnitData, "SkillHeavyArmor", 15.0))
-	targetActor.SetAV("Block", JMap.getFlt(jUnitData, "SkillBlock", 15.0))
-	targetActor.SetAV("OneHanded", JMap.getFlt(jUnitData, "SkillOneHanded", 15.0))
-	targetActor.SetAV("TwoHanded", JMap.getFlt(jUnitData, "SkillTwoHanded", 15.0))
-	targetActor.SetAV("Marksman", JMap.getFlt(jUnitData, "SkillMarksman", 15.0))
+	targetActor.SetActorValue("LightArmor", JMap.getFlt(jUnitData, "SkillLightArmor", 15.0))
+	targetActor.SetActorValue("HeavyArmor", JMap.getFlt(jUnitData, "SkillHeavyArmor", 15.0))
+	targetActor.SetActorValue("Block", JMap.getFlt(jUnitData, "SkillBlock", 15.0))
+	targetActor.SetActorValue("OneHanded", JMap.getFlt(jUnitData, "SkillOneHanded", 15.0))
+	targetActor.SetActorValue("TwoHanded", JMap.getFlt(jUnitData, "SkillTwoHanded", 15.0))
+	targetActor.SetActorValue("Marksman", JMap.getFlt(jUnitData, "SkillMarksman", 15.0))
 
 endFunction
 
@@ -119,15 +123,15 @@ Function CustomizeActorAccordingToDataWithNameSuffix(Actor targetActor, int jUni
 
 	targetActor.SetDisplayName(JMap.getStr(jUnitData, "Name", "Recruit") + nameSuffix)
 
-	targetActor.SetAV("Health", JMap.getFlt(jUnitData, "Health", 50.0))
-	targetActor.SetAV("Magicka", JMap.getFlt(jUnitData, "Magicka", 50.0))
-	targetActor.SetAV("Stamina", JMap.getFlt(jUnitData, "Stamina", 50.0))
+	targetActor.SetActorValue("Health", JMap.getFlt(jUnitData, "Health", 50.0))
+	targetActor.SetActorValue("Magicka", JMap.getFlt(jUnitData, "Magicka", 50.0))
+	targetActor.SetActorValue("Stamina", JMap.getFlt(jUnitData, "Stamina", 50.0))
 
-	targetActor.SetAV("LightArmor", JMap.getFlt(jUnitData, "SkillLightArmor", 15.0))
-	targetActor.SetAV("HeavyArmor", JMap.getFlt(jUnitData, "SkillHeavyArmor", 15.0))
-	targetActor.SetAV("Block", JMap.getFlt(jUnitData, "SkillBlock", 15.0))
-	targetActor.SetAV("OneHanded", JMap.getFlt(jUnitData, "SkillOneHanded", 15.0))
-	targetActor.SetAV("TwoHanded", JMap.getFlt(jUnitData, "SkillTwoHanded", 15.0))
-	targetActor.SetAV("Marksman", JMap.getFlt(jUnitData, "SkillMarksman", 15.0))
+	targetActor.SetActorValue("LightArmor", JMap.getFlt(jUnitData, "SkillLightArmor", 15.0))
+	targetActor.SetActorValue("HeavyArmor", JMap.getFlt(jUnitData, "SkillHeavyArmor", 15.0))
+	targetActor.SetActorValue("Block", JMap.getFlt(jUnitData, "SkillBlock", 15.0))
+	targetActor.SetActorValue("OneHanded", JMap.getFlt(jUnitData, "SkillOneHanded", 15.0))
+	targetActor.SetActorValue("TwoHanded", JMap.getFlt(jUnitData, "SkillTwoHanded", 15.0))
+	targetActor.SetActorValue("Marksman", JMap.getFlt(jUnitData, "SkillMarksman", 15.0))
 
 endFunction

@@ -22,6 +22,13 @@ event OnInit()
 		SpawnersUpdater.Initialize()
 		UnitsUpdater.Initialize()
 		LocationDataHandler.Initialize()
+
+		Debug.StartScriptProfiling("SAB_SpawnerScript")
+		Debug.StartScriptProfiling("SAB_FactionScript")
+		Debug.StartScriptProfiling("SAB_CommanderScript")
+		Debug.StartScriptProfiling("SAB_UnitDataHandler")
+		Debug.StartScriptProfiling("SAB_LocationScript")
+		Debug.StartScriptProfiling("SAB_UnitScript")
 		Debug.Notification("SAB initialized!")
 	endif
 endEvent

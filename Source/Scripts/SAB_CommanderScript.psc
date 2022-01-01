@@ -132,7 +132,7 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 				endif
 			endif
 			
-			Utility.Wait(0.01)
+			; Utility.Wait(0.01)
 			meActor.EvaluatePackage()
 			
 		endif
