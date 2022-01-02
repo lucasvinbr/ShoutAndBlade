@@ -136,6 +136,10 @@ Function TryUpgradeUnits()
 
 	int unitIndexToTrain = GetUnitIndexToSpawn()
 
+	if unitIndexToTrain <= -1
+		return
+	endif
+
 	int ownedUnitCount = jIntMap.getInt(jOwnedUnitsMap, unitIndexToTrain)
 	int spawnedUnitCount = jIntMap.getInt(jSpawnedUnitsMap, unitIndexToTrain)
 
@@ -158,6 +162,7 @@ Function TryUpgradeUnits()
 			endif
 
 			jValue.release(jUpgradeResultMap)
+			JValue.zeroLifetime(jUpgradeResultMap)
 		endif
 	endif
 
@@ -182,6 +187,10 @@ Function TryTransferUnitsToAnotherContainer(SAB_TroopContainerScript otherContai
 	endif
 
 	int unitIndexToTransfer = GetUnitIndexToSpawn()
+
+	if unitIndexToTransfer <= -1
+		return
+	endif
 
 	int ownedUnitCount = jIntMap.getInt(jOwnedUnitsMap, unitIndexToTransfer)
 	int spawnedUnitCount = jIntMap.getInt(jSpawnedUnitsMap, unitIndexToTransfer)
@@ -265,12 +274,12 @@ EndFunction
 ; removes the despawned unit from the spawnedUnits list, but not from the ownedUnits, so that it can spawn again later
 Function OwnedUnitHasDespawned(int unitIndex, float timeOwnerWasSetup)
 
-	if gameTimeOfLastSetup > timeOwnerWasSetup
+	if gameTimeOfLastSetup != timeOwnerWasSetup
 		return
 	endif
 
 	int currentSpawnedAmount = jIntMap.getInt(jSpawnedUnitsMap, unitIndex)
-	jIntMap.setInt(jSpawnedUnitsMap, unitIndex, currentSpawnedAmount + 1)
+	jIntMap.setInt(jSpawnedUnitsMap, unitIndex, currentSpawnedAmount - 1)
 
 	spawnedUnitsAmount -= 1
 EndFunction
@@ -278,7 +287,7 @@ EndFunction
 ; removes the dead unit from the ownedUnits and spawnedUnits lists
 Function OwnedUnitHasDied(int unitIndex, float timeOwnerWasSetup)
 
-	if gameTimeOfLastSetup > timeOwnerWasSetup
+	if gameTimeOfLastSetup != timeOwnerWasSetup
 		return
 	endif
 

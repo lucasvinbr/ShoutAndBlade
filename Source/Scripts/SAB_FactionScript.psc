@@ -160,6 +160,7 @@ Function RunDestinationsUpdate(float curGameTime)
 
 
 	JValue.release(jAttackTargetsArray)
+	JValue.zeroLifetime(jAttackTargetsArray)
 EndFunction
 
 
@@ -426,6 +427,7 @@ int function TryUpgradeUnits(int unitIndex, int unitAmount, float availableExp)
 
 
 	jValue.release(jUpgradeOptions)
+	JValue.zeroLifetime(jUpgradeOptions)
 endfunction
 
 
