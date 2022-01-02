@@ -79,7 +79,7 @@ EndFunction
 
 bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 
-	if updateIndex == 1
+	if updateIndex == 1 && gameTimeOfLastSetup != 0.0
 		return RunCloseByUpdate()
 	endif
 
