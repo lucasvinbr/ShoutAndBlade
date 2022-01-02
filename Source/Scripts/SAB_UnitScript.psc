@@ -32,8 +32,14 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 			; since all units should have a valid unit index,
 			; this means this unit is probably being cleared
 			debug.Trace("unit: updated while being cleared!")
+		elseif gameTimeOwnerContainerWasSetup == 0.0 && unitIndex == 0
+			; if setup time and unitIndex are both 0, there's a high chance this unit hasn't been fully setup yet
+			debug.Trace("unit: updated while being set up!")
 		else 
 			debug.Trace("unit: went poof!")
+			debug.Trace("poof unit index: " + unitIndex)
+			debug.Trace("poof unit setup time: " + gameTimeOwnerContainerWasSetup)
+			debug.Trace("poof unit: " + GetReference())
 			ownerTroopContainer.OwnedUnitHasDespawned(unitIndex, gameTimeOwnerContainerWasSetup)
 			ClearAliasData()
 		endif
