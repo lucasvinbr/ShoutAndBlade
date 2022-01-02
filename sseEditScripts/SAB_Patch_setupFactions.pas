@@ -326,11 +326,17 @@ begin
 		
 		// with the package set up, add it to the unit's packages
 		curEditedElement := ElementAssign(curEditedListElement, HighInteger, nil, false);
-		//SetNativeValue(ElementByPath(curEditedElement, 'ALPC'), FormID(curEditedElementTwo));
 		SetNativeValue(curEditedElement, FormID(curEditedElementTwo));
 		
 		nextAliasId := nextAliasId + 1;
 	end;
+	
+	// move the sandbox package of the unit to the bottom of its list!
+	// the sandbox package should be in index 1
+	curEditedElementTwo := ElementByIndex(curEditedListElement, 1);
+	curEditedElement := ElementAssign(curEditedListElement, HighInteger, nil, false);
+	SetNativeValue(curEditedElement, GetNativeValue(curEditedElementTwo));
+	RemoveByIndex(curEditedListElement, 1, true);
 	
 	
 	// the base unit is all set now!
