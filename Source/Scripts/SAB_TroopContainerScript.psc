@@ -111,6 +111,11 @@ endfunction
 ; if we don't have too many units already, attempts to get some more basic recruits with the faction gold
 Function TryRecruitUnits()
 	; debug.Trace("commander: try recruit units!")
+
+	if factionScript == None
+		return
+	endif
+
 	int maxUnitSlots = GetMaxOwnedUnitsAmount() ; TODO make this configurable via MCM
 
 	if totalOwnedUnitsAmount < maxUnitSlots
@@ -127,6 +132,10 @@ EndFunction
 ; attempts to get upgrades to one of the unit types we have, using the faction gold
 Function TryUpgradeUnits()
 	debug.Trace("troop container: try upgrade units!")
+
+	if factionScript == None
+		return
+	endif
 
 	; we should only upgrade units not currently spawned
 	; so if all units are spawned, no upgrades should be made
