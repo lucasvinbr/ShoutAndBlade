@@ -154,6 +154,14 @@ bool function RunCloseByUpdate()
 		endif
 	endif
 
+	; if we're being attacked by another faction, spawn their units around this location, to make the attack "visible"
+	if InteractingCommander != None && InteractingCommander.factionScript != factionScript
+		
+		ObjectReference spawnPoint = GetSpawnLocationForUnit()
+		InteractingCommander.SpawnRandomUnitAtPos(spawnPoint)
+		
+	endif
+
 	return true
 	
 endfunction

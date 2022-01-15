@@ -169,6 +169,28 @@ Function SpawnUnit(int unitIndex)
 	endif
 EndFunction
 
+
+Function SpawnRandomUnitAtPos(ObjectReference targetLocation)
+
+	if spawnedUnitsAmount < 20 ; TODO make this configurable
+		int indexToSpawn = GetUnitIndexToSpawn()
+
+		if indexToSpawn >= 0
+			ReferenceAlias spawnedUnit = factionScript.SpawnUnitForTroopContainer(self, indexToSpawn, targetLocation, gameTimeOfLastSetup, CmderFollowFactionRank)
+
+			if spawnedUnit != None
+				; add spawned unit index to spawneds list
+				int currentSpawnedAmount = jIntMap.getInt(jSpawnedUnitsMap, indexToSpawn)
+				jIntMap.setInt(jSpawnedUnitsMap, indexToSpawn, currentSpawnedAmount + 1)
+
+				spawnedUnitsAmount += 1
+			endif
+		endif
+	endif
+
+EndFunction
+
+
 Event OnPackageEnd(Package akOldPackage)
 	; this is kind of reliable
 	factionScript.ValidateCmderReachedDestination(self)
