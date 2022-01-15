@@ -454,6 +454,8 @@ ReferenceAlias Function TrySpawnCommander(float curGameTime)
 	cmderAlias.ForceRefTo(cmderUnit)
 	(cmderAlias as SAB_CommanderScript).Setup(self, curGameTime)
 
+	; debug.Trace("spawned cmder package is " + cmderUnit.GetCurrentPackage())
+
 	return cmderAlias
 
 EndFunction
@@ -485,6 +487,8 @@ ReferenceAlias Function SpawnUnitForTroopContainer(SAB_TroopContainerScript troo
 
 	unitAlias.ForceRefTo(spawnedUnit)
 	(unitAlias as SAB_UnitScript).Setup(unitIndex, troopContainer, unitIndexInUnitUpdater, containerSetupTime)
+
+	; debug.Trace("spawned unit package is " + spawnedUnit.GetCurrentPackage())
 
 	return unitAlias
 

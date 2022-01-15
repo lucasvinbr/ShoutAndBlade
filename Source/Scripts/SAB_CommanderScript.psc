@@ -22,8 +22,8 @@ EndFunction
 ; sets isNearby and enables or disables closeBy updates
 Function ToggleNearbyUpdates(bool updatesEnabled)
 	
-	debug.Trace("commander: toggleNearbyUpdates " + updatesEnabled)
-	debug.Trace("commander: indexInCloseByUpdater " + indexInCloseByUpdater)
+	; debug.Trace("commander: toggleNearbyUpdates " + updatesEnabled)
+	; debug.Trace("commander: indexInCloseByUpdater " + indexInCloseByUpdater)
 	if updatesEnabled
 		isNearby = true
 		if indexInCloseByUpdater == -1
@@ -66,7 +66,7 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 	endif
 
 	float distToPlayer = playerActor.GetDistance(meActor)
-	debug.Trace("dist to player from cmder of faction " + jMap.getStr(factionScript.jFactionData, "name", "Faction") + ": " + distToPlayer)
+	; debug.Trace("dist to player from cmder of faction " + jMap.getStr(factionScript.jFactionData, "name", "Faction") + ": " + distToPlayer)
 
 	ToggleNearbyUpdates(distToPlayer <= 8000.0)
 

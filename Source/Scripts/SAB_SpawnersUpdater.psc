@@ -13,7 +13,7 @@ endfunction
 
 
 Event OnUpdate()
-	debug.Trace("spawners updater: start loop!")
+	; debug.Trace("spawners updater: start loop!")
 
 	; while true
 		;debug.Trace("spawners updater loop begin")

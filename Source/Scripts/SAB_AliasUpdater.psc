@@ -42,7 +42,7 @@ function RunUpdate(float curGameTime = 0.0, int updateIndexToUse = 0)
 		endif
 
 		if hasUpdatedAnElement
-			debug.Trace("updated alias with index " + updatedAliasIndex)
+			; debug.Trace("updated alias with index " + updatedAliasIndex)
 		endif
 
 		updatedAliasIndex -= 1

@@ -60,8 +60,8 @@ EndFunction
 ; sets isNearby and enables or disables closeBy updates
 Function ToggleNearbyUpdates(bool updatesEnabled)
 	
-	debug.Trace("troop container: toggleNearbyUpdates " + updatesEnabled)
-	debug.Trace("troop container: indexInCloseByUpdater " + indexInCloseByUpdater)
+	; debug.Trace("troop container: toggleNearbyUpdates " + updatesEnabled)
+	; debug.Trace("troop container: indexInCloseByUpdater " + indexInCloseByUpdater)
 	if updatesEnabled
 		isNearby = true
 		if indexInCloseByUpdater == -1

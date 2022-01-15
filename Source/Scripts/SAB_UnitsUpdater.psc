@@ -11,7 +11,7 @@ endfunction
 
 
 Event OnUpdate()
-	debug.Trace("unit updater: start loop!")
+	; debug.Trace("unit updater: start loop!")
 
 	; while true
 		;debug.Trace("unit updater loop begin")

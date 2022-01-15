@@ -22,7 +22,7 @@ endfunction
 
 
 Event OnUpdate()
-	 debug.Trace("background updater: start loop!")
+	;  debug.Trace("background updater: start loop!")
 
 	; while true
 		; debug.Trace("background updater loop begin")
