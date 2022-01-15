@@ -158,7 +158,7 @@ Function SpawnUnit(int unitIndex)
 		spawnLocation = factionScript.UnitSpawnPoint.GetReference()
 	endif
 
-	ReferenceAlias spawnedUnit = factionScript.SpawnUnitForTroopContainer(self, unitIndex, spawnLocation, CmderFollowFactionRank)
+	ReferenceAlias spawnedUnit = factionScript.SpawnUnitForTroopContainer(self, unitIndex, spawnLocation, gameTimeOfLastSetup, CmderFollowFactionRank)
 
 	if spawnedUnit != None
 		; add spawned unit index to spawneds list
