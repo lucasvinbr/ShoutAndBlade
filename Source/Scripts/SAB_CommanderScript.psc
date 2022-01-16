@@ -151,45 +151,37 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 endfunction
 
 
-Function SpawnUnit(int unitIndex)
-	Debug.Trace("cmder: spawn unit begin!")
+ObjectReference Function GetSpawnLocationForUnit()
 	ObjectReference spawnLocation = meActor
 
 	if meActor.IsInCombat()
 		spawnLocation = factionScript.UnitSpawnPoint.GetReference()
 	endif
 
-	ReferenceAlias spawnedUnit = factionScript.SpawnUnitForTroopContainer(self, unitIndex, spawnLocation, gameTimeOfLastSetup, CmderFollowFactionRank)
+	return spawnLocation
+EndFunction
+
+
+Function SpawnUnitAtLocation(int unitIndex, ObjectReference targetLocation)
+	ReferenceAlias spawnedUnit = factionScript.SpawnUnitForTroopContainer(self, unitIndex, targetLocation, gameTimeOfLastSetup, CmderFollowFactionRank)
 
 	if spawnedUnit != None
 		; add spawned unit index to spawneds list
 		int currentSpawnedAmount = jIntMap.getInt(jSpawnedUnitsMap, unitIndex)
 		jIntMap.setInt(jSpawnedUnitsMap, unitIndex, currentSpawnedAmount + 1)
 
+		; decrement spawnables amount
+		int currentSpawnableAmount = jIntMap.getInt(jSpawnOptionsMap, unitIndex)
+		jIntMap.setInt(jSpawnOptionsMap, unitIndex, currentSpawnableAmount - 1)
+
+		if currentSpawnableAmount - 1 <= 0
+			jIntMap.removeKey(jSpawnOptionsMap, unitIndex)
+		endif
+
 		spawnedUnitsAmount += 1
 	endif
 EndFunction
 
-
-Function SpawnRandomUnitAtPos(ObjectReference targetLocation)
-
-	if spawnedUnitsAmount < 20 ; TODO make this configurable
-		int indexToSpawn = GetUnitIndexToSpawn()
-
-		if indexToSpawn >= 0
-			ReferenceAlias spawnedUnit = factionScript.SpawnUnitForTroopContainer(self, indexToSpawn, targetLocation, gameTimeOfLastSetup, CmderFollowFactionRank)
-
-			if spawnedUnit != None
-				; add spawned unit index to spawneds list
-				int currentSpawnedAmount = jIntMap.getInt(jSpawnedUnitsMap, indexToSpawn)
-				jIntMap.setInt(jSpawnedUnitsMap, indexToSpawn, currentSpawnedAmount + 1)
-
-				spawnedUnitsAmount += 1
-			endif
-		endif
-	endif
-
-EndFunction
 
 
 Event OnPackageEnd(Package akOldPackage)

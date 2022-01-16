@@ -36,7 +36,7 @@ Function BeTakenByFaction(SAB_FactionScript factionScriptRef)
 	ToggleNearbyUpdates(false)
 	jOwnedUnitsMap = jValue.releaseAndRetain(jOwnedUnitsMap, jIntMap.object(), "ShoutAndBlade")
 	jSpawnedUnitsMap = jValue.releaseAndRetain(jSpawnedUnitsMap, jIntMap.object(), "ShoutAndBlade")
-	jSpawnOptionsArray = jValue.releaseAndRetain(jSpawnOptionsArray, jArray.object(), "ShoutAndBlade")
+	jSpawnOptionsMap = jValue.releaseAndRetain(jSpawnOptionsMap, jIntMap.object(), "ShoutAndBlade")
 	availableExpPoints = 0.0
 	totalOwnedUnitsAmount = 0
 	spawnedUnitsAmount = 0
@@ -58,8 +58,8 @@ EndFunction
 ; sets isNearby and enables or disables closeBy updates
 Function ToggleNearbyUpdates(bool updatesEnabled)
 	
-	debug.Trace("location: toggleNearbyUpdates " + updatesEnabled)
-	debug.Trace("location: indexInCloseByUpdater " + indexInCloseByUpdater)
+	; debug.Trace("location: toggleNearbyUpdates " + updatesEnabled)
+	; debug.Trace("location: indexInCloseByUpdater " + indexInCloseByUpdater)
 	if updatesEnabled
 		isNearby = true
 		if indexInCloseByUpdater == -1
@@ -146,12 +146,9 @@ endfunction
 
 bool function RunCloseByUpdate()
 	;debug.Trace("real time updating commander!")
-	if factionScript != None && spawnedUnitsAmount < 20 ; TODO make this configurable
-		; spawn random unit from "storage"
-		int indexToSpawn = GetUnitIndexToSpawn()
-		if indexToSpawn >= 0
-			SpawnUnit(indexToSpawn)
-		endif
+	if factionScript != None && spawnedUnitsAmount < 8 ; TODO make this configurable
+		; spawn random units from "storage"
+		SpawnUnitBatch()
 	endif
 
 	; if we're being attacked by another faction, spawn their units around this location, to make the attack "visible"
@@ -190,11 +187,14 @@ bool Function IsActorCloseEnoughForAutocalc(Actor targetActor)
 EndFunction
 
 
+
 Function OwnedUnitHasDied(int unitIndex, float timeOwnerWasSetup)
 	parent.OwnedUnitHasDied(unitIndex, timeOwnerWasSetup)
 	timeOfLastUnitLoss = 0.0 ; will refresh the time of/since last loss in the next update
 	BecomeNeutralIfOutOfTroops()
 EndFunction
+
+
 
 ObjectReference Function GetSpawnLocationForUnit()
 	if playerIsInside && InternalSpawnPoints.Length > 0
@@ -205,20 +205,6 @@ ObjectReference Function GetSpawnLocationForUnit()
 EndFunction
 
 
-Function SpawnUnit(int unitIndex)
-	Debug.Trace("location: spawn unit begin!")
-	ObjectReference spawnLocation = GetSpawnLocationForUnit()
-
-	ReferenceAlias spawnedUnit = factionScript.SpawnUnitForTroopContainer(self, unitIndex, spawnLocation, gameTimeOfLastSetup)
-
-	if spawnedUnit != None
-		; add spawned unit index to spawneds list
-		int currentSpawnedAmount = jIntMap.getInt(jSpawnedUnitsMap, unitIndex)
-		jIntMap.setInt(jSpawnedUnitsMap, unitIndex, currentSpawnedAmount + 1)
-
-		spawnedUnitsAmount += 1
-	endif
-EndFunction
 
 ; returns true if out of troops and "neutralized"
 bool Function BecomeNeutralIfOutOfTroops()

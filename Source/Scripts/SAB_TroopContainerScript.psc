@@ -7,8 +7,8 @@ int property jOwnedUnitsMap auto
 ; a map of "unit index - amount" ints describing the living units currently spawned by this commander
 int property jSpawnedUnitsMap auto
 
-; an array of unit indexes, filled whenever we're looking for an unit index to spawn
-int property jSpawnOptionsArray auto
+; a map of "unit index - amount" ints describing the units that can still be spawned by this commander
+int Property jSpawnOptionsMap Auto
 
 ; a simple counter for spawned living units, just to not have to iterate through the jMaps
 int property spawnedUnitsAmount = 0 auto
@@ -43,7 +43,7 @@ float Property gameTimeOfLastSetup Auto
 Function Setup(SAB_FactionScript factionScriptRef, float curGameTime = 0.0)
 	jOwnedUnitsMap = jValue.releaseAndRetain(jOwnedUnitsMap, jIntMap.object(), "ShoutAndBlade")
 	jSpawnedUnitsMap = jValue.releaseAndRetain(jSpawnedUnitsMap, jIntMap.object(), "ShoutAndBlade")
-	jSpawnOptionsArray = jValue.releaseAndRetain(jSpawnOptionsArray, jArray.object(), "ShoutAndBlade")
+	jSpawnOptionsMap = jValue.releaseAndRetain(jSpawnOptionsMap, jIntMap.object(), "ShoutAndBlade")
 	availableExpPoints = 0.0
 	totalOwnedUnitsAmount = 0
 	spawnedUnitsAmount = 0
@@ -96,17 +96,16 @@ endfunction
 
 bool function RunCloseByUpdate()
 	;debug.Trace("real time updating commander!")
-	if spawnedUnitsAmount < 20 ; TODO make this configurable
-		; spawn random unit from "storage"
-		int indexToSpawn = GetUnitIndexToSpawn()
-		if indexToSpawn >= 0
-			SpawnUnit(indexToSpawn)
-		endif
+	if spawnedUnitsAmount < 8 ; TODO make this configurable
+		; spawn random units from "storage"
+		SpawnUnitBatch()
 	endif
 
 	return true
 	
 endfunction
+
+
 
 ; if we don't have too many units already, attempts to get some more basic recruits with the faction gold
 Function TryRecruitUnits()
@@ -124,10 +123,16 @@ Function TryRecruitUnits()
 		int unitIndex = jMap.getInt(factionScript.jFactionData, "RecruitUnitIndex")
 		int currentStoredAmount = jIntMap.getInt(jOwnedUnitsMap, unitIndex)
 		jIntMap.setInt(jOwnedUnitsMap, unitIndex, currentStoredAmount + recruitedUnits)
+
+		int currentSpawnableAmount = jIntMap.getInt(jSpawnOptionsMap, unitIndex)
+		JIntMap.setInt(jSpawnOptionsMap, unitIndex, currentSpawnableAmount + recruitedUnits)
+
 		totalOwnedUnitsAmount += recruitedUnits
 	endif
 	
 EndFunction
+
+
 
 ; attempts to get upgrades to one of the unit types we have, using the faction gold
 Function TryUpgradeUnits()
@@ -151,6 +156,7 @@ Function TryUpgradeUnits()
 
 	int ownedUnitCount = jIntMap.getInt(jOwnedUnitsMap, unitIndexToTrain)
 	int spawnedUnitCount = jIntMap.getInt(jSpawnedUnitsMap, unitIndexToTrain)
+	int spawnableUnitCount = jIntMap.getInt(jSpawnOptionsMap, unitIndexToTrain)
 
 	if ownedUnitCount > spawnedUnitCount
 		int jUpgradeResultMap = factionScript.TryUpgradeUnits(unitIndexToTrain, ownedUnitCount - spawnedUnitCount, availableExpPoints)
@@ -163,12 +169,20 @@ Function TryUpgradeUnits()
 			; add units to the new index and remove from the old one
 			int curNewUnitStoredAmount = jIntMap.getInt(jOwnedUnitsMap, newUnitIndex)
 			jIntMap.setInt(jOwnedUnitsMap, newUnitIndex, curNewUnitStoredAmount + upgradedAmount)
-			
 			jIntMap.setInt(jOwnedUnitsMap, unitIndexToTrain, ownedUnitCount - upgradedAmount)
 
 			if ownedUnitCount - upgradedAmount <= 0
 				jIntMap.removeKey(jOwnedUnitsMap, unitIndexToTrain)
 			endif
+
+			int curNewUnitSpawnableAmount = jIntMap.getInt(jSpawnOptionsMap, newUnitIndex)
+			jIntMap.setInt(jSpawnOptionsMap, newUnitIndex, curNewUnitSpawnableAmount + upgradedAmount)
+			jIntMap.setInt(jSpawnOptionsMap, unitIndexToTrain, spawnableUnitCount - upgradedAmount)
+
+			if spawnableUnitCount - upgradedAmount <= 0
+				jIntMap.removeKey(jSpawnOptionsMap, unitIndexToTrain)
+			endif
+
 
 			jValue.release(jUpgradeResultMap)
 			JValue.zeroLifetime(jUpgradeResultMap)
@@ -176,6 +190,7 @@ Function TryUpgradeUnits()
 	endif
 
 endFunction
+
 
 
 ; attempts to transfer some of our units (picked randomly) to the other container, respecting their maxOwnedUnitsAmount
@@ -202,6 +217,7 @@ Function TryTransferUnitsToAnotherContainer(SAB_TroopContainerScript otherContai
 	endif
 
 	int ownedUnitCount = jIntMap.getInt(jOwnedUnitsMap, unitIndexToTransfer)
+	int spawnableUnitCount = jIntMap.getInt(jSpawnOptionsMap, unitIndexToTransfer)
 	int spawnedUnitCount = jIntMap.getInt(jSpawnedUnitsMap, unitIndexToTransfer)
 
 	if ownedUnitCount > spawnedUnitCount
@@ -219,6 +235,11 @@ Function TryTransferUnitsToAnotherContainer(SAB_TroopContainerScript otherContai
 			endif
 			totalOwnedUnitsAmount -= unitAmountToTransfer
 
+			jIntMap.setInt(jSpawnOptionsMap, unitIndexToTransfer, spawnableUnitCount - unitAmountToTransfer)
+			if spawnableUnitCount - unitAmountToTransfer <= 0
+				jIntMap.removeKey(jSpawnOptionsMap, unitIndexToTransfer)
+			endif
+
 			; and add them to the other!
 			ownedUnitCount = jIntMap.getInt(otherContainer.jOwnedUnitsMap, unitIndexToTransfer)
 			JIntMap.setInt(otherContainer.jOwnedUnitsMap, unitIndexToTransfer, ownedUnitCount + unitAmountToTransfer)
@@ -231,56 +252,87 @@ Function TryTransferUnitsToAnotherContainer(SAB_TroopContainerScript otherContai
 endFunction
 
 
-; returns a valid random unit index from our ownedUnits list, or -1 if it fails for some reason (no units available to spawn, for example)
+
+; returns a valid random unit index from our spawnableUnits list, or -1 if it fails for some reason (no units available to spawn, for example)
 int Function GetUnitIndexToSpawn()
-	jArray.clear(jSpawnOptionsArray)
 
-	int curKey = jIntMap.nextKey(jOwnedUnitsMap, previousKey = -1, endKey = -1)
-	while curKey != -1
-		int ownedUnitCount = jIntMap.getInt(jOwnedUnitsMap, curKey)
-		int spawnedUnitCount = jIntMap.getInt(jSpawnedUnitsMap, curKey)
-		
-		if spawnedUnitCount < ownedUnitCount
-			jArray.addInt(jSpawnOptionsArray, curKey)
-		else
-			Debug.Trace("GetUnitIndexToSpawn: container has spawned " + spawnedUnitCount + " of " + ownedUnitCount)
-		endif
+	int spawnOptionsCount = jIntMap.count(jSpawnOptionsMap)
 
-		curKey = jIntMap.nextKey(jOwnedUnitsMap, curKey, endKey=-1)
-		; Utility.Wait(0.01)
-	endwhile
-
-	int spawnOptionsCount = jValue.count(jSpawnOptionsArray)
-	if spawnOptionsCount > 0
-		return jArray.getInt(jSpawnOptionsArray, Utility.RandomInt(0, spawnOptionsCount - 1))
+	if spawnOptionsCount <= 0
+		return -1
 	endif
 
-	Debug.Trace("GetUnitIndexToSpawn: ended up with -1 as index!")
-	Debug.Trace("GetUnitIndexToSpawn: spawnOptionsCount = " + spawnOptionsCount)
-	return -1
+	return JIntMap.getNthKey(jSpawnOptionsMap, Utility.RandomInt(0, spawnOptionsCount - 1))
+
 endfunction
+
+
 
 ; this should probably be overridden
 ObjectReference Function GetSpawnLocationForUnit()
 	return GetReference()
 EndFunction
 
-Function SpawnUnit(int unitIndex)
-	Debug.Trace("troop container: spawn unit begin!")
+
+
+; attempts to spawn a group of units in one of our spawn points
+Function SpawnUnitBatch()
+	int maxBatchSize = 5 ; TODO make this configurable
+	int spawnedCount = 0
+
 	ObjectReference spawnLocation = GetSpawnLocationForUnit()
 
-	ReferenceAlias spawnedUnit = factionScript.SpawnUnitForTroopContainer(self, unitIndex, spawnLocation, gameTimeOfLastSetup)
+	while spawnedCount < maxBatchSize && spawnedUnitsAmount < 8 ;TODO make this configurable
+		int unitIndexToSpawn = GetUnitIndexToSpawn()
+
+		if unitIndexToSpawn >= 0
+			SpawnUnitAtLocation(unitIndexToSpawn, spawnLocation)
+			spawnedCount += 1
+		else 
+			; stop spawning, we're out of spawnable units
+			spawnedCount = maxBatchSize 
+		endif
+		
+	endwhile
+EndFunction
+
+
+
+Function SpawnRandomUnitAtPos(ObjectReference targetLocation)
+
+	if spawnedUnitsAmount < 8 ; TODO make this configurable
+		int indexToSpawn = GetUnitIndexToSpawn()
+
+		SpawnUnitAtLocation(indexToSpawn, targetLocation)
+	endif
+
+EndFunction
+
+
+
+Function SpawnUnitAtLocation(int unitIndex, ObjectReference targetLocation)
+	ReferenceAlias spawnedUnit = factionScript.SpawnUnitForTroopContainer(self, unitIndex, targetLocation, gameTimeOfLastSetup)
 
 	if spawnedUnit != None
 		; add spawned unit index to spawneds list
 		int currentSpawnedAmount = jIntMap.getInt(jSpawnedUnitsMap, unitIndex)
 		jIntMap.setInt(jSpawnedUnitsMap, unitIndex, currentSpawnedAmount + 1)
 
+		; decrement spawnables amount
+		int currentSpawnableAmount = jIntMap.getInt(jSpawnOptionsMap, unitIndex)
+		jIntMap.setInt(jSpawnOptionsMap, unitIndex, currentSpawnableAmount - 1)
+
+		if currentSpawnableAmount - 1 <= 0
+			jIntMap.removeKey(jSpawnOptionsMap, unitIndex)
+		endif
+
 		spawnedUnitsAmount += 1
 	endif
 EndFunction
 
-; removes the despawned unit from the spawnedUnits list, but not from the ownedUnits, so that it can spawn again later
+
+
+; removes the despawned unit from the spawnedUnits list and adds it back to the spawnables, so that it can spawn again later
 Function OwnedUnitHasDespawned(int unitIndex, float timeOwnerWasSetup)
 
 	if gameTimeOfLastSetup != timeOwnerWasSetup
@@ -290,8 +342,14 @@ Function OwnedUnitHasDespawned(int unitIndex, float timeOwnerWasSetup)
 	int currentSpawnedAmount = jIntMap.getInt(jSpawnedUnitsMap, unitIndex)
 	jIntMap.setInt(jSpawnedUnitsMap, unitIndex, currentSpawnedAmount - 1)
 
+	; increment spawnables amount
+	int currentSpawnableAmount = jIntMap.getInt(jSpawnOptionsMap, unitIndex)
+	jIntMap.setInt(jSpawnOptionsMap, unitIndex, currentSpawnableAmount + 1)
+
 	spawnedUnitsAmount -= 1
 EndFunction
+
+
 
 ; removes the dead unit from the ownedUnits and spawnedUnits lists
 Function OwnedUnitHasDied(int unitIndex, float timeOwnerWasSetup)
@@ -313,6 +371,7 @@ Function OwnedUnitHasDied(int unitIndex, float timeOwnerWasSetup)
 		jIntMap.removeKey(jOwnedUnitsMap, unitIndex)
 	endif
 EndFunction
+
 
 
 ; makes our units "fight" the enemyContainer's units.
@@ -366,9 +425,14 @@ Function TakeAutocalcDamage(float enemyPower, int jSABUnitDatasArrayCached = -1)
 
 		; lose the units!
 		jIntMap.setInt(jOwnedUnitsMap, unitIndex, ownedUnitCount - unitsLost)
-
 		if ownedUnitCount - unitsLost <= 0
 			jIntMap.removeKey(jOwnedUnitsMap, unitIndex)
+		endif
+
+		int curSpawnableAmount = jIntMap.getInt(jSpawnOptionsMap, unitIndex)
+		JIntMap.setInt(jSpawnOptionsMap, unitIndex, curSpawnableAmount - unitsLost)
+		if curSpawnableAmount - unitsLost <= 0
+			jIntMap.removeKey(jSpawnOptionsMap, unitIndex)
 		endif
 
 		totalOwnedUnitsAmount -= unitsLost
@@ -378,6 +442,7 @@ Function TakeAutocalcDamage(float enemyPower, int jSABUnitDatasArrayCached = -1)
 	endwhile
 
 EndFunction
+
 
 
 ; this container has been completely defeated in an autocalc battle and has no units left!
