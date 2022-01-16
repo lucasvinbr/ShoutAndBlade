@@ -17,6 +17,7 @@ Function Setup(SAB_FactionScript factionScriptRef, float curGameTime = 0.0)
 	meActor = GetReference() as Actor
 	TargetLocationScript = None
 	parent.Setup(factionScriptRef, curGameTime)
+	availableExpPoints = 850.0 ; TODO make this configurable
 EndFunction
 
 ; sets isNearby and enables or disables closeBy updates
