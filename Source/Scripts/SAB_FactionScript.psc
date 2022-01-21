@@ -328,7 +328,7 @@ int function PurchaseRecruits(int maxAmountPurchased = 100)
 	int recruitedAmount = 0
 
 	int jRecruitObj = jArray.getObj(SpawnerScript.UnitDataHandler.jSABUnitDatasArray, recruitIndex)
-	int goldCostPerRec = jMap.getInt(jRecruitObj, "GoldCost")
+	int goldCostPerRec = jMap.getInt(jRecruitObj, "GoldCost", 10)
 
 	if goldCostPerRec <= 0
 		recruitedAmount = maxAmountPurchased
@@ -388,8 +388,8 @@ int function TryUpgradeUnits(int unitIndex, int unitAmount, float availableExp)
 		return 0
 	endif
 
-	int goldCostPerUpg = jMap.getInt(jUpgradedUnitData, "GoldCost")
-	float expCostPerUpg = jMap.getFlt(jUpgradedUnitData, "ExpCost")
+	int goldCostPerUpg = jMap.getInt(jUpgradedUnitData, "GoldCost", 10)
+	float expCostPerUpg = jMap.getFlt(jUpgradedUnitData, "ExpCost", 10.0)
 	int upgradedAmountConsideringExp = 0
 	int upgradedAmount = 0
 	
