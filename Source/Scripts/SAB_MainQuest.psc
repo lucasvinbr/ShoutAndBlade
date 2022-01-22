@@ -10,11 +10,10 @@ SAB_UnitsUpdater Property UnitsUpdater Auto
 SAB_DeadBodyCleaner Property DeadBodyCleaner Auto
 
 
-bool hasInitialized = false
+bool Property HasInitialized = false Auto
 
 event OnInit()
-	if !hasInitialized
-		hasInitialized = true
+	if !HasInitialized
 		Debug.Notification("SAB initializing...")
 		Debug.Trace("SAB OnInit begin")
 		UnitDataHandler.InitializeJData()
@@ -22,8 +21,9 @@ event OnInit()
 		BackgroundUpdater.Initialize(FactionDataHandler.SAB_FactionQuests)
 		SpawnersUpdater.Initialize()
 		UnitsUpdater.Initialize()
-		LocationDataHandler.Initialize()
 		DeadBodyCleaner.Initialize()
+		LocationDataHandler.Initialize()
+		
 
 		Debug.StartScriptProfiling("SAB_SpawnerScript")
 		Debug.StartScriptProfiling("SAB_FactionScript")
@@ -32,5 +32,7 @@ event OnInit()
 		Debug.StartScriptProfiling("SAB_LocationScript")
 		Debug.StartScriptProfiling("SAB_UnitScript")
 		Debug.Notification("SAB initialized!")
+		Debug.Trace("SAB initialized!")
+		HasInitialized = true
 	endif
 endEvent
