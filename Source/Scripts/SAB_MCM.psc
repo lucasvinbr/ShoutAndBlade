@@ -47,7 +47,7 @@ event OnPageDraw()
 
 	SetLandingPage("$sab_mcm_page_load_save")
 
-	if isLoadingData
+	if isLoadingData || !MainQuest.HasInitialized
         AddTextOptionST("SHARED_LOADING", "$sab_mcm_shared_loading", "")
         return
     endif

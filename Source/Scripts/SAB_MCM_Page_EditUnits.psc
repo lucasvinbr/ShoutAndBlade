@@ -68,7 +68,7 @@ endstate
 
 Function SetupEditUnitsPage()
 
-    if MainPage.isLoadingData
+    if MainPage.isLoadingData || !MainPage.MainQuest.HasInitialized
         AddTextOptionST("SHARED_LOADING", "$sab_mcm_shared_loading", "")
         return
     endif
