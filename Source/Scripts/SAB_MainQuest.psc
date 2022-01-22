@@ -7,6 +7,7 @@ SAB_LocationDataHandler Property LocationDataHandler Auto
 SAB_BackgroundUpdater Property BackgroundUpdater Auto
 SAB_SpawnersUpdater Property SpawnersUpdater Auto
 SAB_UnitsUpdater Property UnitsUpdater Auto
+SAB_DeadBodyCleaner Property DeadBodyCleaner Auto
 
 
 bool hasInitialized = false
@@ -22,6 +23,7 @@ event OnInit()
 		SpawnersUpdater.Initialize()
 		UnitsUpdater.Initialize()
 		LocationDataHandler.Initialize()
+		DeadBodyCleaner.Initialize()
 
 		Debug.StartScriptProfiling("SAB_SpawnerScript")
 		Debug.StartScriptProfiling("SAB_FactionScript")

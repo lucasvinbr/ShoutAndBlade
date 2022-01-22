@@ -8,6 +8,7 @@ SAB_TroopContainerScript ownerTroopContainer
 
 Actor meActor
 Actor Property playerActor Auto
+SAB_DeadBodyCleaner Property DeadBodyCleaner Auto
 
 ; since there are times when units outlive their owners,
 ; this is used to know whether the owner container is still the same as when this unit was created
@@ -53,7 +54,6 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 		debug.Trace("unit: too far, despawn!")
 		ownerTroopContainer.OwnedUnitHasDespawned(unitIndex, gameTimeOwnerContainerWasSetup)
 		ClearAliasData()
-		meActor.Disable(false)
 		meActor.Delete()
 	endif
 
@@ -64,6 +64,7 @@ event OnDeath(Actor akKiller)
 	debug.Trace("unit: dead!")
 	ownerTroopContainer.OwnedUnitHasDied(unitIndex, gameTimeOwnerContainerWasSetup)
 	ClearAliasData()
+	DeadBodyCleaner.AddDeadBody(meActor)
 endEvent
 
 Function ClearAliasData()

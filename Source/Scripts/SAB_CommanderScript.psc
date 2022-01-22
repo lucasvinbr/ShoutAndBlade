@@ -13,6 +13,8 @@ string Property CmderDestinationType Auto
 ; this should only have a real value if we're close enough to this location
 SAB_LocationScript Property TargetLocationScript Auto
 
+SAB_DeadBodyCleaner Property DeadBodyCleaner Auto
+
 Function Setup(SAB_FactionScript factionScriptRef, float curGameTime = 0.0)
 	meActor = GetReference() as Actor
 	TargetLocationScript = None
@@ -139,6 +141,7 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 		endif
 	else 
 		if ClearAliasIfOutOfTroops()
+			DeadBodyCleaner.AddDeadBody(meActor)
 			return true
 		else
 			if !isNearby
@@ -204,7 +207,9 @@ EndEvent
 
 event OnDeath(Actor akKiller)	
 	debug.Trace("commander: dead!")
-	ClearAliasIfOutOfTroops()
+	if ClearAliasIfOutOfTroops()
+		DeadBodyCleaner.AddDeadBody(meActor)
+	endif
 endEvent
 
 ; returns true if out of troops and cleared
@@ -223,7 +228,6 @@ EndFunction
 
 Function HandleAutocalcDefeat()
 	ClearCmderData()
-	meActor.Disable(false)
 	meActor.Delete()
 EndFunction
 
