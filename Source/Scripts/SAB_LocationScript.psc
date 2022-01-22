@@ -117,7 +117,7 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 
 	if !isNearby && !playerIsInside
 
-		; if a faction contorls this location, disable default content if it's still enabled.
+		; if a faction controls this location, disable default content if it's still enabled.
 		; if it's neutral, enable it back!
 		if factionScript != None && !DefaultLocationsContentParent.IsDisabled()
 			DefaultLocationsContentParent.Disable()

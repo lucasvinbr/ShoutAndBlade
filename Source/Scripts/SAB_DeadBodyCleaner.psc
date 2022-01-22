@@ -20,6 +20,8 @@ Function AddDeadBody(Actor body)
 	numExistingBodies += 1
 	nextBodyIndexToFill += 1
 
+	debug.Trace("deadBodyCleaner: added body to index " + nextBodyIndexToFill)
+
 	if nextBodyIndexToFill >= 128
 		nextBodyIndexToFill = 0
 	endif
@@ -30,6 +32,8 @@ Function AddDeadBody(Actor body)
 		endif
 		
 		BodiesArray[nextBodyIndexToErase] = None
+
+		debug.Trace("deadBodyCleaner: deleted body at index " + nextBodyIndexToErase)
 
 		numExistingBodies -= 1
 		nextBodyIndexToErase += 1
