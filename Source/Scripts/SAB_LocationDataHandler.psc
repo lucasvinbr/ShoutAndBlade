@@ -6,6 +6,21 @@ SAB_LocationScript[] Property Locations Auto
 
 Function Initialize()
     int i = 0
+
+    ; set up locations
+    while i < Locations.Length
+        Locations[i].Setup(Locations[i].factionScript)
+        
+        i += 1
+    endwhile
+
+EndFunction
+
+
+
+event OnInit()
+
+    int i = 0
     int j = 0
     int k = 0
     bool hasCreatedDistArrayEntry = false
@@ -13,10 +28,12 @@ Function Initialize()
     int jlocationDistancesMap = jIntMap.object()
     JValue.retain(jlocationDistancesMap, "ShoutAndBlade")
 
-    ; set up locations, then fill the distances map with distances between each location
+    ; fill the distances map with distances between each location
     while i < Locations.Length
-        Locations[i].Setup(Locations[i].factionScript)
+        
+        debug.Trace(Locations[i])
         ObjectReference baseRef = Locations[i].GetReference()
+        debug.Trace(baseRef)
         int jDistMapsFromI = jIntMap.object()
         JIntMap.setObj(jlocationDistancesMap, i, jDistMapsFromI)
 
@@ -69,13 +86,22 @@ Function Initialize()
         endwhile
 
         ; store the (limited to 3 elements) closest locations array in the location script
-        Locations[i].jNearbyLocationsArray = jArray.subArray(jClosestIndexesArray, 0, 3)
+        int jTopClosestLocationsArray = jArray.subArray(jClosestIndexesArray, 0, 3)
+        jValue.retain(jTopClosestLocationsArray, "ShoutAndBlade")
+        Locations[i].jNearbyLocationsArray = jTopClosestLocationsArray
+
+        jValue.release(jDistancesArray)
+        jValue.zeroLifetime(jDistancesArray)
+
+        jValue.release(jClosestIndexesArray)
+        jValue.zeroLifetime(jClosestIndexesArray)
 
         i += 1
         Utility.Wait(0.1)
     endwhile
 
-EndFunction
+    jValue.release(jlocationDistancesMap)
+endevent
 
 
 ; returns a jArray with the indexes of the locations that have the target faction as owner
