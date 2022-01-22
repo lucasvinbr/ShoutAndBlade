@@ -463,6 +463,11 @@ EndFunction
 ; find a free unit slot and spawn a unit of the desired type
 ReferenceAlias Function SpawnUnitForTroopContainer(SAB_TroopContainerScript troopContainer, int unitIndex, ObjectReference spawnLocation, float containerSetupTime, int cmderFollowRank = -1)
 	
+	if unitIndex < 0
+		debug.Trace("spawn unit for cmder: invalid unit index!")
+		return None
+	endif
+
 	ReferenceAlias unitAlias = GetFreeUnitAliasSlot()
 
 	if unitAlias == None
