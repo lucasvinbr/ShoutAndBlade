@@ -18,7 +18,6 @@ Actor spawnedCustomizationGuy
 Function HideCustomizationGuy()
 	if spawnedCustomizationGuy != None
 		OutfitGuyAlias.Clear()
-		spawnedCustomizationGuy.Disable()
 		spawnedCustomizationGuy.Delete()
 	endif
 
@@ -29,7 +28,6 @@ Actor Function SpawnCustomizationGuy( int jUnitDataMap, int unitIndex )
 
 	if spawnedCustomizationGuy != None
 		OutfitGuyAlias.Clear()
-		spawnedCustomizationGuy.Disable()
 		spawnedCustomizationGuy.Delete()
 	endif
 
@@ -59,7 +57,7 @@ endFunction
 ; spawns a unit in the target location, customized according to the passed jMap (we fetch the map by unit index if it isn't passed) 
 Actor Function SpawnUnit( ObjectReference LocationRef, Faction ownerFaction, int unitIndex, int jUnitDataMap = -1, int cmderFollowIndex = -1)
 	
-	debug.StartStackProfiling()
+	; debug.StartStackProfiling()
 
 	if LocationRef == None
 		debug.Trace("spawn unit: location ref is null!")
@@ -91,7 +89,7 @@ Actor Function SpawnUnit( ObjectReference LocationRef, Faction ownerFaction, int
 		createdActor.SetFactionRank(SAB_CommanderRanksFaction, cmderFollowIndex)
 	endif
 
-	debug.StopStackProfiling()
+	; debug.StopStackProfiling()
 
 	return createdActor
 	
