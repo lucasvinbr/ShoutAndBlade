@@ -96,7 +96,7 @@ endfunction
 
 bool function RunCloseByUpdate()
 	;debug.Trace("real time updating commander!")
-	if spawnedUnitsAmount < 8 ; TODO make this configurable
+	if spawnedUnitsAmount < GetMaxSpawnedUnitsAmount() ; TODO make this configurable
 		; spawn random units from "storage"
 		SpawnUnitBatch()
 	endif
@@ -281,8 +281,9 @@ Function SpawnUnitBatch()
 	int spawnedCount = 0
 
 	ObjectReference spawnLocation = GetSpawnLocationForUnit()
+	int spawnedsLimit = GetMaxSpawnedUnitsAmount()
 
-	while spawnedCount < maxBatchSize && spawnedUnitsAmount < 8 ;TODO make this configurable
+	while spawnedCount < maxBatchSize && spawnedUnitsAmount < spawnedsLimit 
 		int unitIndexToSpawn = GetUnitIndexToSpawn()
 
 		if unitIndexToSpawn >= 0
@@ -292,6 +293,9 @@ Function SpawnUnitBatch()
 			; stop spawning, we're out of spawnable units
 			spawnedCount = maxBatchSize 
 		endif
+
+		; update the max spawneds amount, in case it has changed due to stuff like cmders entering combat
+		spawnedsLimit = GetMaxSpawnedUnitsAmount()
 		
 	endwhile
 EndFunction
@@ -300,10 +304,13 @@ EndFunction
 
 Function SpawnRandomUnitAtPos(ObjectReference targetLocation)
 
-	if spawnedUnitsAmount < 8 ; TODO make this configurable
+	if spawnedUnitsAmount < GetMaxSpawnedUnitsAmount() 
 		int indexToSpawn = GetUnitIndexToSpawn()
 
-		SpawnUnitAtLocation(indexToSpawn, targetLocation)
+		if indexToSpawn >= 0
+			SpawnUnitAtLocation(indexToSpawn, targetLocation)
+		endif
+		
 	endif
 
 EndFunction
@@ -455,3 +462,8 @@ EndFunction
 int Function GetMaxOwnedUnitsAmount()
 	return 30
 endfunction
+
+; returns the maximum amount of units this container can have spawned in the world at the same time
+int Function GetMaxSpawnedUnitsAmount()
+	return 8 ; TODO make this configurable
+EndFunction
