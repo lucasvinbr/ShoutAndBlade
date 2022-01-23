@@ -147,7 +147,7 @@ endfunction
 
 bool function RunCloseByUpdate()
 	;debug.Trace("real time updating commander!")
-	if factionScript != None && spawnedUnitsAmount < 8 ; TODO make this configurable
+	if factionScript != None && spawnedUnitsAmount < GetMaxSpawnedUnitsAmount()
 		; spawn random units from "storage"
 		SpawnUnitBatch()
 	endif

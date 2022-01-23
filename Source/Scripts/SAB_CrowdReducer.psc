@@ -1,9 +1,13 @@
-Scriptname SAB_DeadBodyCleaner extends Quest  
+Scriptname SAB_CrowdReducer extends Quest  
+{ does things like cleaning up bodies and counting nearby cmders, 
+ so that the game doesn't break due to too many people around }
 
 Actor[] BodiesArray
 
 ; if the dead body count from this mod gets above this limit, the oldest body is deleted
 int Property MaxCoexistingDeadBodies Auto
+
+int Property NumNearbyCmders Auto
 
 int numExistingBodies = 0
 int nextBodyIndexToFill = 0

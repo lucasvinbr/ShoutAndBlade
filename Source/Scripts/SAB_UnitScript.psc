@@ -8,7 +8,7 @@ SAB_TroopContainerScript ownerTroopContainer
 
 Actor meActor
 Actor Property playerActor Auto
-SAB_DeadBodyCleaner Property DeadBodyCleaner Auto
+SAB_CrowdReducer Property CrowdReducer Auto
 
 ; since there are times when units outlive their owners,
 ; this is used to know whether the owner container is still the same as when this unit was created
@@ -50,7 +50,7 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 
 	float distToPlayer = meActor.GetDistance(playerActor)
 
-	if distToPlayer > 4100.0
+	if distToPlayer > GetIsNearbyDistance()
 		debug.Trace("unit: too far, despawn!")
 		ownerTroopContainer.OwnedUnitHasDespawned(unitIndex, gameTimeOwnerContainerWasSetup)
 		ClearAliasData()
@@ -61,11 +61,23 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 	return true
 EndFunction
 
+
+float Function GetIsNearbyDistance()
+	int nearbyCmders = CrowdReducer.NumNearbyCmders
+
+	if nearbyCmders >= 5
+		return 16000.0 / nearbyCmders
+	endif
+
+	return 4100.0 ; TODO make this configurable?
+EndFunction
+
+
 event OnDeath(Actor akKiller)	
 	debug.Trace("unit: dead!")
 	ownerTroopContainer.OwnedUnitHasDied(unitIndex, gameTimeOwnerContainerWasSetup)
 	ClearAliasData()
-	DeadBodyCleaner.AddDeadBody(meActor)
+	CrowdReducer.AddDeadBody(meActor)
 endEvent
 
 Function ClearAliasData()

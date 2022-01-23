@@ -7,7 +7,7 @@ SAB_LocationDataHandler Property LocationDataHandler Auto
 SAB_BackgroundUpdater Property BackgroundUpdater Auto
 SAB_SpawnersUpdater Property SpawnersUpdater Auto
 SAB_UnitsUpdater Property UnitsUpdater Auto
-SAB_DeadBodyCleaner Property DeadBodyCleaner Auto
+SAB_CrowdReducer Property CrowdReducer Auto
 
 
 bool Property HasInitialized = false Auto
@@ -21,7 +21,7 @@ event OnInit()
 		BackgroundUpdater.Initialize(FactionDataHandler.SAB_FactionQuests)
 		SpawnersUpdater.Initialize()
 		UnitsUpdater.Initialize()
-		DeadBodyCleaner.Initialize()
+		CrowdReducer.Initialize()
 		LocationDataHandler.Initialize()
 		
 

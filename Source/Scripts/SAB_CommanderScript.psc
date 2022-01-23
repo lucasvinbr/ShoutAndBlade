@@ -13,7 +13,8 @@ string Property CmderDestinationType Auto
 ; this should only have a real value if we're close enough to this location
 SAB_LocationScript Property TargetLocationScript Auto
 
-SAB_DeadBodyCleaner Property DeadBodyCleaner Auto
+SAB_CrowdReducer Property CrowdReducer Auto
+
 
 Function Setup(SAB_FactionScript factionScriptRef, float curGameTime = 0.0)
 	meActor = GetReference() as Actor
@@ -31,13 +32,16 @@ Function ToggleNearbyUpdates(bool updatesEnabled)
 		isNearby = true
 		if indexInCloseByUpdater == -1
 			indexInCloseByUpdater = CloseByUpdater.CmderUpdater.RegisterAliasForUpdates(self)
+			CrowdReducer.NumNearbyCmders += 1
 			debug.Trace("commander: began closebyupdating!")
+			debug.Trace("commander: nearby cmders: " + CrowdReducer.NumNearbyCmders)
 		endif
 	elseif !updatesEnabled
 		isNearby = false
 		if indexInCloseByUpdater != -1
 			CloseByUpdater.CmderUpdater.UnregisterAliasFromUpdates(indexInCloseByUpdater)
 			indexInCloseByUpdater = -1
+			CrowdReducer.NumNearbyCmders -= 1
 			debug.Trace("commander: stopped closebyupdating!")
 		endif
 	endif
@@ -71,7 +75,7 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 	float distToPlayer = playerActor.GetDistance(meActor)
 	; debug.Trace("dist to player from cmder of faction " + jMap.getStr(factionScript.jFactionData, "name", "Faction") + ": " + distToPlayer)
 
-	ToggleNearbyUpdates(distToPlayer <= 4000.0)
+	ToggleNearbyUpdates(distToPlayer <= GetIsNearbyDistance())
 
 	if !meActor.IsDead()
 		if !meActor.IsInCombat()
@@ -141,7 +145,7 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 		endif
 	else 
 		if ClearAliasIfOutOfTroops()
-			DeadBodyCleaner.AddDeadBody(meActor)
+			CrowdReducer.AddDeadBody(meActor)
 			return true
 		else
 			if !isNearby
@@ -208,7 +212,7 @@ EndEvent
 event OnDeath(Actor akKiller)	
 	debug.Trace("commander: dead!")
 	if ClearAliasIfOutOfTroops()
-		DeadBodyCleaner.AddDeadBody(meActor)
+		CrowdReducer.AddDeadBody(meActor)
 	endif
 endEvent
 
@@ -252,9 +256,24 @@ int Function GetMaxOwnedUnitsAmount()
 	return 30 ; TODO make this configurable
 EndFunction
 
+float Function GetIsNearbyDistance()
+	int nearbyCmders = CrowdReducer.NumNearbyCmders
+
+	if nearbyCmders >= 5
+		return 16000.0 / nearbyCmders
+	endif
+
+	return 4100.0 ; TODO make this configurable?
+EndFunction
+
 int Function GetMaxSpawnedUnitsAmount()
+	int nearbyCmders = CrowdReducer.NumNearbyCmders
 	if meActor.IsInCombat()
-		return 8
+		if nearbyCmders >= 4
+			return 20 / nearbyCmders ; TODO make this configurable
+		endif
+
+		return 8 ; TODO make this configurable
 	else
 		return 2
 	endif
