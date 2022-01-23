@@ -28,7 +28,9 @@ Function AddDeadBody(Actor body)
 
 	if numExistingBodies > MaxCoexistingDeadBodies
 		if BodiesArray[nextBodyIndexToErase]
-			BodiesArray[nextBodyIndexToErase].Delete()
+			BodiesArray[nextBodyIndexToErase].SetCriticalStage(BodiesArray[nextBodyIndexToErase].CritStage_DisintegrateEnd)
+			; BodiesArray[nextBodyIndexToErase].Disable()
+			; BodiesArray[nextBodyIndexToErase].Delete()
 		endif
 		
 		BodiesArray[nextBodyIndexToErase] = None

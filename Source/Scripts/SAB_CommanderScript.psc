@@ -227,8 +227,9 @@ bool Function ClearAliasIfOutOfTroops()
 EndFunction
 
 Function HandleAutocalcDefeat()
+	debug.Trace("commander (" + jMap.getStr(factionScript.jFactionData, "name", "Faction") + "): defeated in autocalc!")
 	ClearCmderData()
-	meActor.Delete()
+	meActor.SetCriticalStage(meActor.CritStage_DisintegrateEnd)
 EndFunction
 
 ; clears the alias and stops updates
