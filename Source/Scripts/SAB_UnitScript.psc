@@ -50,10 +50,11 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 
 	float distToPlayer = meActor.GetDistance(playerActor)
 
-	if distToPlayer > 8100.0
+	if distToPlayer > 4100.0
 		debug.Trace("unit: too far, despawn!")
 		ownerTroopContainer.OwnedUnitHasDespawned(unitIndex, gameTimeOwnerContainerWasSetup)
 		ClearAliasData()
+		meActor.Disable(true)
 		meActor.Delete()
 	endif
 

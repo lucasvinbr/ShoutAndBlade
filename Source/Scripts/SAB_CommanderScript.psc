@@ -71,7 +71,7 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 	float distToPlayer = playerActor.GetDistance(meActor)
 	; debug.Trace("dist to player from cmder of faction " + jMap.getStr(factionScript.jFactionData, "name", "Faction") + ": " + distToPlayer)
 
-	ToggleNearbyUpdates(distToPlayer <= 8000.0)
+	ToggleNearbyUpdates(distToPlayer <= 4000.0)
 
 	if !meActor.IsDead()
 		if !meActor.IsInCombat()
@@ -195,7 +195,7 @@ EndEvent
 Event OnCombatStateChanged(Actor akTarget, int aeCombatState)
 	if aeCombatState == 1 || aeCombatState == 2 ; engaging or searching
 		debug.Trace("commander: started combat!")
-		ToggleNearbyUpdates(true)
+		; ToggleNearbyUpdates(true)
 		; if the current spawn is too far away,
 		; update the faction's unit spawn point to where this cmder started combat
 		ObjectReference unitSpawn = factionScript.UnitSpawnPoint.GetReference()
@@ -249,4 +249,12 @@ EndFunction
 
 int Function GetMaxOwnedUnitsAmount()
 	return 30 ; TODO make this configurable
+EndFunction
+
+int Function GetMaxSpawnedUnitsAmount()
+	if meActor.IsInCombat()
+		return 8
+	else
+		return 2
+	endif
 EndFunction

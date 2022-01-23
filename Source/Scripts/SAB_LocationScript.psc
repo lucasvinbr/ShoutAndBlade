@@ -33,7 +33,7 @@ Function Setup(SAB_FactionScript factionScriptRef, float curGameTime = 0.0)
 EndFunction
 
 Function BeTakenByFaction(SAB_FactionScript factionScriptRef)
-	ToggleNearbyUpdates(false)
+	; ToggleNearbyUpdates(false)
 	jOwnedUnitsMap = jValue.releaseAndRetain(jOwnedUnitsMap, jIntMap.object(), "ShoutAndBlade")
 	jSpawnedUnitsMap = jValue.releaseAndRetain(jSpawnedUnitsMap, jIntMap.object(), "ShoutAndBlade")
 	jSpawnOptionsMap = jValue.releaseAndRetain(jSpawnOptionsMap, jIntMap.object(), "ShoutAndBlade")
@@ -50,8 +50,9 @@ EndFunction
 
 ; stops nearby updates and sets this location as neutral
 Function BecomeNeutral()
-	debug.Trace("location: become neutral!")
-	ToggleNearbyUpdates(false)
+	Debug.Trace(ThisLocation.GetName() + " is no longer controlled by the " + jMap.getStr(factionScript.jFactionData, "name", "Faction"))
+	Debug.Notification(ThisLocation.GetName() + " is no longer controlled by the " + jMap.getStr(factionScript.jFactionData, "name", "Faction"))
+	; ToggleNearbyUpdates(false)
 	factionScript = None
 EndFunction
 
@@ -113,7 +114,7 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 
 	playerIsInside = ThisLocation.IsSameLocation(playerActor.GetCurrentLocation())
 
-	ToggleNearbyUpdates(factionScript != None && (distToPlayer <= 8000.0 || playerIsInside))
+	ToggleNearbyUpdates(distToPlayer <= 4100.0 || playerIsInside)
 
 	if !isNearby && !playerIsInside
 
@@ -173,13 +174,13 @@ endfunction
 bool Function IsActorCloseEnoughForAutocalc(Actor targetActor)
 	float distToLoc = GetReference().GetDistance(targetActor)
 	debug.Trace("dist to loc from actor: " + distToLoc)
-	if distToLoc <= 1000.0
+	if distToLoc <= 2000.0
 		return true
 	endif
 
 	distToLoc = MoveDestination.GetDistance(targetActor)
 	debug.Trace("dist to loc movedest from actor: " + distToLoc)
-	if distToLoc <= 1000.0
+	if distToLoc <= 2000.0
 		return true
 	endif
 
