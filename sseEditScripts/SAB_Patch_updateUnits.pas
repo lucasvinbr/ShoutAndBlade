@@ -77,6 +77,10 @@ begin
 	
 	//copy default package list from unit00
 	UpdateUnitElement('DPLT', baseNpc, curEditedUnit);
+	
+	//copy main packages from unit00
+	curEditedElement := Add(curEditedUnit, 'Packages', false);
+	ElementAssign(curEditedElement, LowInteger, ElementByPath(baseNpc, 'Packages'), false);
 
 	log('updated unit ' + unitIndex);
   end;
