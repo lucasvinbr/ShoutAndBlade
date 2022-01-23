@@ -32,8 +32,16 @@ event OnInit()
     while i < Locations.Length
         
         debug.Trace(Locations[i])
+        
         ObjectReference baseRef = Locations[i].GetReference()
         debug.Trace(baseRef)
+
+        while !baseRef
+            Utility.Wait(0.5)
+            baseRef = Locations[i].GetReference()
+            debug.Trace(baseRef)
+        endwhile
+        
         int jDistMapsFromI = jIntMap.object()
         JIntMap.setObj(jlocationDistancesMap, i, jDistMapsFromI)
 
