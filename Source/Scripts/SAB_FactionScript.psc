@@ -75,7 +75,7 @@ bool Function RunUpdate(float daysPassed)
 				gameTimeOfLastGoldAward = daysPassed
 				int numAwardsObtained = ((daysPassed - gameTimeOfLastGoldAward) / 0.05) as int
 				int goldPerAward = CalculateTotalGoldAward()
-				int currentGold = jMap.getInt(jFactionData, "AvailableGold", 10000)
+				int currentGold = jMap.getInt(jFactionData, "AvailableGold", 3000)
 				jMap.setInt(jFactionData, "AvailableGold", currentGold + (goldPerAward * numAwardsObtained))
 			endif
 
@@ -324,7 +324,7 @@ EndFunction
 int function PurchaseRecruits(int maxAmountPurchased = 100)
 
 	int recruitIndex = jMap.getInt(jFactionData, "RecruitUnitIndex")
-	int currentGold = jMap.getInt(jFactionData, "AvailableGold", 10000)
+	int currentGold = jMap.getInt(jFactionData, "AvailableGold", 3000)
 	int recruitedAmount = 0
 
 	int jRecruitObj = jArray.getObj(SpawnerScript.UnitDataHandler.jSABUnitDatasArray, recruitIndex)
@@ -352,7 +352,7 @@ endfunction
 ; attempts to upgrade the units to a random option of the upgrades available in the troop lines.
 ; returns a jMap with new units' index and amount
 int function TryUpgradeUnits(int unitIndex, int unitAmount, float availableExp)
-	int currentGold = jMap.getInt(jFactionData, "AvailableGold", 10000)
+	int currentGold = jMap.getInt(jFactionData, "AvailableGold", 3000)
 	int jUpgradeOptions = jArray.object()
 	jValue.retain(jUpgradeOptions, "ShoutAndBlade")
 
@@ -447,10 +447,9 @@ ReferenceAlias Function TrySpawnCommander(float curGameTime, bool onlySpawnIfHas
 		return None
 	endif
 
-
 	; check if we can afford creating a new cmder
 	int cmderCost = 500 ; TODO make this configurable
-	int currentGold = jMap.getInt(jFactionData, "AvailableGold", 10000)
+	int currentGold = jMap.getInt(jFactionData, "AvailableGold", 3000)
 
 	if (!onlySpawnIfHasExtraMoney && currentGold < cmderCost) || (onlySpawnIfHasExtraMoney && currentGold < cmderCost * 2)
 		return None

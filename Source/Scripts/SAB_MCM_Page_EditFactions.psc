@@ -81,7 +81,7 @@ Function SetupPage()
     AddHeaderOption("$sab_mcm_unitedit_header_baseinfo")
     AddInputOptionST("FAC_EDIT_NAME", "$sab_mcm_factionedit_input_factionname", JMap.getStr(jEditedFactionData, "Name", "Faction"))
     AddToggleOptionST("FAC_EDIT_ENABLED", "$sab_mcm_factionedit_toggle_enabled", JMap.hasKey(jEditedFactionData, "enabled"))
-    AddSliderOptionST("FAC_EDIT_GOLD", "$sab_mcm_factionedit_slider_factiongold", JMap.getInt(jEditedFactionData, "AvailableGold", 10000))
+    AddSliderOptionST("FAC_EDIT_GOLD", "$sab_mcm_factionedit_slider_factiongold", JMap.getInt(jEditedFactionData, "AvailableGold", 3000))
     AddTextOptionST("FAC_EDIT_CMDER_SPAWN", "$sab_mcm_factionedit_button_setcmderspawn", "")
 
     AddHeaderOption("$sab_mcm_factionedit_header_selectcmder")
@@ -269,8 +269,8 @@ endstate
 
 state FAC_EDIT_GOLD
 	event OnSliderOpenST(string state_id)
-		SetSliderDialogStartValue(JMap.getInt(jEditedFactionData, "AvailableGold", 10000))
-		SetSliderDialogDefaultValue(10000)
+		SetSliderDialogStartValue(JMap.getInt(jEditedFactionData, "AvailableGold", 3000))
+		SetSliderDialogDefaultValue(3000)
 		SetSliderDialogRange(0, 100000)
 		SetSliderDialogInterval(10)
 	endEvent
@@ -282,7 +282,7 @@ state FAC_EDIT_GOLD
 	endEvent
 
 	event OnDefaultST(string state_id)
-        int valueInt = 10000
+        int valueInt = 3000
         jMap.setInt(jEditedFactionData, "AvailableGold", valueInt)
 		SetSliderOptionValueST(valueInt)
 	endEvent
