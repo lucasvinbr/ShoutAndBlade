@@ -304,7 +304,7 @@ EndFunction
 
 Function SpawnRandomUnitAtPos(ObjectReference targetLocation)
 
-	if spawnedUnitsAmount < GetMaxSpawnedUnitsAmount() 
+	if spawnedUnitsAmount < 8 ; TODO make this configurable
 		int indexToSpawn = GetUnitIndexToSpawn()
 
 		if indexToSpawn >= 0

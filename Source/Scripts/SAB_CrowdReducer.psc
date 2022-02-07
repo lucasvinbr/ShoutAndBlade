@@ -17,7 +17,7 @@ bool isEditingArray = false
 
 Function Initialize()
 	BodiesArray = new Actor[128]
-	MaxCoexistingDeadBodies = 8
+	MaxCoexistingDeadBodies = 12
 EndFunction
 
 ; stores the dead body in the bodies array and, if the body limit is reached, deletes the oldest body
@@ -43,8 +43,8 @@ Function AddDeadBody(Actor body)
 	if numExistingBodies > MaxCoexistingDeadBodies
 		if BodiesArray[nextBodyIndexToErase]
 			BodiesArray[nextBodyIndexToErase].SetCriticalStage(BodiesArray[nextBodyIndexToErase].CritStage_DisintegrateEnd)
-			; BodiesArray[nextBodyIndexToErase].Disable()
-			; BodiesArray[nextBodyIndexToErase].Delete()
+			; BodiesArray[nextBodyIndexToErase].Disable(true)
+			BodiesArray[nextBodyIndexToErase].Delete()
 		endif
 		
 		BodiesArray[nextBodyIndexToErase] = None

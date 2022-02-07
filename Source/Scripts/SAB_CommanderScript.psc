@@ -233,7 +233,9 @@ EndFunction
 Function HandleAutocalcDefeat()
 	debug.Trace("commander (" + jMap.getStr(factionScript.jFactionData, "name", "Faction") + "): defeated in autocalc!")
 	ClearCmderData()
-	meActor.SetCriticalStage(meActor.CritStage_DisintegrateEnd)
+	; meActor.SetCriticalStage(meActor.CritStage_DisintegrateEnd)
+	meActor.Disable()
+	meActor.Delete()
 EndFunction
 
 ; clears the alias and stops updates
@@ -268,13 +270,13 @@ EndFunction
 
 int Function GetMaxSpawnedUnitsAmount()
 	int nearbyCmders = CrowdReducer.NumNearbyCmders
-	if meActor.IsInCombat()
+	if meActor.IsInCombat() || meActor.IsDead()
 		if nearbyCmders >= 4
 			return 20 / nearbyCmders ; TODO make this configurable
 		endif
 
 		return 8 ; TODO make this configurable
 	else
-		return 2
+		return 2 ; TODO make this configurable
 	endif
 EndFunction
