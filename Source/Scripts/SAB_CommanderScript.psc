@@ -134,6 +134,12 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 								TargetLocationScript.InteractingCommander = self
 								TargetLocationScript.BeTakenByFaction(factionScript)
 							endif
+						else
+							; if the player is nearby but the location is empty, take it
+							if TargetLocationScript.factionScript == None
+								TargetLocationScript.InteractingCommander = self
+								TargetLocationScript.BeTakenByFaction(factionScript)
+							endif
 						endif
 					endif
 				endif
