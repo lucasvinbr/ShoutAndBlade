@@ -298,8 +298,8 @@ EndFunction
 
 ; returns the total gold amount the faction gets in one "gold award cycle"
 int Function CalculateTotalGoldAward()
-	int baseAwardedGold = 450 ; TODO make this configurable
-	int baseGoldPerLoc = 450 ; TODO make this configurable
+	int baseAwardedGold = 500 ; TODO make this configurable
+	int baseGoldPerLoc = 1500 ; TODO make this configurable
 	int totalAward = baseAwardedGold
 
 	; add more gold per zone owned
@@ -445,6 +445,15 @@ ReferenceAlias Function TrySpawnCommander(float curGameTime)
 		return None
 	endif
 
+
+	; check if we can afford creating a new cmder
+	int cmderCost = 500 ; TODO make this configurable
+	int currentGold = jMap.getInt(jFactionData, "AvailableGold", 10000)
+
+	if currentGold < cmderCost
+		return None
+	endif
+
 	Actor cmderUnit = SpawnerScript.SpawnUnit(cmderSpawn, OurFaction, cmderUnitTypeIndex)
 
 	if cmderUnit == None
@@ -455,6 +464,8 @@ ReferenceAlias Function TrySpawnCommander(float curGameTime)
 	(cmderAlias as SAB_CommanderScript).Setup(self, curGameTime)
 
 	; debug.Trace("spawned cmder package is " + cmderUnit.GetCurrentPackage())
+
+	jMap.setInt(jFactionData, "AvailableGold", currentGold - cmderCost)
 
 	return cmderAlias
 
