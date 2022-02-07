@@ -269,7 +269,7 @@ float Function GetTotalAutocalcPowerFromArmy(int jArmyMap)
 		
         if ownedUnitCount > 0
             int jUnitData = jArray.getObj(jSABUnitDatasArray, curKey)
-            curUnitPower = jMap.getFlt(jUnitData, "AutocalcStrength")
+            curUnitPower = jMap.getFlt(jUnitData, "AutocalcStrength", 1.0)
             totalValue += curUnitPower * ownedUnitCount
         endif
 
