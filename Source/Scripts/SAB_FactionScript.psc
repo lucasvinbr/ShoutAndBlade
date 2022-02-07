@@ -84,7 +84,7 @@ bool Function RunUpdate(float daysPassed)
 				RunDestinationsUpdate(daysPassed)
 			endif
 			
-			TrySpawnCommander(daysPassed)
+			TrySpawnCommander(daysPassed, true)
 		endif
 		
 	else 
@@ -432,8 +432,10 @@ endfunction
 
 
 ; if we can afford it and there's a free cmder slot,
-; spawn a new cmder somewhere
-ReferenceAlias Function TrySpawnCommander(float curGameTime)
+; spawn a new cmder somewhere.
+; (optionally spawn only if we've got double the cmder spawn cost,
+;  to make sure we've got enough money to give the cmder some units)
+ReferenceAlias Function TrySpawnCommander(float curGameTime, bool onlySpawnIfHasExtraMoney = false)
 	; find a spawn for the cmder
 	ObjectReference cmderSpawn = GetCmderSpawnPoint()
 
@@ -450,7 +452,7 @@ ReferenceAlias Function TrySpawnCommander(float curGameTime)
 	int cmderCost = 500 ; TODO make this configurable
 	int currentGold = jMap.getInt(jFactionData, "AvailableGold", 10000)
 
-	if currentGold < cmderCost
+	if (!onlySpawnIfHasExtraMoney && currentGold < cmderCost) || (onlySpawnIfHasExtraMoney && currentGold < cmderCost * 2)
 		return None
 	endif
 
