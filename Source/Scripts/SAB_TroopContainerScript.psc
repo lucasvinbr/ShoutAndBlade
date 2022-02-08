@@ -106,6 +106,18 @@ bool function RunCloseByUpdate()
 endfunction
 
 
+; adds units of the provided type to this container.
+; doesn't make container limit checks or anything!
+Function AddUnitsOfType(int unitTypeIndex, int amount)
+	int currentStoredAmount = jIntMap.getInt(jOwnedUnitsMap, unitTypeIndex)
+	jIntMap.setInt(jOwnedUnitsMap, unitTypeIndex, currentStoredAmount + amount)
+
+	int currentSpawnableAmount = jIntMap.getInt(jSpawnOptionsMap, unitTypeIndex)
+	JIntMap.setInt(jSpawnOptionsMap, unitTypeIndex, currentSpawnableAmount + amount)
+
+	totalOwnedUnitsAmount += amount
+EndFunction
+
 
 ; if we don't have too many units already, attempts to get some more basic recruits with the faction gold
 Function TryRecruitUnits()
@@ -121,13 +133,7 @@ Function TryRecruitUnits()
 		int recruitedUnits = factionScript.PurchaseRecruits(maxUnitSlots - totalOwnedUnitsAmount)
 
 		int unitIndex = jMap.getInt(factionScript.jFactionData, "RecruitUnitIndex")
-		int currentStoredAmount = jIntMap.getInt(jOwnedUnitsMap, unitIndex)
-		jIntMap.setInt(jOwnedUnitsMap, unitIndex, currentStoredAmount + recruitedUnits)
-
-		int currentSpawnableAmount = jIntMap.getInt(jSpawnOptionsMap, unitIndex)
-		JIntMap.setInt(jSpawnOptionsMap, unitIndex, currentSpawnableAmount + recruitedUnits)
-
-		totalOwnedUnitsAmount += recruitedUnits
+		AddUnitsOfType(unitIndex, recruitedUnits)
 	endif
 	
 EndFunction
@@ -241,9 +247,7 @@ Function TryTransferUnitsToAnotherContainer(SAB_TroopContainerScript otherContai
 			endif
 
 			; and add them to the other!
-			ownedUnitCount = jIntMap.getInt(otherContainer.jOwnedUnitsMap, unitIndexToTransfer)
-			JIntMap.setInt(otherContainer.jOwnedUnitsMap, unitIndexToTransfer, ownedUnitCount + unitAmountToTransfer)
-			otherContainer.totalOwnedUnitsAmount += unitAmountToTransfer
+			otherContainer.AddUnitsOfType(unitIndexToTransfer, unitAmountToTransfer)
 
 			debug.Trace("transferred " + unitAmountToTransfer + " units of index " + unitIndexToTransfer)
 		endif
@@ -317,7 +321,7 @@ EndFunction
 
 
 
-Function SpawnUnitAtLocation(int unitIndex, ObjectReference targetLocation)
+ReferenceAlias Function SpawnUnitAtLocation(int unitIndex, ObjectReference targetLocation)
 	ReferenceAlias spawnedUnit = factionScript.SpawnUnitForTroopContainer(self, unitIndex, targetLocation, gameTimeOfLastSetup)
 
 	if spawnedUnit != None
@@ -334,7 +338,11 @@ Function SpawnUnitAtLocation(int unitIndex, ObjectReference targetLocation)
 		endif
 
 		spawnedUnitsAmount += 1
+
+		return spawnedUnit
 	endif
+
+	return None
 EndFunction
 
 

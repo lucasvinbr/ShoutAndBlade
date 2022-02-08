@@ -159,7 +159,17 @@ bool function RunCloseByUpdate()
 	;debug.Trace("real time updating commander!")
 	if factionScript != None && spawnedUnitsAmount < GetMaxSpawnedUnitsAmount()
 		; spawn random units from "storage"
-		SpawnUnitBatch()
+		int unitIndex = GetUnitIndexToSpawn()
+		if unitIndex >= 0
+			ReferenceAlias spawnedUnitAlias = SpawnUnitAtLocation(unitIndex, GetSpawnLocationForUnit())
+
+			; go fight the attacking cmder if we're under attack!
+			if spawnedUnitAlias != None
+				if InteractingCommander != None && InteractingCommander.factionScript != factionScript
+					(spawnedUnitAlias.GetReference() as Actor).StartCombat(InteractingCommander.GetReference() as Actor)
+				endif
+			endif
+		endif
 	endif
 
 	; if we're being attacked by another faction, spawn their units around this location, to make the attack "visible"

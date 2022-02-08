@@ -175,7 +175,7 @@ ObjectReference Function GetSpawnLocationForUnit()
 EndFunction
 
 
-Function SpawnUnitAtLocation(int unitIndex, ObjectReference targetLocation)
+ReferenceAlias Function SpawnUnitAtLocation(int unitIndex, ObjectReference targetLocation)
 	ReferenceAlias spawnedUnit = factionScript.SpawnUnitForTroopContainer(self, unitIndex, targetLocation, gameTimeOfLastSetup, CmderFollowFactionRank)
 
 	if spawnedUnit != None
@@ -192,7 +192,11 @@ Function SpawnUnitAtLocation(int unitIndex, ObjectReference targetLocation)
 		endif
 
 		spawnedUnitsAmount += 1
+
+		return spawnedUnit
 	endif
+
+	return None
 EndFunction
 
 
