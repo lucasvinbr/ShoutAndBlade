@@ -112,9 +112,19 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 	float distToPlayer = playerActor.GetDistance(GetReference())
 	; debug.Trace("dist to player from location of faction " + jMap.getStr(factionScript.jFactionData, "name", "NEUTRAL") + ": " + distToPlayer)
 
+	; is player in this location's interior or exterior? Does this location have an interior?
 	playerIsInside = ThisLocation.IsSameLocation(playerActor.GetCurrentLocation())
 
+	if playerIsInside
+		if InternalSpawnPoints.Length > 0
+			playerIsInside = InternalSpawnPoints[0].GetDistance(playerActor) <= 4100.0
+		else
+			playerIsInside = false
+		endif
+	endif
+
 	ToggleNearbyUpdates(distToPlayer <= 4100.0 || playerIsInside)
+	; debug.Trace(ThisLocation.GetName() + ": player is inside? " + playerIsInside)
 
 	if !isNearby && !playerIsInside
 
