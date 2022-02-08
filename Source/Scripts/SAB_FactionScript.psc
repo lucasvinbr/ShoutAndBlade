@@ -72,11 +72,11 @@ bool Function RunUpdate(float daysPassed)
 			Debug.Trace("updating faction " + jMap.getStr(jFactionData, "name", "Faction"))
 
 			if daysPassed - gameTimeOfLastGoldAward >= 0.15 ; TODO make this configurable
-				gameTimeOfLastGoldAward = daysPassed
-				int numAwardsObtained = ((daysPassed - gameTimeOfLastGoldAward) / 0.05) as int
+				int numAwardsObtained = ((daysPassed - gameTimeOfLastGoldAward) / 0.15) as int
 				int goldPerAward = CalculateTotalGoldAward()
 				int currentGold = jMap.getInt(jFactionData, "AvailableGold", 3000)
 				jMap.setInt(jFactionData, "AvailableGold", currentGold + (goldPerAward * numAwardsObtained))
+				gameTimeOfLastGoldAward = daysPassed
 			endif
 
 			if daysPassed - gameTimeOfLastDestinationUpdate >= 0.15 ; TODO make this configurable
