@@ -90,6 +90,7 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 			gameTimeOfLastExpAward = curGameTime
 			gameTimeOfLastUnitUpgrade = curGameTime
 			gameTimeOfLastSetup = curGameTime
+			debug.Trace(ThisLocation.GetName() + " now has time of last setup: " + gameTimeOfLastSetup)
 		endif
 
 		; a timeOfLastUnitLoss equal to 0.0 means a unit has been lost recently
@@ -191,16 +192,16 @@ bool Function IsBeingContested()
 endfunction
 
 
-bool Function IsActorCloseEnoughForAutocalc(Actor targetActor)
-	float distToLoc = GetReference().GetDistance(targetActor)
-	debug.Trace("dist to loc from actor: " + distToLoc)
-	if distToLoc <= 2000.0
+bool Function IsReferenceCloseEnoughForAutocalc(ObjectReference targetRef)
+	float distToLoc = GetReference().GetDistance(targetRef)
+	; debug.Trace("dist to loc from actor: " + distToLoc)
+	if distToLoc <= 800.0
 		return true
 	endif
 
-	distToLoc = MoveDestination.GetDistance(targetActor)
-	debug.Trace("dist to loc movedest from actor: " + distToLoc)
-	if distToLoc <= 2000.0
+	distToLoc = MoveDestination.GetDistance(targetRef)
+	; debug.Trace("dist to loc movedest from actor: " + distToLoc)
+	if distToLoc <= 800.0
 		return true
 	endif
 

@@ -266,11 +266,10 @@ EndFunction
 
 ; destination code can be A, B or C.
 ; we should check if the cmder really is close to the respective xmarker, and, if it really is the case, do stuff
-Function ValidateCmderReachedDestination(SAB_CommanderScript commander)
+Function ValidateCmderReachedDestination(SAB_CommanderScript commander, string cmderDestType = "a")
 	ObjectReference cmderDest = CmderDestination_A.GetReference()
 	ObjectReference cmderRef = commander.GetReference()
 	SAB_LocationScript targetLocScript = destinationScript_A
-	string cmderDestType = commander.CmderDestinationType
 
 	if cmderDestType == "b" || cmderDestType == "B"
 		cmderDest = CmderDestination_B.GetReference()
@@ -280,17 +279,12 @@ Function ValidateCmderReachedDestination(SAB_CommanderScript commander)
 		targetLocScript = destinationScript_C
 	endif
 
-	if cmderRef.GetCurrentLocation() == cmderDest.GetCurrentLocation()
-		if cmderRef.GetDistance(cmderDest) < 800.0
-			; the commander has really arrived! Do stuff like autocalc battles now.
-			; assign the location to the cmder, and then they'll figure out what to do when updating
-			Debug.Trace("commander has arrived and has been assigned the loc script!")
-			commander.TargetLocationScript = targetLocScript
-		else
-			Debug.Trace("commander is too far away")
-		endif
-	else
-		Debug.Trace("commander is somewhere other than their dest!")
+	
+	if targetLocScript.IsReferenceCloseEnoughForAutocalc(cmderRef)
+		; the commander has really arrived! Do stuff like autocalc battles now.
+		; assign the location to the cmder, and then they'll figure out what to do when updating
+		Debug.Trace("commander has arrived and has been assigned the loc script!")
+		commander.TargetLocationScript = targetLocScript
 	endif
 
 EndFunction

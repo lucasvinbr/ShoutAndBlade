@@ -15,6 +15,8 @@ SAB_LocationScript Property TargetLocationScript Auto
 
 SAB_CrowdReducer Property CrowdReducer Auto
 
+float gameTimeOfLastDestCheck = 0.0
+
 
 Function Setup(SAB_FactionScript factionScriptRef, float curGameTime = 0.0)
 	meActor = GetReference() as Actor
@@ -93,7 +95,7 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 			endif
 
 			if TargetLocationScript != None
-				bool cmderCanAutocalc = TargetLocationScript.IsActorCloseEnoughForAutocalc(meActor)
+				bool cmderCanAutocalc = TargetLocationScript.IsReferenceCloseEnoughForAutocalc(meActor)
 
 				if !cmderCanAutocalc
 					; we're too far away from the target loc, disengage
@@ -142,6 +144,11 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 							endif
 						endif
 					endif
+				endif
+			else
+				if curGameTime - gameTimeOfLastDestCheck > 0.01
+					gameTimeOfLastDestCheck = curGameTime
+					factionScript.ValidateCmderReachedDestination(self, CmderDestinationType)
 				endif
 			endif
 			
@@ -204,8 +211,8 @@ EndFunction
 
 
 Event OnPackageEnd(Package akOldPackage)
-	; this is kind of reliable
-	factionScript.ValidateCmderReachedDestination(self)
+	; this is kind of reliable, but the cmder has to ge to the exact point, so we should probably run other, more "relaxed", checks
+	factionScript.ValidateCmderReachedDestination(self, CmderDestinationType)
 EndEvent
 
 Event OnCombatStateChanged(Actor akTarget, int aeCombatState)
@@ -231,9 +238,8 @@ endEvent
 ; returns true if out of troops and cleared
 bool Function ClearAliasIfOutOfTroops()
 	debug.Trace("commander (" + jMap.getStr(factionScript.jFactionData, "name", "Faction") + "): clear alias if out of troops!")
-	debug.Trace("dead commander: totalOwnedUnitsAmount: " + totalOwnedUnitsAmount)
+	debug.Trace("dead commander: troops left (totalOwnedUnitsAmount): " + totalOwnedUnitsAmount)
 	debug.Trace("dead commander: spawnedUnitsAmount: " + spawnedUnitsAmount)
-	debug.Trace("dead commander: troops left: " + totalOwnedUnitsAmount)
 	if totalOwnedUnitsAmount <= 0
 		ClearCmderData()
 		return true
