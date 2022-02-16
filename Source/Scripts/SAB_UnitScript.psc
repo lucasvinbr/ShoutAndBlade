@@ -10,11 +10,14 @@ Actor meActor
 Actor Property playerActor Auto
 SAB_CrowdReducer Property CrowdReducer Auto
 
+bool deathHasBeenHandled = false
+
 ; since there are times when units outlive their owners,
 ; this is used to know whether the owner container is still the same as when this unit was created
 float gameTimeOwnerContainerWasSetup = 0.0
 
 Function Setup(int thisUnitIndex, SAB_TroopContainerScript containerRef, int indexInUnitUpdater, float gameTimeSetupOfParentContainer)
+	deathHasBeenHandled = false
 	ownerTroopContainer = containerRef
 	unitIndex = thisUnitIndex
 	meActor = GetReference() as Actor
@@ -48,6 +51,16 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 		return true
 	endif
 
+
+	if meActor.IsDead()
+		if !deathHasBeenHandled
+			debug.Trace("unit: death being handled on update!")
+			HandleDeath()
+		endif
+		
+		return true
+	endif
+
 	float distToPlayer = meActor.GetDistance(playerActor)
 
 	if distToPlayer > GetIsNearbyDistance()
@@ -74,11 +87,21 @@ EndFunction
 
 
 event OnDeath(Actor akKiller)	
-	debug.Trace("unit: dead!")
+	debug.Trace("unit: ondeath!")
+
+	if !deathHasBeenHandled
+		debug.Trace("unit: ondeath handle death!")
+		HandleDeath()
+	endif
+	
+endEvent
+
+Function HandleDeath()
+	deathHasBeenHandled = true
 	ownerTroopContainer.OwnedUnitHasDied(unitIndex, gameTimeOwnerContainerWasSetup)
 	ClearAliasData()
 	CrowdReducer.AddDeadBody(meActor)
-endEvent
+EndFunction
 
 Function ClearAliasData()
 	debug.Trace("unit: clear alias data!")
