@@ -156,6 +156,8 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 		else
 			if !isNearby
 				ClearCmderData()
+				meActor.Disable()
+				meActor.Delete()
 			endif
 		endif
 	endif
