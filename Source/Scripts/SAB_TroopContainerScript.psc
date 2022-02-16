@@ -397,8 +397,8 @@ Function DoAutocalcBattle(SAB_TroopContainerScript enemyContainer)
 	SAB_UnitDataHandler unitDataHandler = factionScript.SpawnerScript.UnitDataHandler
 
 	; we want there to be a high chance of the fight not being instantly resolved
-	float ourPower = unitDataHandler.GetTotalAutocalcPowerFromArmy(jOwnedUnitsMap) * Utility.RandomFloat(0.125, 1.1)
-	float theirPower = unitDataHandler.GetTotalAutocalcPowerFromArmy(enemyContainer.jOwnedUnitsMap) * Utility.RandomFloat(0.125, 1.1)
+	float ourPower = unitDataHandler.GetTotalAutocalcPowerFromArmy(jOwnedUnitsMap) * Utility.RandomFloat(0.125, 0.5)
+	float theirPower = unitDataHandler.GetTotalAutocalcPowerFromArmy(enemyContainer.jOwnedUnitsMap) * Utility.RandomFloat(0.125, 0.5)
 
 	TakeAutocalcDamage(theirPower)
 	enemyContainer.TakeAutocalcDamage(ourPower)
