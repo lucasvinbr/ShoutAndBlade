@@ -101,8 +101,8 @@ Function SetupEditUnitsPage()
     AddMenuOptionST("UNITEDIT_COPY_ANOTHER_UNIT", "$sab_mcm_unitedit_button_copyfrom", "$sab_mcm_unitedit_button_copyfrom_value")
     AddEmptyOption()
     AddEmptyOption()
-    AddTextOptionST("UNITEDIT_TEST_SAVE", "(Debug) Save testGuy data", "")
-    AddTextOptionST("UNITEDIT_TEST_LOAD", "(Debug) Load testGuy data", "")
+    AddTextOptionST("UNITEDIT_TEST_SAVE", "$sab_mcm_unitedit_button_save", "")
+    AddTextOptionST("UNITEDIT_TEST_LOAD", "$sab_mcm_unitedit_button_load", "")
 
     SetCursorPosition(1)
 
@@ -500,7 +500,7 @@ state UNITEDIT_TEST_SAVE
 
 	event OnHighlightST(string state_id)
         MainPage.ToggleQuickHotkey(true)
-		SetInfoText("Test Save Guy")
+		SetInfoText("$sab_mcm_unitedit_button_save_desc")
 	endEvent
 endstate
 
@@ -529,7 +529,7 @@ state UNITEDIT_TEST_LOAD
 
 	event OnHighlightST(string state_id)
         MainPage.ToggleQuickHotkey(true)
-		SetInfoText("Test Load Guy")
+		SetInfoText("$sab_mcm_unitedit_button_load_desc")
 	endEvent
 endstate
 

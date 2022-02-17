@@ -95,8 +95,8 @@ Function SetupPage()
         MainPage.GetMCMUnitDisplayByUnitIndex(JMap.getInt(jEditedFactionData, "RecruitUnitIndex", 0)))
 
     AddEmptyOption()
-    AddTextOptionST("FAC_EDIT_TEST_SAVE", "(Debug) Save testGuy data", "")
-    AddTextOptionST("FAC_EDIT_TEST_LOAD", "(Debug) Load testGuy data", "")
+    AddTextOptionST("FAC_EDIT_SAVE", "$sab_mcm_factionedit_button_save", "")
+    AddTextOptionST("FAC_EDIT_LOAD", "$sab_mcm_factionedit_button_load", "")
 
     SetCursorPosition(1)
 
@@ -364,7 +364,7 @@ state FAC_EDIT_UNIT_RECRUIT_MENU
     
 endstate
 
-state FAC_EDIT_TEST_SAVE
+state FAC_EDIT_SAVE
     event OnSelectST(string state_id)
         string filePath = JContainers.userDirectory() + "SAB/factionData.json"
         JValue.writeToFile(MainPage.MainQuest.FactionDataHandler.jSABFactionDatasArray, filePath)
@@ -377,11 +377,11 @@ state FAC_EDIT_TEST_SAVE
 
 	event OnHighlightST(string state_id)
         MainPage.ToggleQuickHotkey(true)
-		SetInfoText("Test Save Guy")
+		SetInfoText("$sab_mcm_factionedit_button_save_desc")
 	endEvent
 endstate
 
-state FAC_EDIT_TEST_LOAD
+state FAC_EDIT_LOAD
     event OnSelectST(string state_id)
         MainPage.MainQuest.SpawnerScript.HideCustomizationGuy()
         string filePath = JContainers.userDirectory() + "SAB/factionData.json"
@@ -410,7 +410,7 @@ state FAC_EDIT_TEST_LOAD
 
 	event OnHighlightST(string state_id)
         MainPage.ToggleQuickHotkey(true)
-		SetInfoText("Test Load Guy")
+		SetInfoText("$sab_mcm_factionedit_button_load_desc")
 	endEvent
 endstate
 

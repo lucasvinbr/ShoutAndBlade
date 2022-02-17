@@ -58,7 +58,7 @@ event OnPageDraw()
 
 	SetCursorPosition(1)
 
-    AddTextOptionST("MAIN_TEST_LOAD", "(Debug) Load all data", "")
+    AddTextOptionST("MAIN_TEST_LOAD", "$sab_mcm_main_button_load", "")
     
 endevent
 
@@ -104,7 +104,7 @@ state MAIN_TEST_LOAD
             loadSuccesses += 1
             Debug.Notification("SAB: unit data load complete! (" + loadSuccesses + " of " + expectedLoadSuccesses + ")")
         else
-            Debug.Notification("SAB: Unit data load failed!")
+            Debug.Notification("SAB: unit data load failed!")
         endif
 
         string factionFilePath = JContainers.userDirectory() + "SAB/factionData.json"
@@ -137,7 +137,7 @@ state MAIN_TEST_LOAD
 
 	event OnHighlightST(string state_id)
         ToggleQuickHotkey(true)
-		SetInfoText("Test Load Guy")
+		SetInfoText("$sab_mcm_main_button_load_desc")
 	endEvent
 endstate
 
