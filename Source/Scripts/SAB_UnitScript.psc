@@ -1,7 +1,7 @@
 Scriptname SAB_UnitScript extends SAB_UpdatedReferenceAlias  
 
 ; the unit type index of this unit
-int unitIndex
+int unitIndex = -1
 
 ; reference to the troop container that spawned us. If we die/despawn, we should tell them
 SAB_TroopContainerScript ownerTroopContainer
@@ -36,7 +36,7 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 			; since all units should have a valid unit index,
 			; this means this unit is probably being cleared
 			debug.Trace("unit: updated while being cleared!")
-		elseif gameTimeOwnerContainerWasSetup == 0.0 && unitIndex == 0
+		elseif gameTimeOwnerContainerWasSetup == 0.0 && unitIndex == -1
 			; if setup time and unitIndex are both 0, there's a high chance this unit hasn't been fully setup yet
 			debug.Trace("unit: updated while being set up!")
 		else 
@@ -78,16 +78,21 @@ EndFunction
 float Function GetIsNearbyDistance()
 	int nearbyCmders = CrowdReducer.NumNearbyCmders
 
-	if nearbyCmders >= 5
-		return 16000.0 / nearbyCmders
+	if nearbyCmders >= JDB.solveInt(".ShoutAndBlade.cmderOptions.nearbyCmdersLimit", 5)
+		return JDB.solveFlt(".ShoutAndBlade.cmderOptions.nearbyDistanceDividend", 16384.0) / nearbyCmders
 	endif
 
-	return 4100.0 ; TODO make this configurable?
+	return JDB.solveFlt(".ShoutAndBlade.cmderOptions.isNearbyDistance", 4096.0)
 EndFunction
 
 
 event OnDeath(Actor akKiller)	
 	debug.Trace("unit: ondeath!")
+
+	if unitIndex == -1
+		debug.Trace("unit: ondeath before being fully set up!")
+		return
+	endif
 
 	if !deathHasBeenHandled
 		debug.Trace("unit: ondeath handle death!")
@@ -106,5 +111,6 @@ EndFunction
 Function ClearAliasData()
 	debug.Trace("unit: clear alias data!")
 	unitIndex = -1
+	gameTimeOwnerContainerWasSetup = 0.0
 	parent.ClearAliasData()
 EndFunction

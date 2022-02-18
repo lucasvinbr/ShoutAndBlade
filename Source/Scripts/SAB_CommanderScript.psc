@@ -22,7 +22,7 @@ Function Setup(SAB_FactionScript factionScriptRef, float curGameTime = 0.0)
 	meActor = GetReference() as Actor
 	TargetLocationScript = None
 	parent.Setup(factionScriptRef, curGameTime)
-	availableExpPoints = 850.0 ; TODO make this configurable
+	availableExpPoints = JDB.solveFlt(".ShoutAndBlade.cmderOptions.initialExpPoints", 600.0)
 EndFunction
 
 ; sets isNearby and enables or disables closeBy updates
@@ -62,9 +62,10 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 	endif
 
 	;debug.Trace("game time updating commander (pre check)!")
-	if curGameTime - gameTimeOfLastExpAward >= 0.1 ; TODO make this configurable
-		int numAwardsObtained = ((curGameTime - gameTimeOfLastExpAward) / 0.1) as int
-		availableExpPoints += 500.0 * numAwardsObtained ; TODO make this configurable
+	float expAwardInterval = JDB.solveFlt(".ShoutAndBlade.cmderOptions.expAwardInterval", 0.08)
+	if curGameTime - gameTimeOfLastExpAward >= expAwardInterval
+		int numAwardsObtained = ((curGameTime - gameTimeOfLastExpAward) / expAwardInterval) as int
+		availableExpPoints += JDB.solveFlt(".ShoutAndBlade.cmderOptions.awardedXpPerInterval", 500.0) * numAwardsObtained
 		gameTimeOfLastExpAward = curGameTime
 	endif
 	
@@ -83,7 +84,7 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 		if !meActor.IsInCombat()
 			;debug.Trace("game time updating commander!")
 
-			if curGameTime - gameTimeOfLastUnitUpgrade >= 0.06 ; TODO make this configurable
+			if curGameTime - gameTimeOfLastUnitUpgrade >= JDB.solveFlt(".ShoutAndBlade.cmderOptions.unitMaintenanceInterval", 0.06)
 				gameTimeOfLastUnitUpgrade = curGameTime
 
 				; if we have enough units, upgrade. If we don't, recruit some more
@@ -177,6 +178,8 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 endfunction
 
 
+
+
 ObjectReference Function GetSpawnLocationForUnit()
 	ObjectReference spawnLocation = meActor
 
@@ -244,6 +247,9 @@ bool Function ClearAliasIfOutOfTroops()
 	debug.Trace("commander (" + jMap.getStr(factionScript.jFactionData, "name", "Faction") + "): clear alias if out of troops!")
 	debug.Trace("dead commander: troops left (totalOwnedUnitsAmount): " + totalOwnedUnitsAmount)
 	debug.Trace("dead commander: spawnedUnitsAmount: " + spawnedUnitsAmount)
+	debug.Trace("dead commander: actual spawnable units count: " + GetActualSpawnableUnitsCount())
+	debug.Trace("dead commander: actual spawned units count: " + GetActualSpawnedUnitsCount())
+	debug.Trace("dead commander: actual total units count: " + GetActualTotalUnitsCount())
 	if totalOwnedUnitsAmount <= 0
 		ClearCmderData()
 		return true
@@ -277,28 +283,28 @@ Function ClearCmderData()
 EndFunction
 
 int Function GetMaxOwnedUnitsAmount()
-	return 30 ; TODO make this configurable
+	return JDB.solveInt(".ShoutAndBlade.cmderOptions.maxOwnedUnits", 30)
 EndFunction
 
 float Function GetIsNearbyDistance()
 	int nearbyCmders = CrowdReducer.NumNearbyCmders
 
-	if nearbyCmders >= 5
-		return 16000.0 / nearbyCmders
+	if nearbyCmders >= JDB.solveInt(".ShoutAndBlade.cmderOptions.nearbyCmdersLimit", 5)
+		return JDB.solveFlt(".ShoutAndBlade.cmderOptions.nearbyDistanceDividend", 16384.0) / nearbyCmders
 	endif
 
-	return 4100.0 ; TODO make this configurable?
+	return JDB.solveFlt(".ShoutAndBlade.cmderOptions.isNearbyDistance", 4096.0)
 EndFunction
 
 int Function GetMaxSpawnedUnitsAmount()
 	int nearbyCmders = CrowdReducer.NumNearbyCmders
 	if meActor.IsInCombat() || meActor.IsDead()
-		if nearbyCmders >= 4
-			return 20 / nearbyCmders ; TODO make this configurable
+		if nearbyCmders >= JDB.solveInt(".ShoutAndBlade.cmderOptions.nearbyCmdersLimit", 5)
+			return JDB.solveInt(".ShoutAndBlade.cmderOptions.combatSpawnsDividend", 20) / nearbyCmders ; TODO make this configurable
 		endif
 
-		return 8 ; TODO make this configurable
+		return JDB.solveInt(".ShoutAndBlade.cmderOptions.maxSpawnsInCombat", 8)
 	else
-		return 2 ; TODO make this configurable
+		return JDB.solveInt(".ShoutAndBlade.cmderOptions.maxSpawnsOutsideCombat", 2)
 	endif
 EndFunction

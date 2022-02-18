@@ -88,24 +88,26 @@ event OnPageDraw()
 
     AddHeaderOption("$sab_mcm_options_header_cmderoptions")
     AddEmptyOption()
-    ; initial exp points
-    ; exp award interval
-    ; exp awarded per interval
-    ; unit maintenance check interval
-    ; destination check interval
-    ; max owned units
-    ; base "is nearby" distance
-    ; max spawns outside combat
-    ; max spawns when besieging
-    ; base max spawns in combat
-    ; nearby cmders limit
-    ; limited distance dividend
-    ; limited combat spawns dividend
+    AddSliderOptionST("OPTIONS_CMDER_EXP___initialExpPoints", "$sab_mcm_options_slider_cmder_initialxp", JDB.solveFlt(".ShoutAndBlade.cmderOptions.initialExpPoints", 600.0))
+    AddSliderOptionST("OPTIONS_CMDER_INTERVAL___expAwardInterval", "$sab_mcm_options_slider_cmder_xpawardinterval", JDB.solveFlt(".ShoutAndBlade.cmderOptions.expAwardInterval", 0.08), "{3}")
+    AddSliderOptionST("OPTIONS_CMDER_EXP___awardedXpPerInterval", "$sab_mcm_options_slider_cmder_awardedxp", JDB.solveFlt(".ShoutAndBlade.cmderOptions.awardedXpPerInterval", 500.0))
+    AddSliderOptionST("OPTIONS_CMDER_INTERVAL___unitMaintenanceInterval", "$sab_mcm_options_slider_cmder_unitmaintenanceinterval", JDB.solveFlt(".ShoutAndBlade.cmderOptions.unitMaintenanceInterval", 0.06), "{3}")
+    AddSliderOptionST("OPTIONS_CMDER_INTERVAL___destCheckInterval", "$sab_mcm_options_slider_cmder_destcheckinterval", JDB.solveFlt(".ShoutAndBlade.cmderOptions.destCheckInterval", 0.01), "{3}")
+    AddSliderOptionST("OPTIONS_CMDER_DISTANCE___isNearbyDistance", "$sab_mcm_options_slider_cmder_isnearbydist", JDB.solveFlt(".ShoutAndBlade.cmderOptions.isNearbyDistance", 4096.0))
+    AddSliderOptionST("OPTIONS_CMDER_UNITS___maxOwnedUnits", "$sab_mcm_options_slider_cmder_maxownedunits", JDB.solveInt(".ShoutAndBlade.cmderOptions.maxOwnedUnits", 30))
+    AddSliderOptionST("OPTIONS_CMDER_UNITS___maxSpawnsOutsideCombat", "$sab_mcm_options_slider_cmder_spawnsoutsidecombat", JDB.solveInt(".ShoutAndBlade.cmderOptions.maxSpawnsOutsideCombat", 2))
+    AddSliderOptionST("OPTIONS_CMDER_UNITS___maxSpawnsWhenBesieging", "$sab_mcm_options_slider_cmder_spawnswhenbesieging", JDB.solveInt(".ShoutAndBlade.cmderOptions.maxSpawnsWhenBesieging", 8))
+    AddSliderOptionST("OPTIONS_CMDER_UNITS___maxSpawnsInCombat", "$sab_mcm_options_slider_cmder_spawnsincombat", JDB.solveInt(".ShoutAndBlade.cmderOptions.maxSpawnsInCombat", 8))
+    AddSliderOptionST("OPTIONS_CMDER_UNITS___nearbyCmdersLimit", "$sab_mcm_options_slider_cmder_nearbycmderslimit", JDB.solveInt(".ShoutAndBlade.cmderOptions.nearbyCmdersLimit", 5))
+    AddSliderOptionST("OPTIONS_CMDER_DISTANCE___nearbyDistanceDividend", "$sab_mcm_options_slider_cmder_nearbydistancedividend", JDB.solveFlt(".ShoutAndBlade.cmderOptions.nearbyDistanceDividend", 16384.0))
+    AddSliderOptionST("OPTIONS_CMDER_UNITS___combatSpawnsDividend", "$sab_mcm_options_slider_cmder_combatspawnsdividend", JDB.solveInt(".ShoutAndBlade.cmderOptions.combatSpawnsDividend", 20))
 
+    AddEmptyOption()
     AddEmptyOption()
     AddEmptyOption()
 
     AddHeaderOption("$sab_mcm_options_header_locationoptions")
+    AddEmptyOption()
     ; exp award interval
     ; exp awarded per interval
     ; base gold award
@@ -117,6 +119,8 @@ event OnPageDraw()
     AddEmptyOption()
 
     AddHeaderOption("$sab_mcm_options_header_bodycleaneroptions")
+    AddEmptyOption()
+
     AddSliderOptionST("OPTIONS_UNITS___maxDeadBodies", "$sab_mcm_options_slider_unit_maxdeadbodies", JDB.solveInt(".ShoutAndBlade.generalOptions.maxDeadBodies", 12))
     
 
@@ -355,6 +359,158 @@ state OPTIONS_UNITS
 endstate
 
 
+
+state OPTIONS_CMDER_EXP
+
+    event OnSliderOpenST(string state_id)
+        float defaultValue = GetDefaultFltValueForOption("cmderExp", state_id)
+		SetSliderDialogStartValue(JDB.solveFlt(".ShoutAndBlade.cmderOptions." + state_id, defaultValue))
+        SetSliderDialogRange(0.0, 1000.0)
+	    SetSliderDialogInterval(1)
+		SetSliderDialogDefaultValue(defaultValue)
+	endEvent
+
+	event OnSliderAcceptST(string state_id, float value)
+        JDB.solveFltSetter(".ShoutAndBlade.cmderOptions." + state_id, value, true)
+		SetSliderOptionValueST(value)
+	endEvent
+
+	event OnDefaultST(string state_id)
+        float value = GetDefaultFltValueForOption("cmderExp", state_id)
+        JDB.solveFltSetter(".ShoutAndBlade.cmderOptions." + state_id, value, true)
+		SetSliderOptionValueST(value)
+	endEvent
+
+	event OnHighlightST(string state_id)
+        ToggleQuickHotkey(true)
+
+        if state_id == "initialExpPoints"
+            SetInfoText("$sab_mcm_options_slider_cmder_initialxp")
+        elseif state_id == "awardedXpPerInterval"
+            SetInfoText("$sab_mcm_options_slider_cmder_awardedxp")
+        endif
+	endEvent
+
+endstate
+
+
+
+state OPTIONS_CMDER_INTERVAL
+
+    event OnSliderOpenST(string state_id)
+        float defaultValue = GetDefaultFltValueForOption("cmderInterval", state_id)
+		SetSliderDialogStartValue(JDB.solveFlt(".ShoutAndBlade.cmderOptions." + state_id, defaultValue))
+        SetSliderDialogRange(0.0, 7.0)
+	    SetSliderDialogInterval(0.005)
+		SetSliderDialogDefaultValue(defaultValue)
+	endEvent
+
+	event OnSliderAcceptST(string state_id, float value)
+        JDB.solveFltSetter(".ShoutAndBlade.cmderOptions." + state_id, value, true)
+		SetSliderOptionValueST(value)
+	endEvent
+
+	event OnDefaultST(string state_id)
+        float value = GetDefaultFltValueForOption("cmderInterval", state_id)
+        JDB.solveFltSetter(".ShoutAndBlade.cmderOptions." + state_id, value, true)
+		SetSliderOptionValueST(value)
+	endEvent
+
+	event OnHighlightST(string state_id)
+        ToggleQuickHotkey(true)
+
+        if state_id == "expAwardInterval"
+            SetInfoText("$sab_mcm_options_slider_cmder_xpawardinterval")
+        elseif state_id == "unitMaintenanceInterval"
+            SetInfoText("$sab_mcm_options_slider_cmder_unitmaintenanceinterval")
+        elseif state_id == "destCheckInterval"
+            SetInfoText("$sab_mcm_options_slider_cmder_destcheckinterval")
+        endif
+	endEvent
+
+endstate
+
+
+
+state OPTIONS_CMDER_DISTANCE
+
+    event OnSliderOpenST(string state_id)
+        float defaultValue = GetDefaultFltValueForOption("cmderDistance", state_id)
+		SetSliderDialogStartValue(JDB.solveFlt(".ShoutAndBlade.cmderOptions." + state_id, defaultValue))
+        SetSliderDialogRange(0.0, 32768.0)
+	    SetSliderDialogInterval(16.0)
+		SetSliderDialogDefaultValue(defaultValue)
+	endEvent
+
+	event OnSliderAcceptST(string state_id, float value)
+        JDB.solveFltSetter(".ShoutAndBlade.cmderOptions." + state_id, value, true)
+		SetSliderOptionValueST(value)
+	endEvent
+
+	event OnDefaultST(string state_id)
+        float value = GetDefaultFltValueForOption("cmderDistance", state_id)
+        JDB.solveFltSetter(".ShoutAndBlade.cmderOptions." + state_id, value, true)
+		SetSliderOptionValueST(value)
+	endEvent
+
+	event OnHighlightST(string state_id)
+        ToggleQuickHotkey(true)
+
+        if state_id == "isNearbyDistance"
+            SetInfoText("$sab_mcm_options_slider_cmder_isnearbydist")
+        elseif state_id == "nearbyDistanceDividend"
+            SetInfoText("$sab_mcm_options_slider_cmder_nearbydistancedividend")
+        endif
+	endEvent
+
+endstate
+
+
+
+state OPTIONS_CMDER_UNITS
+
+    event OnSliderOpenST(string state_id)
+        int defaultValue = GetDefaultIntValueForOption("cmderUnits", state_id)
+		SetSliderDialogStartValue(JDB.solveInt(".ShoutAndBlade.cmderOptions." + state_id, defaultValue))
+        SetSliderDialogRange(0, 120)
+	    SetSliderDialogInterval(1)
+		SetSliderDialogDefaultValue(defaultValue)
+	endEvent
+
+	event OnSliderAcceptST(string state_id, float value)
+        int valueInt = value as int
+        JDB.solveIntSetter(".ShoutAndBlade.cmderOptions." + state_id, valueInt, true)
+		SetSliderOptionValueST(valueInt)
+	endEvent
+
+	event OnDefaultST(string state_id)
+        int valueInt = GetDefaultIntValueForOption("cmderUnits", state_id)
+        JDB.solveIntSetter(".ShoutAndBlade.cmderOptions." + state_id, valueInt, true)
+		SetSliderOptionValueST(valueInt)
+	endEvent
+
+	event OnHighlightST(string state_id)
+        ToggleQuickHotkey(true)
+
+        if state_id == "maxOwnedUnits"
+            SetInfoText("$sab_mcm_options_slider_cmder_maxownedunits")
+        elseif state_id == "maxSpawnsOutsideCombat"
+            SetInfoText("$sab_mcm_options_slider_cmder_spawnsoutsidecombat")
+        elseif state_id == "maxSpawnsWhenBesieging"
+            SetInfoText("$sab_mcm_options_slider_cmder_spawnswhenbesieging")
+        elseif state_id == "maxSpawnsInCombat"
+            SetInfoText("$sab_mcm_options_slider_cmder_spawnsincombat")
+        elseif state_id == "nearbyCmdersLimit"
+            SetInfoText("$sab_mcm_options_slider_cmder_nearbycmderslimit")
+        elseif state_id == "combatSpawnsDividend"
+            SetInfoText("$sab_mcm_options_slider_cmder_combatspawnsdividend")
+        endif
+	endEvent
+
+endstate
+
+
+
 int Function GetDefaultIntValueForOption(string category, string entryName)
     if category == "factionGold"
         if entryName == "initialGold"
@@ -369,6 +525,20 @@ int Function GetDefaultIntValueForOption(string category, string entryName)
     elseif category == "units"
         if entryName == "maxDeadBodies"
             return 12
+        endif
+    elseif category == "cmderUnits"
+        if entryName == "maxOwnedUnits"
+            return SAB_FactionDataHandler.GetDefaultFactionGold()
+        elseif entryName == "maxSpawnsOutsideCombat"
+            return 2
+        elseif entryName == "maxSpawnsWhenBesieging"
+            return 8
+        elseif entryName == "maxSpawnsInCombat"
+            return 8
+        elseif entryName == "nearbyCmdersLimit"
+            return 5
+        elseif entryName == "combatSpawnsDividend"
+            return 20
         endif
     endif
 EndFunction
@@ -387,6 +557,26 @@ float Function GetDefaultFltValueForOption(string category, string entryName)
     elseif category == "factionPower"
         if entryName == "safeLocationPower"
             return 32.0
+        endif
+    elseif category == "cmderExp"
+        if entryName == "initialExpPoints"
+            return 600.0
+        elseif entryName == "awardedXpPerInterval"
+            return 500.0
+        endif
+    elseif category == "cmderInterval"
+        if entryName == "expAwardInterval"
+            return 0.08
+        elseif entryName == "unitMaintenanceInterval"
+            return 0.06
+        elseif entryName == "destCheckInterval"
+            return 0.01
+        endif
+    elseif category == "cmderDistance"
+        if entryName == "isNearbyDistance"
+            return 4096.0
+        elseif entryName == "nearbyDistanceDividend"
+            return 16384.0
         endif
     endif
 EndFunction

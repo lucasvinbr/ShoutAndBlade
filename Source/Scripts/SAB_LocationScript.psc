@@ -232,9 +232,11 @@ EndFunction
 bool Function BecomeNeutralIfOutOfTroops()
 	if factionScript != None
 		debug.Trace("location (" + jMap.getStr(factionScript.jFactionData, "name", "Faction") + "): become neutral if out of troops!")
-		debug.Trace("location: totalOwnedUnitsAmount: " + totalOwnedUnitsAmount)
 		debug.Trace("location: spawnedUnitsAmount: " + spawnedUnitsAmount)
-		debug.Trace("location: troops left: " + totalOwnedUnitsAmount)
+		debug.Trace("location: troops left (totalOwnedUnitsAmount): " + totalOwnedUnitsAmount)
+		debug.Trace("location: actual spawnable units count: " + GetActualSpawnableUnitsCount())
+		debug.Trace("location: actual spawned units count: " + GetActualSpawnedUnitsCount())
+		debug.Trace("location: actual total units count: " + GetActualTotalUnitsCount())
 		if totalOwnedUnitsAmount <= 0
 			BecomeNeutral()
 			return true

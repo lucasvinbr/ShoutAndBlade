@@ -278,6 +278,53 @@ ObjectReference Function GetSpawnLocationForUnit()
 EndFunction
 
 
+int Function GetActualSpawnableUnitsCount()
+	int i = jIntMap.count(jSpawnOptionsMap)
+	int count = 0
+
+	while i > 0
+		i -= 1
+		int unitIndex = jIntMap.getNthKey(jSpawnOptionsMap, i)
+		int ownedUnitCount = jIntMap.getInt(jSpawnOptionsMap, unitIndex)
+		
+		count += ownedUnitCount
+
+	endwhile
+
+	return count
+EndFunction
+
+int Function GetActualTotalUnitsCount()
+	int i = jIntMap.count(jOwnedUnitsMap)
+	int count = 0
+
+	while i > 0
+		i -= 1
+		int unitIndex = jIntMap.getNthKey(jOwnedUnitsMap, i)
+		int ownedUnitCount = jIntMap.getInt(jOwnedUnitsMap, unitIndex)
+		
+		count += ownedUnitCount
+
+	endwhile
+
+	return count
+EndFunction
+
+int Function GetActualSpawnedUnitsCount()
+	int i = jIntMap.count(jSpawnedUnitsMap)
+	int count = 0
+
+	while i > 0
+		i -= 1
+		int unitIndex = jIntMap.getNthKey(jSpawnedUnitsMap, i)
+		int ownedUnitCount = jIntMap.getInt(jSpawnedUnitsMap, unitIndex)
+		
+		count += ownedUnitCount
+
+	endwhile
+
+	return count
+EndFunction
 
 ; attempts to spawn a group of units in one of our spawn points
 Function SpawnUnitBatch()
@@ -468,10 +515,10 @@ EndFunction
 
 ; returns the maximum amount of units this container should be able to own
 int Function GetMaxOwnedUnitsAmount()
-	return 30
+	return 1
 endfunction
 
 ; returns the maximum amount of units this container can have spawned in the world at the same time
 int Function GetMaxSpawnedUnitsAmount()
-	return 8
+	return 1
 EndFunction
