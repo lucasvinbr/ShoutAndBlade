@@ -4,8 +4,6 @@ Scriptname SAB_CrowdReducer extends Quest
 
 Actor[] BodiesArray
 
-; if the dead body count from this mod gets above this limit, the oldest body is deleted
-int Property MaxCoexistingDeadBodies Auto
 
 int Property NumNearbyCmders Auto
 
@@ -17,7 +15,6 @@ bool isEditingArray = false
 
 Function Initialize()
 	BodiesArray = new Actor[128]
-	MaxCoexistingDeadBodies = 12
 EndFunction
 
 ; stores the dead body in the bodies array and, if the body limit is reached, deletes the oldest body
@@ -40,7 +37,7 @@ Function AddDeadBody(Actor body)
 		nextBodyIndexToFill = 0
 	endif
 
-	if numExistingBodies > MaxCoexistingDeadBodies
+	if numExistingBodies > JDB.solveInt(".ShoutAndBlade.generalOptions.maxDeadBodies", 12)
 		if BodiesArray[nextBodyIndexToErase]
 			;BodiesArray[nextBodyIndexToErase].SetCriticalStage(BodiesArray[nextBodyIndexToErase].CritStage_DisintegrateEnd)
 			; BodiesArray[nextBodyIndexToErase].Disable(true)

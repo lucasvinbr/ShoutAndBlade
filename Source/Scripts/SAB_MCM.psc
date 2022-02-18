@@ -67,6 +67,7 @@ event OnPageDraw()
 
     AddEmptyOption()
     AddEmptyOption()
+    AddEmptyOption()
 
     AddHeaderOption("$sab_mcm_options_header_factionoptions")
     AddEmptyOption()
@@ -91,6 +92,7 @@ event OnPageDraw()
     ; exp award interval
     ; exp awarded per interval
     ; unit maintenance check interval
+    ; destination check interval
     ; max owned units
     ; base "is nearby" distance
     ; max spawns outside combat
@@ -115,7 +117,7 @@ event OnPageDraw()
     AddEmptyOption()
 
     AddHeaderOption("$sab_mcm_options_header_bodycleaneroptions")
-    ; max coexisting dead bodies
+    AddSliderOptionST("OPTIONS_UNITS___maxDeadBodies", "$sab_mcm_options_slider_unit_maxdeadbodies", JDB.solveInt(".ShoutAndBlade.generalOptions.maxDeadBodies", 12))
     
 
     
@@ -247,6 +249,7 @@ state OPTIONS_FAC_GOLD
 endstate
 
 
+
 state OPTIONS_FAC_INTERVAL
 
     event OnSliderOpenST(string state_id)
@@ -318,6 +321,40 @@ state OPTIONS_FAC_POWER
 endstate
 
 
+
+state OPTIONS_UNITS
+
+    event OnSliderOpenST(string state_id)
+        int defaultValue = GetDefaultIntValueForOption("units", state_id)
+		SetSliderDialogStartValue(JDB.solveInt(".ShoutAndBlade.generalOptions." + state_id, defaultValue))
+        SetSliderDialogRange(0, 120)
+	    SetSliderDialogInterval(1)
+		SetSliderDialogDefaultValue(defaultValue)
+	endEvent
+
+	event OnSliderAcceptST(string state_id, float value)
+        int valueInt = value as int
+        JDB.solveIntSetter(".ShoutAndBlade.generalOptions." + state_id, valueInt, true)
+		SetSliderOptionValueST(valueInt)
+	endEvent
+
+	event OnDefaultST(string state_id)
+        int valueInt = GetDefaultIntValueForOption("units", state_id)
+        JDB.solveIntSetter(".ShoutAndBlade.generalOptions." + state_id, valueInt, true)
+		SetSliderOptionValueST(valueInt)
+	endEvent
+
+	event OnHighlightST(string state_id)
+        ToggleQuickHotkey(true)
+
+        if state_id == "maxDeadBodies"
+            SetInfoText("$sab_mcm_options_slider_unit_maxdeadbodies_desc")
+        endif
+	endEvent
+
+endstate
+
+
 int Function GetDefaultIntValueForOption(string category, string entryName)
     if category == "factionGold"
         if entryName == "initialGold"
@@ -328,6 +365,10 @@ int Function GetDefaultIntValueForOption(string category, string entryName)
             return 250
         elseif entryName == "minCmderGold"
             return 600
+        endif
+    elseif category == "units"
+        if entryName == "maxDeadBodies"
+            return 12
         endif
     endif
 EndFunction
