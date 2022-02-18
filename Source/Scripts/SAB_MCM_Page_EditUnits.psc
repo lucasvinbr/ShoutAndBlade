@@ -94,7 +94,7 @@ Function SetupEditUnitsPage()
     AddSliderOptionST("UNITEDIT_BASEAV___Magicka", "$sab_mcm_unitedit_slider_magicka", JMap.getFlt(jEditedUnitData, "Magicka", 50.0))
 
     AddEmptyOption()
-    AddSliderOptionST("UNITEDIT_AUTOCALC_STRENGTH", "$sab_mcm_unitedit_slider_autocalc_strength", JMap.getFlt(jEditedUnitData, "AutocalcStrength", 1.0))
+    AddSliderOptionST("UNITEDIT_AUTOCALC_STRENGTH", "$sab_mcm_unitedit_slider_autocalc_strength", JMap.getFlt(jEditedUnitData, "AutocalcStrength", 1.0), "{1}")
     AddEmptyOption()
     AddTextOptionST("UNITEDIT_OUTFIT", "$sab_mcm_unitedit_button_outfit", "")
     AddEmptyOption()
