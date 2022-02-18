@@ -52,13 +52,72 @@ event OnPageDraw()
         return
     endif
 
-    SetCursorFillMode(TOP_TO_BOTTOM)
+    SetCursorFillMode(LEFT_TO_RIGHT)
 
     AddKeyMapOptionST("KEY_OPENMCM", "$sab_mcm_main_keymap_openmcm", key_openMCM)
 
-	SetCursorPosition(1)
 
     AddTextOptionST("MAIN_TEST_LOAD", "$sab_mcm_main_button_load", "")
+
+    AddEmptyOption()
+    AddEmptyOption()
+
+    ; save mod options
+    AddTextOptionST("OPTIONS_SAVE", "$sab_mcm_options_button_save", "")
+
+    AddEmptyOption()
+    AddEmptyOption()
+
+    AddHeaderOption("$sab_mcm_options_header_factionoptions")
+    AddEmptyOption()
+
+    AddSliderOptionST("OPTIONS_FAC_GOLD___initialGold", "$sab_mcm_options_slider_fac_initialgold", JDB.solveInt(".ShoutAndBlade.factionOptions.initialGold", SAB_FactionDataHandler.GetDefaultFactionGold()))
+    AddSliderOptionST("OPTIONS_FAC_INTERVAL___updateInterval", "$sab_mcm_options_slider_fac_updateinterval", JDB.solveFlt(".ShoutAndBlade.factionOptions.updateInterval", 0.025))
+    AddSliderOptionST("OPTIONS_FAC_INTERVAL___goldInterval", "$sab_mcm_options_slider_fac_goldinterval", JDB.solveFlt(".ShoutAndBlade.factionOptions.goldInterval", 0.12))
+    AddSliderOptionST("OPTIONS_FAC_GOLD___baseGoldAward", "$sab_mcm_options_slider_fac_goldaward", JDB.solveInt(".ShoutAndBlade.factionOptions.baseGoldAward", 500))
+    AddSliderOptionST("OPTIONS_FAC_GOLD___createCmderCost", "$sab_mcm_options_slider_fac_createcmdercost", JDB.solveInt(".ShoutAndBlade.factionOptions.createCmderCost", 250))
+    AddSliderOptionST("OPTIONS_FAC_INTERVAL___destCheckInterval", "$sab_mcm_options_slider_fac_destcheckinterval", JDB.solveFlt(".ShoutAndBlade.factionOptions.destCheckInterval", 0.15))
+    AddSliderOptionST("OPTIONS_FAC_INTERVAL___destChangeInterval", "$sab_mcm_options_slider_fac_destchangeinterval", JDB.solveFlt(".ShoutAndBlade.factionOptions.destChangeInterval", 1.05))
+    AddSliderOptionST("OPTIONS_FAC_GOLD___minCmderGold", "$sab_mcm_options_slider_fac_mincmdergold", JDB.solveInt(".ShoutAndBlade.factionOptions.minCmderGold", 600))
+    AddSliderOptionST("OPTIONS_FAC_POWER___safeLocationPower", "$sab_mcm_options_slider_fac_safelocationpower", JDB.solveFlt(".ShoutAndBlade.factionOptions.safeLocationPower", 32.0))
+
+    AddEmptyOption()
+    AddEmptyOption()
+    AddEmptyOption()
+
+    AddHeaderOption("$sab_mcm_options_header_cmderoptions")
+    AddEmptyOption()
+    ; initial exp points
+    ; exp award interval
+    ; exp awarded per interval
+    ; unit maintenance check interval
+    ; max owned units
+    ; base "is nearby" distance
+    ; max spawns outside combat
+    ; max spawns when besieging
+    ; base max spawns in combat
+    ; nearby cmders limit
+    ; limited distance dividend
+    ; limited combat spawns dividend
+
+    AddEmptyOption()
+    AddEmptyOption()
+
+    AddHeaderOption("$sab_mcm_options_header_locationoptions")
+    ; exp award interval
+    ; exp awarded per interval
+    ; base gold award
+    ; unit maintenance check interval
+    ; max owned units
+    ; max spawned units
+
+    AddEmptyOption()
+    AddEmptyOption()
+
+    AddHeaderOption("$sab_mcm_options_header_bodycleaneroptions")
+    ; max coexisting dead bodies
+    
+
     
 endevent
 
@@ -140,6 +199,156 @@ state MAIN_TEST_LOAD
 		SetInfoText("$sab_mcm_main_button_load_desc")
 	endEvent
 endstate
+
+
+
+
+;---------------------------------------------------------------------------------------------------------
+; OPTIONS STUFF
+;---------------------------------------------------------------------------------------------------------
+
+
+state OPTIONS_FAC_GOLD
+
+    event OnSliderOpenST(string state_id)
+        int defaultValue = GetDefaultIntValueForOption("factionGold", state_id)
+		SetSliderDialogStartValue(JDB.solveInt(".ShoutAndBlade.factionOptions." + state_id, defaultValue))
+        SetSliderDialogRange(0, 100000)
+	    SetSliderDialogInterval(10)
+		SetSliderDialogDefaultValue(defaultValue)
+	endEvent
+
+	event OnSliderAcceptST(string state_id, float value)
+        int valueInt = value as int
+        JDB.solveIntSetter(".ShoutAndBlade.factionOptions." + state_id, valueInt, true)
+		SetSliderOptionValueST(valueInt)
+	endEvent
+
+	event OnDefaultST(string state_id)
+        int valueInt = GetDefaultIntValueForOption("factionGold", state_id)
+        JDB.solveIntSetter(".ShoutAndBlade.factionOptions." + state_id, valueInt, true)
+		SetSliderOptionValueST(valueInt)
+	endEvent
+
+	event OnHighlightST(string state_id)
+        ToggleQuickHotkey(true)
+
+        if state_id == "initialGold"
+            SetInfoText("$sab_mcm_options_slider_fac_initialgold_desc")
+        elseif state_id == "baseGoldAward"
+            SetInfoText("$sab_mcm_options_slider_fac_goldaward_desc")
+        elseif state_id == "createCmderCost"
+            SetInfoText("$sab_mcm_options_slider_fac_createcmdercost_desc")
+        elseif state_id == "minCmderGold"
+            SetInfoText("$sab_mcm_options_slider_fac_mincmdergold_desc")
+        endif
+	endEvent
+
+endstate
+
+
+state OPTIONS_FAC_INTERVAL
+
+    event OnSliderOpenST(string state_id)
+        float defaultValue = GetDefaultFltValueForOption("factionInterval", state_id)
+		SetSliderDialogStartValue(JDB.solveFlt(".ShoutAndBlade.factionOptions." + state_id, defaultValue))
+        SetSliderDialogRange(0.0, 7.0)
+	    SetSliderDialogInterval(0.005)
+		SetSliderDialogDefaultValue(defaultValue)
+	endEvent
+
+	event OnSliderAcceptST(string state_id, float value)
+        JDB.solveFltSetter(".ShoutAndBlade.factionOptions." + state_id, value, true)
+		SetSliderOptionValueST(value)
+	endEvent
+
+	event OnDefaultST(string state_id)
+        float value = GetDefaultFltValueForOption("factionInterval", state_id)
+        JDB.solveFltSetter(".ShoutAndBlade.factionOptions." + state_id, value, true)
+		SetSliderOptionValueST(value)
+	endEvent
+
+	event OnHighlightST(string state_id)
+        ToggleQuickHotkey(true)
+
+        if state_id == "updateInterval"
+            SetInfoText("$sab_mcm_options_slider_fac_updateinterval_desc")
+        elseif state_id == "goldInterval"
+            SetInfoText("$sab_mcm_options_slider_fac_goldinterval_desc")
+        elseif state_id == "destCheckInterval"
+            SetInfoText("$sab_mcm_options_slider_fac_destcheckinterval_desc")
+        elseif state_id == "destChangeInterval"
+            SetInfoText("$sab_mcm_options_slider_fac_destchangeinterval_desc")
+        endif
+	endEvent
+
+endstate
+
+
+
+state OPTIONS_FAC_POWER
+
+    event OnSliderOpenST(string state_id)
+        float defaultValue = GetDefaultFltValueForOption("factionPower", state_id)
+		SetSliderDialogStartValue(JDB.solveFlt(".ShoutAndBlade.factionOptions." + state_id, defaultValue))
+        SetSliderDialogRange(0.0, 100.0)
+	    SetSliderDialogInterval(0.5)
+		SetSliderDialogDefaultValue(defaultValue)
+	endEvent
+
+	event OnSliderAcceptST(string state_id, float value)
+        JDB.solveFltSetter(".ShoutAndBlade.factionOptions." + state_id, value, true)
+		SetSliderOptionValueST(value)
+	endEvent
+
+	event OnDefaultST(string state_id)
+        float value = GetDefaultFltValueForOption("factionPower", state_id)
+        JDB.solveFltSetter(".ShoutAndBlade.factionOptions." + state_id, value, true)
+		SetSliderOptionValueST(value)
+	endEvent
+
+	event OnHighlightST(string state_id)
+        ToggleQuickHotkey(true)
+
+        if state_id == "safeLocationPower"
+            SetInfoText("$sab_mcm_options_slider_fac_safelocationpower_desc")
+        endif
+	endEvent
+
+endstate
+
+
+int Function GetDefaultIntValueForOption(string category, string entryName)
+    if category == "factionGold"
+        if entryName == "initialGold"
+            return SAB_FactionDataHandler.GetDefaultFactionGold()
+        elseif entryName == "baseGoldAward"
+            return 500
+        elseif entryName == "createCmderCost"
+            return 250
+        elseif entryName == "minCmderGold"
+            return 600
+        endif
+    endif
+EndFunction
+
+float Function GetDefaultFltValueForOption(string category, string entryName)
+    if category == "factionInterval"
+        if entryName == "updateInterval"
+            return 0.025
+        elseif entryName == "goldInterval"
+            return 0.12
+        elseif entryName == "destCheckInterval"
+            return 0.15
+        elseif entryName == "destChangeInterval"
+            return 1.05
+        endif
+    elseif category == "factionPower"
+        if entryName == "safeLocationPower"
+            return 32.0
+        endif
+    endif
+EndFunction
 
 ;---------------------------------------------------------------------------------------------------------
 ; SHARED STUFF (used in more than one MCM page)

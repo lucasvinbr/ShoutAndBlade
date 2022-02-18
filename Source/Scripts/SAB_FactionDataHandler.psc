@@ -120,6 +120,12 @@ Function UpdateAllFactionQuestsAccordingToJMap()
     ; SetupGearListAccordingToUnitData(jTestGuyData, SAB_UnitGear_TestGuy)
 EndFunction
 
+; since this is written a lot, this helps avoid having to edit the number everywhere
+int Function GetDefaultFactionGold() global
+    return 3000
+EndFunction
+
+
 ; factionData jmap entries:
 
 ; string Name

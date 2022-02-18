@@ -67,19 +67,20 @@ bool Function RunUpdate(float daysPassed)
 	endif
 
 	if jMap.hasKey(jFactionData, "enabled")
-		if daysPassed - gameTimeOfLastRealUpdate >= 0.05 ; TODO make this configurable
+		if daysPassed - gameTimeOfLastRealUpdate >= JDB.solveFlt(".ShoutAndBlade.factionOptions.updateInterval", 0.025)
 			gameTimeOfLastRealUpdate = daysPassed
 			Debug.Trace("updating faction " + jMap.getStr(jFactionData, "name", "Faction"))
 
-			if daysPassed - gameTimeOfLastGoldAward >= 0.15 ; TODO make this configurable
-				int numAwardsObtained = ((daysPassed - gameTimeOfLastGoldAward) / 0.15) as int
+			float goldInterval = JDB.solveFlt(".ShoutAndBlade.factionOptions.goldInterval", 0.12)
+			if daysPassed - gameTimeOfLastGoldAward >= goldInterval
+				int numAwardsObtained = ((daysPassed - gameTimeOfLastGoldAward) / goldInterval) as int
 				int goldPerAward = CalculateTotalGoldAward()
-				int currentGold = jMap.getInt(jFactionData, "AvailableGold", 3000)
+				int currentGold = jMap.getInt(jFactionData, "AvailableGold", JDB.solveInt(".ShoutAndBlade.factionOptions.initialGold", SAB_FactionDataHandler.GetDefaultFactionGold()))
 				jMap.setInt(jFactionData, "AvailableGold", currentGold + (goldPerAward * numAwardsObtained))
 				gameTimeOfLastGoldAward = daysPassed
 			endif
 
-			if daysPassed - gameTimeOfLastDestinationUpdate >= 0.15 ; TODO make this configurable
+			if daysPassed - gameTimeOfLastDestinationUpdate >= JDB.solveFlt(".ShoutAndBlade.factionOptions.destCheckInterval", 0.15)
 				gameTimeOfLastDestinationUpdate = daysPassed
 				RunDestinationsUpdate(daysPassed)
 			endif
@@ -92,7 +93,7 @@ bool Function RunUpdate(float daysPassed)
 	endif
 	
 	return true
-	Debug.Trace("done updating faction " + jMap.getStr(jFactionData, "name", "Faction"))
+	;Debug.Trace("done updating faction " + jMap.getStr(jFactionData, "name", "Faction"))
 EndFunction
 
 
@@ -103,7 +104,7 @@ Function RunDestinationsUpdate(float curGameTime)
 	int jAttackTargetsArray = FindAttackTargets()
 	int jDefenseTargetsArray = FindDefenseTargets()
 	int targetLocIndex = -1
-	float gameTimeBeforeChangeDestination = 0.75 ; TODO make this configurable
+	float gameTimeBeforeChangeDestination = JDB.solveFlt(".ShoutAndBlade.factionOptions.destChangeInterval", 1.05)
 
 	; A should be an attack destination!
 	if curGameTime - gameTimeOfLastDestinationChange_A > gameTimeBeforeChangeDestination || \
@@ -248,7 +249,7 @@ int Function FindDefenseTargets()
 				else
 					float locationPower = SpawnerScript.UnitDataHandler.GetTotalAutocalcPowerFromArmy(locScript.jOwnedUnitsMap)
 
-					if locationPower < 32.0 ; TODO make this configurable
+					if locationPower < JDB.solveFlt(".ShoutAndBlade.factionOptions.safeLocationPower", 32.0)
 						JArray.addInt(jPossibleDefenseTargets, locIndex)
 					endif
 					
@@ -292,8 +293,8 @@ EndFunction
 
 ; returns the total gold amount the faction gets in one "gold award cycle"
 int Function CalculateTotalGoldAward()
-	int baseAwardedGold = 500 ; TODO make this configurable
-	int baseGoldPerLoc = 1500 ; TODO make this configurable
+	int baseAwardedGold = JDB.solveInt(".ShoutAndBlade.factionOptions.baseGoldAward", 500)
+	int baseGoldPerLoc = JDB.solveInt(".ShoutAndBlade.locationOptions.baseGoldAward", 1500)
 	int totalAward = baseAwardedGold
 
 	; add more gold per zone owned
@@ -318,7 +319,7 @@ EndFunction
 int function PurchaseRecruits(int maxAmountPurchased = 100)
 
 	int recruitIndex = jMap.getInt(jFactionData, "RecruitUnitIndex")
-	int currentGold = jMap.getInt(jFactionData, "AvailableGold", 3000)
+	int currentGold = jMap.getInt(jFactionData, "AvailableGold", JDB.solveInt(".ShoutAndBlade.factionOptions.initialGold", SAB_FactionDataHandler.GetDefaultFactionGold()))
 	int recruitedAmount = 0
 
 	int jRecruitObj = jArray.getObj(SpawnerScript.UnitDataHandler.jSABUnitDatasArray, recruitIndex)
@@ -346,7 +347,7 @@ endfunction
 ; attempts to upgrade the units to a random option of the upgrades available in the troop lines.
 ; returns a jMap with new units' index and amount
 int function TryUpgradeUnits(int unitIndex, int unitAmount, float availableExp)
-	int currentGold = jMap.getInt(jFactionData, "AvailableGold", 3000)
+	int currentGold = jMap.getInt(jFactionData, "AvailableGold", JDB.solveInt(".ShoutAndBlade.factionOptions.initialGold", SAB_FactionDataHandler.GetDefaultFactionGold()))
 	int jUpgradeOptions = jArray.object()
 	jValue.retain(jUpgradeOptions, "ShoutAndBlade")
 
@@ -442,10 +443,10 @@ ReferenceAlias Function TrySpawnCommander(float curGameTime, bool onlySpawnIfHas
 	endif
 
 	; check if we can afford creating a new cmder
-	int cmderCost = 500 ; TODO make this configurable
-	int currentGold = jMap.getInt(jFactionData, "AvailableGold", 3000)
+	int cmderCost = JDB.solveInt(".ShoutAndBlade.factionOptions.createCmderCost", 250)
+	int currentGold = jMap.getInt(jFactionData, "AvailableGold", JDB.solveInt(".ShoutAndBlade.factionOptions.initialGold", SAB_FactionDataHandler.GetDefaultFactionGold()))
 
-	if (!onlySpawnIfHasExtraMoney && currentGold < cmderCost) || (onlySpawnIfHasExtraMoney && currentGold < cmderCost * 2)
+	if (!onlySpawnIfHasExtraMoney && currentGold < cmderCost) || (onlySpawnIfHasExtraMoney && currentGold < JDB.solveInt(".ShoutAndBlade.factionOptions.minCmderGold", 600))
 		return None
 	endif
 

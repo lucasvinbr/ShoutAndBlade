@@ -96,7 +96,7 @@ endfunction
 
 bool function RunCloseByUpdate()
 	;debug.Trace("real time updating commander!")
-	if spawnedUnitsAmount < GetMaxSpawnedUnitsAmount() ; TODO make this configurable
+	if spawnedUnitsAmount < GetMaxSpawnedUnitsAmount()
 		; spawn random units from "storage"
 		SpawnUnitBatch()
 	endif
@@ -127,7 +127,7 @@ Function TryRecruitUnits()
 		return
 	endif
 
-	int maxUnitSlots = GetMaxOwnedUnitsAmount() ; TODO make this configurable via MCM
+	int maxUnitSlots = GetMaxOwnedUnitsAmount()
 
 	if totalOwnedUnitsAmount < maxUnitSlots
 		int recruitedUnits = factionScript.PurchaseRecruits(maxUnitSlots - totalOwnedUnitsAmount)
@@ -281,7 +281,7 @@ EndFunction
 
 ; attempts to spawn a group of units in one of our spawn points
 Function SpawnUnitBatch()
-	int maxBatchSize = 5 ; TODO make this configurable
+	int maxBatchSize = 5
 	int spawnedCount = 0
 
 	ObjectReference spawnLocation = GetSpawnLocationForUnit()
@@ -308,7 +308,7 @@ EndFunction
 
 Function SpawnRandomUnitAtPos(ObjectReference targetLocation)
 
-	if spawnedUnitsAmount < 8 ; TODO make this configurable
+	if spawnedUnitsAmount < GetMaxSpawnedUnitsAmount()
 		int indexToSpawn = GetUnitIndexToSpawn()
 
 		if indexToSpawn >= 0
@@ -473,5 +473,5 @@ endfunction
 
 ; returns the maximum amount of units this container can have spawned in the world at the same time
 int Function GetMaxSpawnedUnitsAmount()
-	return 8 ; TODO make this configurable
+	return 8
 EndFunction
