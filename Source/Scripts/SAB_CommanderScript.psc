@@ -93,64 +93,6 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 					TryRecruitUnits()
 				endif
 			endif
-
-			if TargetLocationScript != None
-				bool cmderCanAutocalc = TargetLocationScript.IsReferenceCloseEnoughForAutocalc(meActor)
-
-				if !cmderCanAutocalc
-					; we're too far away from the target loc, disengage
-					if TargetLocationScript.InteractingCommander == self
-						TargetLocationScript.InteractingCommander = None
-					endif
-					TargetLocationScript = None
-				else
-					if TargetLocationScript.factionScript == factionScript
-						; attempt to reinforce the location if it's undermanned
-						if TargetLocationScript.totalOwnedUnitsAmount < TargetLocationScript.GetMaxOwnedUnitsAmount()
-							; mark ourselves as interacting so that we can be attacked instead of the location
-							TargetLocationScript.InteractingCommander = self
-							TryTransferUnitsToAnotherContainer(TargetLocationScript)
-						endif
-					else 
-						if !isNearby
-							; if the player is far away, do autocalc fights!
-							; if any cmder is currently interacting with the location, we fight them first
-							if TargetLocationScript.InteractingCommander != None && TargetLocationScript.InteractingCommander != self
-								if TargetLocationScript.InteractingCommander.factionScript != factionScript
-
-									DoAutocalcBattle(TargetLocationScript.InteractingCommander)
-									; if the interacting cmder has just been defeated and we're still standing,
-									; mark ourselves as the currently interacting ones
-									if totalOwnedUnitsAmount > 0 && TargetLocationScript.InteractingCommander == None
-										TargetLocationScript.InteractingCommander = self
-									endif
-									return true
-								endif
-							elseif TargetLocationScript.factionScript != None
-								; do an autocalc fight against the location's units!
-								TargetLocationScript.InteractingCommander = self
-								DoAutocalcBattle(TargetLocationScript)
-								return true
-							else
-								; the location is neutral! Let's take it
-								TargetLocationScript.InteractingCommander = self
-								TargetLocationScript.BeTakenByFaction(factionScript)
-							endif
-						else
-							; if the player is nearby but the location is empty, take it
-							if TargetLocationScript.factionScript == None
-								TargetLocationScript.InteractingCommander = self
-								TargetLocationScript.BeTakenByFaction(factionScript)
-							endif
-						endif
-					endif
-				endif
-			else
-				if curGameTime - gameTimeOfLastDestCheck > 0.01
-					gameTimeOfLastDestCheck = curGameTime
-					factionScript.ValidateCmderReachedDestination(self, CmderDestinationType)
-				endif
-			endif
 			
 			; Utility.Wait(0.01)
 			meActor.EvaluatePackage()
@@ -165,7 +107,69 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 				ClearCmderData()
 				meActor.Disable()
 				meActor.Delete()
+				return true
 			endif
+		endif
+	endif
+
+
+	; both living and dead cmders can fight for locations
+
+	if TargetLocationScript != None
+		bool cmderCanAutocalc = TargetLocationScript.IsReferenceCloseEnoughForAutocalc(meActor)
+
+		if !cmderCanAutocalc
+			; we're too far away from the target loc, disengage
+			if TargetLocationScript.InteractingCommander == self
+				TargetLocationScript.InteractingCommander = None
+			endif
+			TargetLocationScript = None
+		else
+			if TargetLocationScript.factionScript == factionScript
+				; attempt to reinforce the location if it's undermanned
+				if TargetLocationScript.totalOwnedUnitsAmount < TargetLocationScript.GetMaxOwnedUnitsAmount()
+					; mark ourselves as interacting so that we can be attacked instead of the location
+					TargetLocationScript.InteractingCommander = self
+					TryTransferUnitsToAnotherContainer(TargetLocationScript)
+				endif
+			else 
+				if !isNearby
+					; if the player is far away, do autocalc fights!
+					; if any cmder is currently interacting with the location, we fight them first
+					if TargetLocationScript.InteractingCommander != None && TargetLocationScript.InteractingCommander != self
+						if TargetLocationScript.InteractingCommander.factionScript != factionScript
+
+							DoAutocalcBattle(TargetLocationScript.InteractingCommander)
+							; if the interacting cmder has just been defeated and we're still standing,
+							; mark ourselves as the currently interacting ones
+							if totalOwnedUnitsAmount > 0 && TargetLocationScript.InteractingCommander == None
+								TargetLocationScript.InteractingCommander = self
+							endif
+							return true
+						endif
+					elseif TargetLocationScript.factionScript != None
+						; do an autocalc fight against the location's units!
+						TargetLocationScript.InteractingCommander = self
+						DoAutocalcBattle(TargetLocationScript)
+						return true
+					else
+						; the location is neutral! Let's take it
+						TargetLocationScript.InteractingCommander = self
+						TargetLocationScript.BeTakenByFaction(factionScript)
+					endif
+				else
+					; if the player is nearby but the location is empty, take it
+					if TargetLocationScript.factionScript == None
+						TargetLocationScript.InteractingCommander = self
+						TargetLocationScript.BeTakenByFaction(factionScript)
+					endif
+				endif
+			endif
+		endif
+	else
+		if curGameTime - gameTimeOfLastDestCheck > JDB.solveFlt(".ShoutAndBlade.cmderOptions.destCheckInterval", 0.01)
+			gameTimeOfLastDestCheck = curGameTime
+			factionScript.ValidateCmderReachedDestination(self, CmderDestinationType)
 		endif
 	endif
 
