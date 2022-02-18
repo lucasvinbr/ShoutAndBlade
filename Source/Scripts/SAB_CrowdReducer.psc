@@ -24,7 +24,7 @@ EndFunction
 Function AddDeadBody(Actor body)
 
 	while isEditingArray
-		Utility.Wait(0.1)
+		Utility.Wait(Utility.RandomFloat(0.05, 0.15))
 		debug.Trace("deadBodyCleaner: attempted to edit array while it was already being edited")
 	endwhile
 
@@ -42,7 +42,7 @@ Function AddDeadBody(Actor body)
 
 	if numExistingBodies > MaxCoexistingDeadBodies
 		if BodiesArray[nextBodyIndexToErase]
-			BodiesArray[nextBodyIndexToErase].SetCriticalStage(BodiesArray[nextBodyIndexToErase].CritStage_DisintegrateEnd)
+			;BodiesArray[nextBodyIndexToErase].SetCriticalStage(BodiesArray[nextBodyIndexToErase].CritStage_DisintegrateEnd)
 			; BodiesArray[nextBodyIndexToErase].Disable(true)
 			BodiesArray[nextBodyIndexToErase].Delete()
 		endif
