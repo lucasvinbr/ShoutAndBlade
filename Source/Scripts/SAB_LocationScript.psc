@@ -124,7 +124,7 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 		endif
 	endif
 
-	ToggleNearbyUpdates(distToPlayer <= 4100.0 || playerIsInside)
+	ToggleNearbyUpdates(distToPlayer <= 8100.0 || playerIsInside)
 	; debug.Trace(ThisLocation.GetName() + ": player is inside? " + playerIsInside)
 
 	if !isNearby && !playerIsInside
@@ -255,4 +255,9 @@ EndFunction
 
 int Function GetMaxOwnedUnitsAmount()
 	return 45 ; TODO make this configurable
+EndFunction
+
+; returns the maximum amount of units this container can have spawned in the world at the same time
+int Function GetMaxSpawnedUnitsAmount()
+	return 8 ; TODO make this configurable
 EndFunction
