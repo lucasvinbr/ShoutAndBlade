@@ -445,9 +445,9 @@ state OPTIONS_CMDER_EXP
         ToggleQuickHotkey(true)
 
         if state_id == "initialExpPoints"
-            SetInfoText("$sab_mcm_options_slider_cmder_initialxp")
+            SetInfoText("$sab_mcm_options_slider_cmder_initialxp_desc")
         elseif state_id == "awardedXpPerInterval"
-            SetInfoText("$sab_mcm_options_slider_cmder_awardedxp")
+            SetInfoText("$sab_mcm_options_slider_cmder_awardedxp_desc")
         endif
 	endEvent
 
@@ -480,11 +480,11 @@ state OPTIONS_CMDER_INTERVAL
         ToggleQuickHotkey(true)
 
         if state_id == "expAwardInterval"
-            SetInfoText("$sab_mcm_options_slider_cmder_xpawardinterval")
+            SetInfoText("$sab_mcm_options_slider_cmder_xpawardinterval_desc")
         elseif state_id == "unitMaintenanceInterval"
-            SetInfoText("$sab_mcm_options_slider_cmder_unitmaintenanceinterval")
+            SetInfoText("$sab_mcm_options_slider_cmder_unitmaintenanceinterval_desc")
         elseif state_id == "destCheckInterval"
-            SetInfoText("$sab_mcm_options_slider_cmder_destcheckinterval")
+            SetInfoText("$sab_mcm_options_slider_cmder_destcheckinterval_desc")
         endif
 	endEvent
 
@@ -517,9 +517,9 @@ state OPTIONS_CMDER_DISTANCE
         ToggleQuickHotkey(true)
 
         if state_id == "isNearbyDistance"
-            SetInfoText("$sab_mcm_options_slider_cmder_isnearbydist")
+            SetInfoText("$sab_mcm_options_slider_cmder_isnearbydist_desc")
         elseif state_id == "nearbyDistanceDividend"
-            SetInfoText("$sab_mcm_options_slider_cmder_nearbydistancedividend")
+            SetInfoText("$sab_mcm_options_slider_cmder_nearbydistancedividend_desc")
         endif
 	endEvent
 
@@ -553,17 +553,17 @@ state OPTIONS_CMDER_UNITS
         ToggleQuickHotkey(true)
 
         if state_id == "maxOwnedUnits"
-            SetInfoText("$sab_mcm_options_slider_cmder_maxownedunits")
+            SetInfoText("$sab_mcm_options_slider_cmder_maxownedunits_desc")
         elseif state_id == "maxSpawnsOutsideCombat"
-            SetInfoText("$sab_mcm_options_slider_cmder_spawnsoutsidecombat")
+            SetInfoText("$sab_mcm_options_slider_cmder_spawnsoutsidecombat_desc")
         elseif state_id == "maxSpawnsWhenBesieging"
-            SetInfoText("$sab_mcm_options_slider_cmder_spawnswhenbesieging")
+            SetInfoText("$sab_mcm_options_slider_cmder_spawnswhenbesieging_desc")
         elseif state_id == "maxSpawnsInCombat"
-            SetInfoText("$sab_mcm_options_slider_cmder_spawnsincombat")
+            SetInfoText("$sab_mcm_options_slider_cmder_spawnsincombat_desc")
         elseif state_id == "nearbyCmdersLimit"
-            SetInfoText("$sab_mcm_options_slider_cmder_nearbycmderslimit")
+            SetInfoText("$sab_mcm_options_slider_cmder_nearbycmderslimit_desc")
         elseif state_id == "combatSpawnsDividend"
-            SetInfoText("$sab_mcm_options_slider_cmder_combatspawnsdividend")
+            SetInfoText("$sab_mcm_options_slider_cmder_combatspawnsdividend_desc")
         endif
 	endEvent
 
