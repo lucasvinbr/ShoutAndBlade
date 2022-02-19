@@ -280,6 +280,9 @@ Function ValidateCmderReachedDestination(SAB_CommanderScript commander, string c
 		targetLocScript = destinationScript_C
 	endif
 
+	if targetLocScript == None
+		return
+	endif
 	
 	if targetLocScript.IsReferenceCloseEnoughForAutocalc(cmderRef)
 		; the commander has really arrived! Do stuff like autocalc battles now.
