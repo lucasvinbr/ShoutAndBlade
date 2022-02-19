@@ -108,12 +108,15 @@ event OnPageDraw()
 
     AddHeaderOption("$sab_mcm_options_header_locationoptions")
     AddEmptyOption()
-    ; exp award interval
-    ; exp awarded per interval
-    ; base gold award
-    ; unit maintenance check interval
-    ; max owned units
-    ; max spawned units
+    AddSliderOptionST("OPTIONS_LOC_INTERVAL___expAwardInterval", "$sab_mcm_options_slider_loc_xpawardinterval", JDB.solveFlt(".ShoutAndBlade.locationOptions.expAwardInterval", 0.08), "{3}")
+    AddSliderOptionST("OPTIONS_LOC_EXP___awardedXpPerInterval", "$sab_mcm_options_slider_loc_awardedxp", JDB.solveFlt(".ShoutAndBlade.locationOptions.awardedXpPerInterval", 250.0))
+    AddSliderOptionST("OPTIONS_LOC_GOLD___baseGoldAward", "$sab_mcm_options_slider_loc_basegoldaward", JDB.solveInt(".ShoutAndBlade.locationOptions.baseGoldAward", 1500))
+    AddSliderOptionST("OPTIONS_LOC_INTERVAL___unitMaintenanceInterval", "$sab_mcm_options_slider_loc_unitmaintenanceinterval", JDB.solveFlt(".ShoutAndBlade.locationOptions.unitMaintenanceInterval", 0.1), "{3}")
+    AddSliderOptionST("OPTIONS_LOC_UNITS___maxOwnedUnits", "$sab_mcm_options_slider_loc_maxownedunits", JDB.solveInt(".ShoutAndBlade.locationOptions.maxOwnedUnits", 45))
+    AddSliderOptionST("OPTIONS_LOC_UNITS___maxSpawnedUnits", "$sab_mcm_options_slider_loc_maxspawnedunits", JDB.solveInt(".ShoutAndBlade.locationOptions.maxSpawnedUnits", 8))
+    ; "is under attack" timer (time since last unit loss)
+    ; is nearby distance
+
 
     AddEmptyOption()
     AddEmptyOption()
@@ -425,7 +428,7 @@ state OPTIONS_CMDER_EXP
     event OnSliderOpenST(string state_id)
         float defaultValue = GetDefaultFltValueForOption("cmderExp", state_id)
 		SetSliderDialogStartValue(JDB.solveFlt(".ShoutAndBlade.cmderOptions." + state_id, defaultValue))
-        SetSliderDialogRange(0.0, 1000.0)
+        SetSliderDialogRange(0.0, 2000.0)
 	    SetSliderDialogInterval(1)
 		SetSliderDialogDefaultValue(defaultValue)
 	endEvent
@@ -571,6 +574,141 @@ endstate
 
 
 
+state OPTIONS_LOC_UNITS
+
+    event OnSliderOpenST(string state_id)
+        int defaultValue = GetDefaultIntValueForOption("locUnits", state_id)
+		SetSliderDialogStartValue(JDB.solveInt(".ShoutAndBlade.locationOptions." + state_id, defaultValue))
+        SetSliderDialogRange(0, 120)
+	    SetSliderDialogInterval(1)
+		SetSliderDialogDefaultValue(defaultValue)
+	endEvent
+
+	event OnSliderAcceptST(string state_id, float value)
+        int valueInt = value as int
+        JDB.solveIntSetter(".ShoutAndBlade.locationOptions." + state_id, valueInt, true)
+		SetSliderOptionValueST(valueInt)
+	endEvent
+
+	event OnDefaultST(string state_id)
+        int valueInt = GetDefaultIntValueForOption("locUnits", state_id)
+        JDB.solveIntSetter(".ShoutAndBlade.locationOptions." + state_id, valueInt, true)
+		SetSliderOptionValueST(valueInt)
+	endEvent
+
+	event OnHighlightST(string state_id)
+        ToggleQuickHotkey(true)
+
+        if state_id == "maxOwnedUnits"
+            SetInfoText("$sab_mcm_options_slider_loc_maxownedunits_desc")
+        elseif state_id == "maxSpawnedUnits"
+            SetInfoText("$sab_mcm_options_slider_loc_maxspawnedunits_desc")
+        endif
+	endEvent
+
+endstate
+
+
+state OPTIONS_LOC_INTERVAL
+
+    event OnSliderOpenST(string state_id)
+        float defaultValue = GetDefaultFltValueForOption("locInterval", state_id)
+		SetSliderDialogStartValue(JDB.solveFlt(".ShoutAndBlade.locationOptions." + state_id, defaultValue))
+        SetSliderDialogRange(0.0, 7.0)
+	    SetSliderDialogInterval(0.005)
+		SetSliderDialogDefaultValue(defaultValue)
+	endEvent
+
+	event OnSliderAcceptST(string state_id, float value)
+        JDB.solveFltSetter(".ShoutAndBlade.locationOptions." + state_id, value, true)
+		SetSliderOptionValueST(value, "{3}")
+	endEvent
+
+	event OnDefaultST(string state_id)
+        float value = GetDefaultFltValueForOption("locInterval", state_id)
+        JDB.solveFltSetter(".ShoutAndBlade.locationOptions." + state_id, value, true)
+		SetSliderOptionValueST(value, "{3}")
+	endEvent
+
+	event OnHighlightST(string state_id)
+        ToggleQuickHotkey(true)
+
+        if state_id == "expAwardInterval"
+            SetInfoText("$sab_mcm_options_slider_loc_xpawardinterval_desc")
+        elseif state_id == "unitMaintenanceInterval"
+            SetInfoText("$sab_mcm_options_slider_loc_unitmaintenanceinterval_desc")
+        endif
+	endEvent
+
+endstate
+
+
+
+state OPTIONS_LOC_EXP
+
+    event OnSliderOpenST(string state_id)
+        float defaultValue = GetDefaultFltValueForOption("locExp", state_id)
+		SetSliderDialogStartValue(JDB.solveFlt(".ShoutAndBlade.locationOptions." + state_id, defaultValue))
+        SetSliderDialogRange(0.0, 2000.0)
+	    SetSliderDialogInterval(1)
+		SetSliderDialogDefaultValue(defaultValue)
+	endEvent
+
+	event OnSliderAcceptST(string state_id, float value)
+        JDB.solveFltSetter(".ShoutAndBlade.locationOptions." + state_id, value, true)
+		SetSliderOptionValueST(value)
+	endEvent
+
+	event OnDefaultST(string state_id)
+        float value = GetDefaultFltValueForOption("locExp", state_id)
+        JDB.solveFltSetter(".ShoutAndBlade.locationOptions." + state_id, value, true)
+		SetSliderOptionValueST(value)
+	endEvent
+
+	event OnHighlightST(string state_id)
+        ToggleQuickHotkey(true)
+
+        if state_id == "initialExpPoints"
+            SetInfoText("$sab_mcm_options_slider_loc_awardedxp_desc")
+        endif
+	endEvent
+
+endstate
+
+
+state OPTIONS_LOC_GOLD
+
+    event OnSliderOpenST(string state_id)
+        int defaultValue = GetDefaultIntValueForOption("locGold", state_id)
+		SetSliderDialogStartValue(JDB.solveInt(".ShoutAndBlade.locationOptions." + state_id, defaultValue))
+        SetSliderDialogRange(0, 10000)
+	    SetSliderDialogInterval(10)
+		SetSliderDialogDefaultValue(defaultValue)
+	endEvent
+
+	event OnSliderAcceptST(string state_id, float value)
+        int valueInt = value as int
+        JDB.solveIntSetter(".ShoutAndBlade.locationOptions." + state_id, valueInt, true)
+		SetSliderOptionValueST(valueInt)
+	endEvent
+
+	event OnDefaultST(string state_id)
+        int valueInt = GetDefaultIntValueForOption("locGold", state_id)
+        JDB.solveIntSetter(".ShoutAndBlade.locationOptions." + state_id, valueInt, true)
+		SetSliderOptionValueST(valueInt)
+	endEvent
+
+	event OnHighlightST(string state_id)
+        ToggleQuickHotkey(true)
+
+        if state_id == "baseGoldAward"
+            SetInfoText("$sab_mcm_options_slider_loc_basegoldaward_desc")
+        endif
+	endEvent
+
+endstate
+
+
 int Function GetDefaultIntValueForOption(string category, string entryName)
     if category == "factionGold"
         if entryName == "initialGold"
@@ -581,6 +719,10 @@ int Function GetDefaultIntValueForOption(string category, string entryName)
             return 250
         elseif entryName == "minCmderGold"
             return 600
+        endif
+    elseif category == "locGold"
+        if entryName == "baseGoldAward"
+            return 1500
         endif
     elseif category == "units"
         if entryName == "maxDeadBodies"
@@ -599,6 +741,12 @@ int Function GetDefaultIntValueForOption(string category, string entryName)
             return 5
         elseif entryName == "combatSpawnsDividend"
             return 20
+        endif
+    elseif category == "locUnits"
+        if entryName == "maxOwnedUnits"
+            return 45
+        elseif entryName == "maxSpawnedUnits"
+            return 8
         endif
     endif
 EndFunction
@@ -624,6 +772,10 @@ float Function GetDefaultFltValueForOption(string category, string entryName)
         elseif entryName == "awardedXpPerInterval"
             return 500.0
         endif
+    elseif category == "locExp"
+        if entryName == "awardedXpPerInterval"
+            return 250.0
+        endif
     elseif category == "cmderInterval"
         if entryName == "expAwardInterval"
             return 0.08
@@ -631,6 +783,12 @@ float Function GetDefaultFltValueForOption(string category, string entryName)
             return 0.06
         elseif entryName == "destCheckInterval"
             return 0.01
+        endif
+    elseif category == "locInterval"
+        if entryName == "expAwardInterval"
+            return 0.08
+        elseif entryName == "unitMaintenanceInterval"
+            return 0.1
         endif
     elseif category == "cmderDistance"
         if entryName == "isNearbyDistance"

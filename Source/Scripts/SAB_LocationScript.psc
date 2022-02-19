@@ -103,9 +103,10 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 	endif
 
 	;debug.Trace("game time updating commander (pre check)!")
-	if curGameTime - gameTimeOfLastExpAward >= 0.2 ; TODO make this configurable
-		int numAwardsObtained = ((curGameTime - gameTimeOfLastExpAward) / 0.2) as int
-		availableExpPoints += 250.0 * numAwardsObtained ; TODO make this configurable
+	float expAwardInterval = JDB.solveFlt(".ShoutAndBlade.locationOptions.expAwardInterval", 0.08)
+	if curGameTime - gameTimeOfLastExpAward >= expAwardInterval
+		int numAwardsObtained = ((curGameTime - gameTimeOfLastExpAward) / expAwardInterval) as int
+		availableExpPoints += JDB.solveFlt(".ShoutAndBlade.locationOptions.awardedXpPerInterval", 250.0) * numAwardsObtained
 		gameTimeOfLastExpAward = curGameTime
 	endif
 	
@@ -118,13 +119,13 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 
 	if playerIsInside
 		if InternalSpawnPoints.Length > 0
-			playerIsInside = InternalSpawnPoints[0].GetDistance(playerActor) <= 4100.0
+			playerIsInside = InternalSpawnPoints[0].GetDistance(playerActor) <= 4100.0 ; TODO make this configurable
 		else
 			playerIsInside = false
 		endif
 	endif
 
-	ToggleNearbyUpdates(distToPlayer <= 8100.0 || playerIsInside)
+	ToggleNearbyUpdates(distToPlayer <= 8100.0 || playerIsInside) ; TODO make this configurable
 	; debug.Trace(ThisLocation.GetName() + ": player is inside? " + playerIsInside)
 
 	if !isNearby && !playerIsInside
@@ -139,7 +140,7 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 			
 	endif
 
-	if curGameTime - gameTimeOfLastUnitUpgrade >= 0.1 ; TODO make this configurable
+	if !IsBeingContested() && curGameTime - gameTimeOfLastUnitUpgrade >= JDB.solveFlt(".ShoutAndBlade.locationOptions.unitMaintenanceInterval", 0.1)
 		gameTimeOfLastUnitUpgrade = curGameTime
 
 		; if we have enough units, upgrade. If we don't, recruit some more
@@ -256,10 +257,10 @@ Function HandleAutocalcDefeat()
 EndFunction
 
 int Function GetMaxOwnedUnitsAmount()
-	return 45 ; TODO make this configurable
+	return JDB.solveInt(".ShoutAndBlade.locationOptions.maxOwnedUnits", 45)
 EndFunction
 
 ; returns the maximum amount of units this container can have spawned in the world at the same time
 int Function GetMaxSpawnedUnitsAmount()
-	return 8 ; TODO make this configurable
+	return JDB.solveInt(".ShoutAndBlade.locationOptions.maxSpawnedUnits", 8)
 EndFunction
