@@ -102,12 +102,14 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 	else 
 		if ClearAliasIfOutOfTroops()
 			CrowdReducer.AddDeadBody(meActor)
+			meActor = None
 			return true
 		else
 			if !isNearby
 				ClearCmderData()
 				meActor.Disable()
 				meActor.Delete()
+				meActor = None
 				return true
 			endif
 		endif
@@ -239,6 +241,7 @@ event OnDeath(Actor akKiller)
 	debug.Trace("commander: dead!")
 	if ClearAliasIfOutOfTroops()
 		CrowdReducer.AddDeadBody(meActor)
+		meActor = None
 	endif
 endEvent
 
@@ -264,6 +267,7 @@ Function HandleAutocalcDefeat()
 	; meActor.SetCriticalStage(meActor.CritStage_DisintegrateEnd)
 	meActor.Disable()
 	meActor.Delete()
+	meActor = None
 EndFunction
 
 ; clears the alias and stops updates

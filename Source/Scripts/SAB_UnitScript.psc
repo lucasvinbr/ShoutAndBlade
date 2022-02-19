@@ -32,13 +32,10 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 		; the unit went poof!
 		; if we get to the update before knowing what happened here,
 		; give the commander another chance to spawn this same unit type
-		if unitIndex == -1
+		if unitIndex == -1 || gameTimeOwnerContainerWasSetup == 0.0
 			; since all units should have a valid unit index,
 			; this means this unit is probably being cleared
-			debug.Trace("unit: updated while being cleared!")
-		elseif gameTimeOwnerContainerWasSetup == 0.0 && unitIndex == -1
-			; if setup time and unitIndex are both 0, there's a high chance this unit hasn't been fully setup yet
-			debug.Trace("unit: updated while being set up!")
+			debug.Trace("unit: updated while being set up or cleared!")
 		else 
 			debug.Trace("unit: went poof!")
 			debug.Trace("poof unit index: " + unitIndex)
@@ -104,8 +101,8 @@ endEvent
 Function HandleDeath()
 	deathHasBeenHandled = true
 	ownerTroopContainer.OwnedUnitHasDied(unitIndex, gameTimeOwnerContainerWasSetup)
-	ClearAliasData()
 	CrowdReducer.AddDeadBody(meActor)
+	ClearAliasData()
 EndFunction
 
 Function ClearAliasData()
@@ -113,4 +110,5 @@ Function ClearAliasData()
 	unitIndex = -1
 	gameTimeOwnerContainerWasSetup = 0.0
 	parent.ClearAliasData()
+	meActor = None
 EndFunction
