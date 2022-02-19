@@ -448,11 +448,11 @@ state UNITEDIT_AUTOCALC_STRENGTH
 	endEvent
 
     event OnSliderAcceptST(string state_id, float value)
-        SetEditedUnitSliderValue(currentFieldBeingEdited, value)
+        SetEditedUnitSliderValue(currentFieldBeingEdited, value, "{1}")
     endEvent
 
     event OnDefaultST(string state_id)
-        SetEditedUnitSliderValue(currentFieldBeingEdited, currentSliderDefaultValue)
+        SetEditedUnitSliderValue(currentFieldBeingEdited, currentSliderDefaultValue, "{1}")
     endEvent
 
 	event OnHighlightST(string state_id)
@@ -567,10 +567,10 @@ Function SetupEditedUnitRaceMenuOnOpen(string jUnitMapKey)
     SetMenuDialogOptions(unitRaceEditOptions)
 EndFunction
 
-Function SetEditedUnitSliderValue(string jUnitMapKey, float value)
+Function SetEditedUnitSliderValue(string jUnitMapKey, float value, string formatString = "{0}")
     JMap.setFlt(jEditedUnitData, jUnitMapKey, value)
     ; JMap.setFlt(SAB_MCM.SAB_Main.UnitDataHandler.jTestGuyData, jUnitMapKey, value)
-    SetSliderOptionValueST(value)
+    SetSliderOptionValueST(value, formatString)
 EndFunction
 
 Function SetEditedUnitRaceMenuValue(string jUnitMapKey, int value)

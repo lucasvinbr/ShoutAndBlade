@@ -266,13 +266,13 @@ state OPTIONS_FAC_INTERVAL
 
 	event OnSliderAcceptST(string state_id, float value)
         JDB.solveFltSetter(".ShoutAndBlade.factionOptions." + state_id, value, true)
-		SetSliderOptionValueST(value)
+		SetSliderOptionValueST(value, "{3}")
 	endEvent
 
 	event OnDefaultST(string state_id)
         float value = GetDefaultFltValueForOption("factionInterval", state_id)
         JDB.solveFltSetter(".ShoutAndBlade.factionOptions." + state_id, value, true)
-		SetSliderOptionValueST(value)
+		SetSliderOptionValueST(value, "{3}")
 	endEvent
 
 	event OnHighlightST(string state_id)
@@ -305,13 +305,13 @@ state OPTIONS_FAC_POWER
 
 	event OnSliderAcceptST(string state_id, float value)
         JDB.solveFltSetter(".ShoutAndBlade.factionOptions." + state_id, value, true)
-		SetSliderOptionValueST(value)
+		SetSliderOptionValueST(value, "{1}")
 	endEvent
 
 	event OnDefaultST(string state_id)
         float value = GetDefaultFltValueForOption("factionPower", state_id)
         JDB.solveFltSetter(".ShoutAndBlade.factionOptions." + state_id, value, true)
-		SetSliderOptionValueST(value)
+		SetSliderOptionValueST(value, "{1}")
 	endEvent
 
 	event OnHighlightST(string state_id)
@@ -407,13 +407,13 @@ state OPTIONS_CMDER_INTERVAL
 
 	event OnSliderAcceptST(string state_id, float value)
         JDB.solveFltSetter(".ShoutAndBlade.cmderOptions." + state_id, value, true)
-		SetSliderOptionValueST(value)
+		SetSliderOptionValueST(value, "{3}")
 	endEvent
 
 	event OnDefaultST(string state_id)
         float value = GetDefaultFltValueForOption("cmderInterval", state_id)
         JDB.solveFltSetter(".ShoutAndBlade.cmderOptions." + state_id, value, true)
-		SetSliderOptionValueST(value)
+		SetSliderOptionValueST(value, "{3}")
 	endEvent
 
 	event OnHighlightST(string state_id)
