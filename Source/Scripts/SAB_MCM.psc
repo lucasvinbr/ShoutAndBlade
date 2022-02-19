@@ -64,8 +64,8 @@ event OnPageDraw()
 
     ; save mod options
     AddTextOptionST("OPTIONS_SAVE", "$sab_mcm_options_button_save", "")
+    AddTextOptionST("OPTIONS_LOAD", "$sab_mcm_options_button_load", "")
 
-    AddEmptyOption()
     AddEmptyOption()
     AddEmptyOption()
 
@@ -151,15 +151,25 @@ endstate
 state MAIN_TEST_LOAD
     event OnSelectST(string state_id)
         MainQuest.SpawnerScript.HideCustomizationGuy()
-        string unitFilePath = JContainers.userDirectory() + "SAB/unitData.json"
         isLoadingData = true
         ForcePageReset()
         int loadSuccesses = 0
-        int expectedLoadSuccesses = 2
+        int expectedLoadSuccesses = 3
 
         ShowMessage("$sab_mcm_shared_popup_msg_load_started", false)
 
 
+        string optionsFilePath = JContainers.userDirectory() + "SAB/options.json"
+        int jReadOptionsData = JValue.readFromFile(optionsFilePath)
+        if jReadOptionsData != 0
+            JDB.solveObjSetter(".ShoutAndBlade", jReadOptionsData, true)
+            loadSuccesses += 1
+            Debug.Notification("SAB: options data load complete! (" + loadSuccesses + " of " + expectedLoadSuccesses + ")")
+        else
+            Debug.Notification("SAB: options data load failed!")
+        endif
+
+        string unitFilePath = JContainers.userDirectory() + "SAB/unitData.json"
         int jReadUnitData = JValue.readFromFile(unitFilePath)
         if jReadUnitData != 0
             ;force a page reset to disable all action buttons!
@@ -212,6 +222,56 @@ endstate
 ;---------------------------------------------------------------------------------------------------------
 ; OPTIONS STUFF
 ;---------------------------------------------------------------------------------------------------------
+
+
+state OPTIONS_SAVE
+
+    event OnSelectST(string state_id)
+        string filePath = JContainers.userDirectory() + "SAB/options.json"
+        JValue.writeToFile(JDB.solveObj(".ShoutAndBlade"), filePath)
+        ShowMessage("Save: " + filePath, false)
+	endEvent
+
+    event OnDefaultST(string state_id)
+        ; nothing, just here to not fall back to the default "reset slider" procedure set up in the "common" section
+    endevent
+
+	event OnHighlightST(string state_id)
+        ToggleQuickHotkey(true)
+		SetInfoText("$sab_mcm_options_button_save_desc")
+	endEvent
+
+endstate
+
+
+state OPTIONS_LOAD
+
+    event OnSelectST(string state_id)
+        MainQuest.SpawnerScript.HideCustomizationGuy()
+        string filePath = JContainers.userDirectory() + "SAB/options.json"
+        isLoadingData = true
+        int jReadData = JValue.readFromFile(filePath)
+        if jReadData != 0
+            ShowMessage("$sab_mcm_shared_popup_msg_load_started", false)
+            ;force a page reset to disable all action buttons!
+            ForcePageReset()
+            JDB.solveObjSetter(".ShoutAndBlade", jReadData, true)
+            isLoadingData = false
+            Debug.Notification("SAB: Load complete!")
+            ShowMessage("$sab_mcm_shared_popup_msg_load_success", false)
+            ForcePageReset()
+        else
+            isLoadingData = false
+            ShowMessage("$sab_mcm_shared_popup_msg_load_fail", false)
+        endif
+	endEvent
+
+	event OnHighlightST(string state_id)
+        ToggleQuickHotkey(true)
+		SetInfoText("$sab_mcm_options_button_load_desc")
+	endEvent
+
+endstate
 
 
 state OPTIONS_FAC_GOLD
