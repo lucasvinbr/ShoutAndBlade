@@ -190,6 +190,7 @@ int Function FindAttackTargets()
 					j = jArray.count(jNearbyLocsArray)
 
 					while j > 0
+						j -= 1
 						locIndex = jArray.getInt(jNearbyLocsArray, j, -1)
 
 						if locIndex != -1
@@ -304,13 +305,13 @@ int Function CalculateTotalGoldAward()
 	int i = jArray.count(jOwnedLocationIndexesArray)
 
 	while i > 0
+		i -= 1
 		int locIndex = jArray.getInt(jOwnedLocationIndexesArray, i, -1)
 
 		if locIndex != -1
 			totalAward += (baseGoldPerLoc * LocationDataHandler.Locations[locIndex].GoldRewardMultiplier) as int
 		endif
 
-		i -= 1
 	endwhile
 
 	return totalAward
@@ -567,6 +568,7 @@ ObjectReference function GetCmderSpawnPoint()
 	int i = jArray.count(jOwnedLocationIndexesArray)
 
 	while i > 0
+		i -= 1
 		int locIndex = jArray.getInt(jOwnedLocationIndexesArray, i, -1)
 
 		if locIndex != -1
@@ -576,7 +578,6 @@ ObjectReference function GetCmderSpawnPoint()
 			endif
 		endif
 
-		i -= 1
 	endwhile
 
 	if !cmderSpawnIsSet
