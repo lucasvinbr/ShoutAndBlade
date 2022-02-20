@@ -11,7 +11,6 @@ int numExistingBodies = 0
 int nextBodyIndexToFill = 0
 int nextBodyIndexToErase = 0
 
-bool isEditingArray = false
 
 Function Initialize()
 	BodiesArray = new Actor[128]
@@ -20,13 +19,6 @@ EndFunction
 ; stores the dead body in the bodies array and, if the body limit is reached, deletes the oldest body
 Function AddDeadBody(Actor body)
 
-	while isEditingArray
-		Utility.Wait(Utility.RandomFloat(0.05, 0.15))
-		debug.Trace("deadBodyCleaner: attempted to edit array while it was already being edited")
-	endwhile
-
-	isEditingArray = true
-	
 	BodiesArray[nextBodyIndexToFill] = body
 	numExistingBodies += 1
 	nextBodyIndexToFill += 1
@@ -38,23 +30,31 @@ Function AddDeadBody(Actor body)
 	endif
 
 	if numExistingBodies > JDB.solveInt(".ShoutAndBlade.generalOptions.maxDeadBodies", 12)
-		if BodiesArray[nextBodyIndexToErase]
-			;BodiesArray[nextBodyIndexToErase].SetCriticalStage(BodiesArray[nextBodyIndexToErase].CritStage_DisintegrateEnd)
-			; BodiesArray[nextBodyIndexToErase].Disable(true)
-			BodiesArray[nextBodyIndexToErase].Delete()
-		endif
-		
-		BodiesArray[nextBodyIndexToErase] = None
 
-		debug.Trace("deadBodyCleaner: deleted body at index " + nextBodyIndexToErase)
+		; since something else referencing the body can keep holding us up here forever,
+		; we should increment the next body to erase before deleting
 
-		numExistingBodies -= 1
+		int bodyIndexToEraseNow = nextBodyIndexToErase
+
 		nextBodyIndexToErase += 1
 
 		if nextBodyIndexToErase >= 128
 			nextBodyIndexToErase = 0
 		endif
+
+		if BodiesArray[bodyIndexToEraseNow]
+
+			BodiesArray[bodyIndexToEraseNow].Disable()
+			BodiesArray[bodyIndexToEraseNow].Delete()
+			
+		endif
+		
+		BodiesArray[bodyIndexToEraseNow] = None
+
+		debug.Trace("deadBodyCleaner: deleted body at index " + bodyIndexToEraseNow)
+
+		numExistingBodies -= 1
+		
 	endif
 
-	isEditingArray = false
 EndFunction
