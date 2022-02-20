@@ -41,6 +41,7 @@ Function BeTakenByFaction(SAB_FactionScript factionScriptRef)
 	totalOwnedUnitsAmount = 0
 	spawnedUnitsAmount = 0
 	factionScript = factionScriptRef
+	factionScript.AddLocationToOwnedList(self)
 	gameTimeOfLastExpAward = 0.0
 	gameTimeOfLastUnitUpgrade = 0.0
 	gameTimeOfLastSetup = 0.0
@@ -50,6 +51,7 @@ EndFunction
 
 ; stops nearby updates and sets this location as neutral
 Function BecomeNeutral()
+	factionScript.RemoveLocationFromOwnedList(self)
 	Debug.Trace(ThisLocation.GetName() + " is no longer controlled by the " + jMap.getStr(factionScript.jFactionData, "name", "Faction"))
 	Debug.Notification(ThisLocation.GetName() + " is no longer controlled by the " + jMap.getStr(factionScript.jFactionData, "name", "Faction"))
 	; ToggleNearbyUpdates(false)

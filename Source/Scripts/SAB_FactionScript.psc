@@ -318,6 +318,35 @@ int Function CalculateTotalGoldAward()
 EndFunction
 
 
+Function AddLocationToOwnedList(SAB_LocationScript locationScript)
+	int locIndex = LocationDataHandler.Locations.Find(locationScript)
+
+	if locIndex == -1
+		debug.Trace("AddLocationToOwnedList: invalid location! " + locationScript.ThisLocation.GetName() + " not found in locations array")
+		return
+	endif
+
+	int locIndexInOwnedsArray = JArray.findInt(jOwnedLocationIndexesArray, locIndex)
+
+	if locIndexInOwnedsArray == -1
+		jArray.addInt(jOwnedLocationIndexesArray, locIndex)
+	endif
+
+EndFunction
+
+Function RemoveLocationFromOwnedList(SAB_LocationScript locationScript)
+	int locIndex = LocationDataHandler.Locations.Find(locationScript)
+
+	if locIndex == -1
+		debug.Trace("AddLocationToOwnedList: invalid location! " + locationScript.ThisLocation.GetName() + " not found in locations array")
+		return
+	endif
+
+	JArray.eraseInteger(jOwnedLocationIndexesArray, locIndex)
+	
+EndFunction
+
+
 ; spends gold and returns a number of recruits "purchased".
 ; the caller should do something with this number
 int function PurchaseRecruits(int maxAmountPurchased = 100)
