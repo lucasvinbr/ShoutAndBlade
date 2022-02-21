@@ -222,6 +222,21 @@ ReferenceAlias Function SpawnUnitAtLocation(int unitIndex, ObjectReference targe
 EndFunction
 
 
+; like spawnRandomUnitAtPos, but spawns are limited by the max besieging units instead
+Function SpawnBesiegingUnitAtPos(ObjectReference targetLocation)
+
+	if spawnedUnitsAmount < GetMaxBesiegingUnitsAmount()
+		int indexToSpawn = GetUnitIndexToSpawn()
+
+		if indexToSpawn >= 0
+			SpawnUnitAtLocation(indexToSpawn, targetLocation)
+		endif
+		
+	endif
+
+EndFunction
+
+
 
 Event OnPackageEnd(Package akOldPackage)
 	; this is kind of reliable, but the cmder has to ge to the exact point, so we should probably run other, more "relaxed", checks
@@ -315,4 +330,14 @@ int Function GetMaxSpawnedUnitsAmount()
 	else
 		return JDB.solveInt(".ShoutAndBlade.cmderOptions.maxSpawnsOutsideCombat", 2)
 	endif
+EndFunction
+
+int Function GetMaxBesiegingUnitsAmount()
+	int nearbyCmders = CrowdReducer.NumNearbyCmders
+
+	if nearbyCmders >= JDB.solveInt(".ShoutAndBlade.cmderOptions.nearbyCmdersLimit", 5)
+		return JDB.solveInt(".ShoutAndBlade.cmderOptions.combatSpawnsDividend", 20) / nearbyCmders ; TODO make this configurable
+	endif
+
+	return JDB.solveInt(".ShoutAndBlade.cmderOptions.maxSpawnsWhenBesieging", 8)
 EndFunction

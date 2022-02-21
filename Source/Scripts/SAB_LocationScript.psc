@@ -22,6 +22,7 @@ float Property GoldRewardMultiplier = 1.0 Auto
 bool playerIsInside = false
 
 float timeOfLastUnitLoss = 0.0
+
 ; used for knowing whether this location is under attack or not
 float timeSinceLastUnitLoss = 0.0
 
@@ -179,8 +180,7 @@ bool function RunCloseByUpdate()
 	; if we're being attacked by another faction, spawn their units around this location, to make the attack "visible"
 	if InteractingCommander != None && InteractingCommander.factionScript != factionScript
 		
-		ObjectReference spawnPoint = GetSpawnLocationForUnit()
-		InteractingCommander.SpawnRandomUnitAtPos(spawnPoint)
+		InteractingCommander.SpawnBesiegingUnitAtPos(GetSpawnLocationForUnit())
 		
 	endif
 
@@ -191,7 +191,7 @@ endfunction
 
 ; returns true if this location has recently lost a unit
 bool Function IsBeingContested()
-	return timeSinceLastUnitLoss > 0.1
+	return timeSinceLastUnitLoss > 0.1 ;TODO make this configurable
 endfunction
 
 ; the location can only get involved in autocalc battles if the player isn't nearby.
