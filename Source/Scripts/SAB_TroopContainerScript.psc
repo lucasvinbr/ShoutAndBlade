@@ -220,7 +220,7 @@ endFunction
 
 ; attempts to transfer some of our units (picked randomly) to the other container, respecting their maxOwnedUnitsAmount
 Function TryTransferUnitsToAnotherContainer(SAB_TroopContainerScript otherContainer)
-	debug.Trace("troop container: try transfer units!")
+	; debug.Trace("troop container: try transfer units!")
 
 	; we should only transfer units not currently spawned
 	; so if all units are spawned, no transfers should be made
@@ -405,6 +405,10 @@ ReferenceAlias Function SpawnUnitAtLocation(int unitIndex, ObjectReference targe
 
 		spawnedUnitsAmount += 1
 
+		debug.Trace("unit of index " + unitIndex + " has spawned...")
+		debug.Trace("curspawnedamount of " + unitIndex + " is now " + (currentSpawnedAmount + 1))
+		debug.Trace("spawnedUnitsAmount is now " + spawnedUnitsAmount)
+
 		return spawnedUnit
 	endif
 
@@ -416,18 +420,30 @@ EndFunction
 ; removes the despawned unit from the spawnedUnits list and adds it back to the spawnables, so that it can spawn again later
 Function OwnedUnitHasDespawned(int unitIndex, float timeOwnerWasSetup)
 
+	debug.Trace("unit of index " + unitIndex + " has despawned...")
+
 	if gameTimeOfLastSetup != timeOwnerWasSetup
+		debug.Trace("unit owner setup time (" + timeOwnerWasSetup + ") does not match container's ("+ gameTimeOfLastSetup +")")
 		return
 	endif
 
-	int currentSpawnedAmount = jIntMap.getInt(jSpawnedUnitsMap, unitIndex)
-	jIntMap.setInt(jSpawnedUnitsMap, unitIndex, currentSpawnedAmount - 1)
+	int currentSpawnedAmount = jIntMap.getInt(jSpawnedUnitsMap, unitIndex) - 1
+	jIntMap.setInt(jSpawnedUnitsMap, unitIndex, currentSpawnedAmount)
+
+	debug.Trace("curspawnedamount of " + unitIndex + " is now " + (currentSpawnedAmount))
+
+	if currentSpawnedAmount <= 0
+		jIntMap.removeKey(jSpawnedUnitsMap, unitIndex)
+	endif
 
 	; increment spawnables amount
 	int currentSpawnableAmount = jIntMap.getInt(jSpawnOptionsMap, unitIndex)
 	jIntMap.setInt(jSpawnOptionsMap, unitIndex, currentSpawnableAmount + 1)
 
 	spawnedUnitsAmount -= 1
+
+	debug.Trace("spawnedUnitsAmount is now " + spawnedUnitsAmount)
+
 EndFunction
 
 
@@ -435,12 +451,21 @@ EndFunction
 ; removes the dead unit from the ownedUnits and spawnedUnits lists
 Function OwnedUnitHasDied(int unitIndex, float timeOwnerWasSetup)
 
+	debug.Trace("unit of index " + unitIndex + " has died...")
+
 	if gameTimeOfLastSetup != timeOwnerWasSetup
+		debug.Trace("unit owner setup time (" + timeOwnerWasSetup + ") does not match container's ("+ gameTimeOfLastSetup +")")
 		return
 	endif
 
-	int currentSpawnedAmount = jIntMap.getInt(jSpawnedUnitsMap, unitIndex)
-	jIntMap.setInt(jSpawnedUnitsMap, unitIndex, currentSpawnedAmount - 1)
+	int currentSpawnedAmount = jIntMap.getInt(jSpawnedUnitsMap, unitIndex) - 1
+	jIntMap.setInt(jSpawnedUnitsMap, unitIndex, currentSpawnedAmount)
+
+	debug.Trace("curspawnedamount of " + unitIndex + " is now " + currentSpawnedAmount)
+
+	if currentSpawnedAmount <= 0
+		jIntMap.removeKey(jSpawnedUnitsMap, unitIndex)
+	endif
 
 	spawnedUnitsAmount -= 1
 	totalOwnedUnitsAmount -= 1
@@ -448,9 +473,14 @@ Function OwnedUnitHasDied(int unitIndex, float timeOwnerWasSetup)
 	int currentStoredAmount = jIntMap.getInt(jOwnedUnitsMap, unitIndex)
 	jIntMap.setInt(jOwnedUnitsMap, unitIndex, currentStoredAmount - 1)
 
+	debug.Trace("currentStoredAmount of " + unitIndex + " is now " + (currentStoredAmount - 1))
+
 	if currentStoredAmount - 1 <= 0
 		jIntMap.removeKey(jOwnedUnitsMap, unitIndex)
 	endif
+
+	debug.Trace("spawnedUnitsAmount is now " + spawnedUnitsAmount)
+	debug.Trace("totalOwnedUnitsAmount is now " + totalOwnedUnitsAmount)
 EndFunction
 
 
