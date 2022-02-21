@@ -539,6 +539,17 @@ ReferenceAlias Function SpawnUnitForTroopContainer(SAB_TroopContainerScript troo
 
 EndFunction
 
+; when a dead commander despawns, but still had some troops,
+; the faction gets some gold back, based on the gold costs of the units
+Function GetGoldFromDespawningCommander(int jCmderArmyMap)
+	int armyGold = SpawnerScript.UnitDataHandler.GetTotalCurrentGoldCostFromArmy(jCmderArmyMap)
+
+	int currentGold = jMap.getInt(jFactionData, "AvailableGold", JDB.solveInt(".ShoutAndBlade.factionOptions.initialGold", SAB_FactionDataHandler.GetDefaultFactionGold()))
+
+	debug.Trace("faction got " + armyGold + " gold back from a despawning cmder")
+	jMap.setInt(jFactionData, "AvailableGold", currentGold + armyGold)
+EndFunction
+
 
 ; Returns an open alias reference with a name starting with aliasPrefix followed by a number.
 ; returns none if no empty aliases are found

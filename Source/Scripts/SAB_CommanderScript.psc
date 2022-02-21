@@ -106,6 +106,9 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 			return true
 		else
 			if !isNearby
+				; we're dead and despawning but still had troops!
+				; give the faction some gold to compensate a little
+				factionScript.GetGoldFromDespawningCommander(jOwnedUnitsMap)
 				ClearCmderData()
 				meActor.Disable()
 				meActor.Delete()

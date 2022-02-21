@@ -279,6 +279,28 @@ float Function GetTotalAutocalcPowerFromArmy(int jArmyMap)
     return totalValue
 EndFunction
 
+; expects a map of "unit index - amount" ints.
+; returns the sum of all units' gold cost values (does not consider upgrades, only the current costs!)
+int Function GetTotalCurrentGoldCostFromArmy(int jArmyMap)
+    int totalValue = 0
+    int curUnitCost = 0
+    int curKey = jIntMap.nextKey(jArmyMap, previousKey = -1, endKey = -1)
+
+	while curKey != -1
+		int ownedUnitCount = jIntMap.getInt(jArmyMap, curKey)
+		
+        if ownedUnitCount > 0
+            int jUnitData = jArray.getObj(jSABUnitDatasArray, curKey)
+            curUnitCost = jMap.getInt(jUnitData, "GoldCost", 10)
+            totalValue += curUnitCost * ownedUnitCount
+        endif
+
+		curKey = jIntMap.nextKey(jArmyMap, curKey, endKey=-1)
+	endwhile
+
+    return totalValue
+EndFunction
+
 ; unitData jmap entries:
 
 ; string Name
