@@ -194,6 +194,11 @@ bool Function IsBeingContested()
 	return timeSinceLastUnitLoss > 0.1
 endfunction
 
+; the location can only get involved in autocalc battles if the player isn't nearby.
+; if the player's nearby, the battle should resolve with real units
+bool Function CanAutocalcNow()
+	return !isNearby
+EndFunction
 
 bool Function IsReferenceCloseEnoughForAutocalc(ObjectReference targetRef)
 	float distToLoc = GetReference().GetDistance(targetRef)

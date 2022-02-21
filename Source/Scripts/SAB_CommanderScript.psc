@@ -144,7 +144,6 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 					; if any cmder is currently interacting with the location, we fight them first
 					if TargetLocationScript.InteractingCommander != None && TargetLocationScript.InteractingCommander != self
 						if TargetLocationScript.InteractingCommander.factionScript != factionScript
-
 							DoAutocalcBattle(TargetLocationScript.InteractingCommander)
 							; if the interacting cmder has just been defeated and we're still standing,
 							; mark ourselves as the currently interacting ones
@@ -154,10 +153,12 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 							return true
 						endif
 					elseif TargetLocationScript.factionScript != None
-						; do an autocalc fight against the location's units!
 						TargetLocationScript.InteractingCommander = self
-						DoAutocalcBattle(TargetLocationScript)
-						return true
+						; do an autocalc fight against the location's units!
+						if TargetLocationScript.CanAutocalcNow()
+							DoAutocalcBattle(TargetLocationScript)
+							return true
+						endif
 					else
 						; the location is neutral! Let's take it
 						TargetLocationScript.InteractingCommander = self
