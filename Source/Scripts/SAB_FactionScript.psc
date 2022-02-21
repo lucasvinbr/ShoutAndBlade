@@ -639,7 +639,7 @@ ObjectReference function GetCmderSpawnPoint()
 		if locIndex != -1
 			; cmders shouldn't spawn in a contested zone
 			if !LocationDataHandler.Locations[locIndex].IsBeingContested()
-				return LocationDataHandler.Locations[locIndex].GetSpawnLocationForUnit()
+				return LocationDataHandler.Locations[locIndex].GetInteriorSpawnPointIfPossible()
 			endif
 		endif
 

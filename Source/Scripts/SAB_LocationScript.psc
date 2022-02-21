@@ -225,6 +225,16 @@ Function OwnedUnitHasDied(int unitIndex, float timeOwnerWasSetup)
 EndFunction
 
 
+; returns one of the internal spawn points if this location has one.
+; if it doesn't, falls back to getSpawnLocationForUnit
+ObjectReference Function GetInteriorSpawnPointIfPossible()
+	if InternalSpawnPoints.Length > 0
+		return InternalSpawnPoints[Utility.RandomInt(0, InternalSpawnPoints.Length - 1)]
+	else 
+		return GetSpawnLocationForUnit()
+	endif
+EndFunction
+
 
 ObjectReference Function GetSpawnLocationForUnit()
 	if playerIsInside && InternalSpawnPoints.Length > 0
