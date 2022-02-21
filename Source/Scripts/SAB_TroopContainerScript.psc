@@ -142,7 +142,7 @@ EndFunction
 
 ; attempts to get upgrades to one of the unit types we have, using the faction gold
 Function TryUpgradeUnits()
-	debug.Trace("troop container: try upgrade units!")
+	; debug.Trace("troop container: try upgrade units!")
 
 	if factionScript == None
 		return
@@ -168,27 +168,46 @@ Function TryUpgradeUnits()
 		int jUpgradeResultMap = factionScript.TryUpgradeUnits(unitIndexToTrain, ownedUnitCount - spawnedUnitCount, availableExpPoints)
 
 		if jUpgradeResultMap != 0
-			int upgradedAmount = jMap.getInt(jUpgradeResultMap, "NewUnitAmount")
-			int newUnitIndex = jMap.getInt(jUpgradeResultMap, "NewUnitIndex")
 			availableExpPoints = jMap.getFlt(jUpgradeResultMap, "RemainingExp")
+			int jUpgradedUnitsArray = jMap.getObj(jUpgradeResultMap, "UpgradedUnits")
+			
+			; parse the upgraded units list, replacing the old units with the upgraded ones
+			if jUpgradedUnitsArray != 0
+				int i = jValue.count(jUpgradedUnitsArray)
 
-			; add units to the new index and remove from the old one
-			int curNewUnitStoredAmount = jIntMap.getInt(jOwnedUnitsMap, newUnitIndex)
-			jIntMap.setInt(jOwnedUnitsMap, newUnitIndex, curNewUnitStoredAmount + upgradedAmount)
-			jIntMap.setInt(jOwnedUnitsMap, unitIndexToTrain, ownedUnitCount - upgradedAmount)
+				while i > 0
+					i -= 1
 
-			if ownedUnitCount - upgradedAmount <= 0
-				jIntMap.removeKey(jOwnedUnitsMap, unitIndexToTrain)
+					int jUpgradedUnitMap = jArray.getObj(jUpgradedUnitsArray, i)
+
+					if jUpgradedUnitMap != 0
+						int upgradedAmount = jMap.getInt(jUpgradedUnitMap, "NewUnitAmount")
+						int newUnitIndex = jMap.getInt(jUpgradedUnitMap, "NewUnitIndex")
+
+						; add units to the new index and remove from the old one
+						int curNewUnitStoredAmount = jIntMap.getInt(jOwnedUnitsMap, newUnitIndex)
+						jIntMap.setInt(jOwnedUnitsMap, newUnitIndex, curNewUnitStoredAmount + upgradedAmount)
+						int curNewUnitSpawnableAmount = jIntMap.getInt(jSpawnOptionsMap, newUnitIndex)
+						jIntMap.setInt(jSpawnOptionsMap, newUnitIndex, curNewUnitSpawnableAmount + upgradedAmount)
+
+						ownedUnitCount -= upgradedAmount
+						jIntMap.setInt(jOwnedUnitsMap, unitIndexToTrain, ownedUnitCount)
+
+						spawnableUnitCount -= upgradedAmount
+						jIntMap.setInt(jSpawnOptionsMap, unitIndexToTrain, spawnableUnitCount)
+						
+					endif
+					
+				endwhile
+
+				if ownedUnitCount <= 0
+					jIntMap.removeKey(jOwnedUnitsMap, unitIndexToTrain)
+				endif
+
+				if spawnableUnitCount <= 0
+					jIntMap.removeKey(jSpawnOptionsMap, unitIndexToTrain)
+				endif
 			endif
-
-			int curNewUnitSpawnableAmount = jIntMap.getInt(jSpawnOptionsMap, newUnitIndex)
-			jIntMap.setInt(jSpawnOptionsMap, newUnitIndex, curNewUnitSpawnableAmount + upgradedAmount)
-			jIntMap.setInt(jSpawnOptionsMap, unitIndexToTrain, spawnableUnitCount - upgradedAmount)
-
-			if spawnableUnitCount - upgradedAmount <= 0
-				jIntMap.removeKey(jSpawnOptionsMap, unitIndexToTrain)
-			endif
-
 
 			jValue.release(jUpgradeResultMap)
 			JValue.zeroLifetime(jUpgradeResultMap)

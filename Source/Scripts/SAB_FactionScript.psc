@@ -407,55 +407,80 @@ int function TryUpgradeUnits(int unitIndex, int unitAmount, float availableExp)
 		i += 1
 	endwhile
 
-	; pick one of the upgrade options and calculate how many we can upgrade
-	; (it's ok to end up with 0 upgraded units)
-	int upgradedUnitIndex = jArray.getInt(jUpgradeOptions, Utility.RandomInt(0, jValue.count(jUpgradeOptions) - 1), -1)
-	int jUpgradedUnitData = jArray.getObj(SpawnerScript.UnitDataHandler.jSABUnitDatasArray, upgradedUnitIndex)
+	; try to spread out our upgrades if there is more than 1 upgrade option
+	i = jValue.count(jUpgradeOptions)
+	int jUpgradeResultMap = jMap.object()
+	int jUpgradedUnitsArray = jArray.object()
+	jMap.setObj(jUpgradeResultMap, "UpgradedUnits", jUpgradedUnitsArray)
+	JValue.retain(jUpgradeResultMap, "ShoutAndBlade")
 
-	if jUpgradedUnitData == 0
-		return 0
-	endif
+	while i > 0 && unitAmount > 0
+		i -= 1
 
-	int goldCostPerUpg = jMap.getInt(jUpgradedUnitData, "GoldCost", 10)
-	float expCostPerUpg = jMap.getFlt(jUpgradedUnitData, "ExpCost", 10.0)
-	int upgradedAmountConsideringExp = 0
-	int upgradedAmount = 0
-	
-	; first consider gold, then exp
-	if goldCostPerUpg <= 0
-		upgradedAmount = unitAmount
-	else
-		upgradedAmount = currentGold / goldCostPerUpg
-		if upgradedAmount > unitAmount
-			upgradedAmount = unitAmount
-		endif	
-	endif
+		int upgradedUnitIndex = jArray.getInt(jUpgradeOptions, i, -1)
+		int jUpgradedUnitData = jArray.getObj(SpawnerScript.UnitDataHandler.jSABUnitDatasArray, upgradedUnitIndex)
 
-	if expCostPerUpg > 0
-		upgradedAmountConsideringExp = (availableExp / expCostPerUpg) as int
-		if upgradedAmountConsideringExp < upgradedAmount
-			upgradedAmount = upgradedAmountConsideringExp
+		if jUpgradedUnitData == 0
+			return 0
 		endif
-	endif
+
+		int goldCostPerUpg = jMap.getInt(jUpgradedUnitData, "GoldCost", 10)
+		float expCostPerUpg = jMap.getFlt(jUpgradedUnitData, "ExpCost", 10.0)
+
+		if goldCostPerUpg < currentGold && expCostPerUpg < availableExp
+			int unitsToUpgrade = Utility.RandomInt(unitAmount / (i + 1), unitAmount)
+
+			if unitsToUpgrade > 0
+				int upgradedAmountConsideringExp = 0
+				int upgradedAmount = 0
+
+				; upgrade!
+				; first consider gold, then exp
+				if goldCostPerUpg <= 0
+					upgradedAmount = unitsToUpgrade
+				else
+					upgradedAmount = currentGold / goldCostPerUpg
+					if upgradedAmount > unitsToUpgrade
+						upgradedAmount = unitsToUpgrade
+					endif	
+				endif
+
+				if expCostPerUpg > 0
+					upgradedAmountConsideringExp = (availableExp / expCostPerUpg) as int
+					if upgradedAmountConsideringExp < upgradedAmount
+						upgradedAmount = upgradedAmountConsideringExp
+					endif
+				endif
+				
+				if upgradedAmount > 0
+					jMap.setInt(jFactionData, "AvailableGold", currentGold - (upgradedAmount * goldCostPerUpg))
+					currentGold -= (upgradedAmount * goldCostPerUpg)
+					availableExp -= (upgradedAmount * expCostPerUpg)
+
+					unitAmount -= upgradedAmount
+
+					int jUpgradedUnitsMap = jMap.object()
+
+					jMap.setInt(jUpgradedUnitsMap, "NewUnitIndex", upgradedUnitIndex)
+					jMap.setInt(jUpgradedUnitsMap, "NewUnitAmount", upgradedAmount)
+
+					JArray.addObj(jUpgradedUnitsArray, jUpgradedUnitsMap)
+
+					Debug.Trace("upgraded " + upgradedAmount + " units for " + (upgradedAmount * goldCostPerUpg) + " gold")
+				endif
+			endif
+			
+		endif
+
+	endwhile
 	
-	if upgradedAmount > 0
-		jMap.setInt(jFactionData, "AvailableGold", currentGold - (upgradedAmount * goldCostPerUpg))
-
-		int jUpgradeResultMap = jMap.object()
-
-		jMap.setInt(jUpgradeResultMap, "NewUnitIndex", upgradedUnitIndex)
-		jMap.setInt(jUpgradeResultMap, "NewUnitAmount", upgradedAmount)
-		jMap.setFlt(jUpgradeResultMap, "RemainingExp", availableExp - (upgradedAmount * expCostPerUpg))
-
-		Debug.Trace("upgraded " + upgradedAmount + " units for " + (upgradedAmount * goldCostPerUpg) + " gold")
-		return jUpgradeResultMap
-	else 
-		return 0
-	endif
-
+	jMap.setFlt(jUpgradeResultMap, "RemainingExp", availableExp)
 
 	jValue.release(jUpgradeOptions)
 	JValue.zeroLifetime(jUpgradeOptions)
+
+	return jUpgradeResultMap
+
 endfunction
 
 
