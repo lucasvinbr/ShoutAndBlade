@@ -60,6 +60,17 @@ function EnableFaction(int jEnabledFactionData)
 endfunction
 
 
+; sets mutual faction relations. Doesn't edit json files, only alters the current game's relations
+; 0 - Neutral
+; 1 - Enemy
+; 2 - Ally
+; 3 - Friend
+Function SetRelationsWithFaction(Faction targetFaction, int relationType)
+	targetFaction.SetReaction(OurFaction, relationType)
+	OurFaction.SetReaction(targetFaction, relationType)
+EndFunction
+
+
 ; returns true if the faction was updated, false if the faction can't be updated (because it's disabled, for example)
 bool Function RunUpdate(float daysPassed)
 	if jFactionData == 0

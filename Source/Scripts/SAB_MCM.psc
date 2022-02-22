@@ -7,12 +7,12 @@ bool Property isLoadingData Auto
 int key_openMCM = -1
 
 event OnInit()
-    RegisterModule("$sab_mcm_page_load_save", 4)
+    RegisterModule("$sab_mcm_page_options", 4)
 endevent
 
 event OnPageInit()
     SetModName("Shout and Blade")
-    SetLandingPage("$sab_mcm_page_edit_units")
+    SetLandingPage("$sab_mcm_page_options")
     isLoadingData = false
 
     ;GoToState("MENU_CLOSED")
@@ -45,7 +45,7 @@ EndFunction
 
 event OnPageDraw()
 
-	SetLandingPage("$sab_mcm_page_load_save")
+	SetLandingPage("$sab_mcm_page_options")
 
 	if isLoadingData || !MainQuest.HasInitialized
         AddTextOptionST("SHARED_LOADING", "$sab_mcm_shared_loading", "")

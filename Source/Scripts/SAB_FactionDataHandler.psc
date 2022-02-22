@@ -4,6 +4,9 @@ scriptname SAB_FactionDataHandler extends Quest
 SAB_FactionScript[] Property SAB_FactionQuests Auto
 {list containing each faction's quest. entries' indexes should be the same as faction indexes}
 
+Faction[] Property VanillaFactions Auto
+{array containing vanilla factions of which we can edit relations with the mod factions}
+
 ; an array of jMaps, each one defining a faction's data
 int Property jSABFactionDatasArray Auto
 
@@ -113,12 +116,48 @@ Function UpdateAllFactionQuestsAccordingToJMap()
         ; else 
         ;     SAB_FactionQuests[i].DisableFaction()
         endif
+
+        int jFactionVanillaRelationsData = jMap.getObj(jFactionData, "jVanillaFactionRelationsMap")
+
+        if jFactionVanillaRelationsData != 0
+            string entryKey = JMap.nextKey(jFactionVanillaRelationsData, "", "")
+            while entryKey != ""
+                int jRelationEntryMap = jMap.getObj(jFactionVanillaRelationsData, entryKey)    
+
+                if jRelationEntryMap != 0
+                    Faction targetVanillaFac = GetVanillaFactionByName(entryKey)
+
+                    if targetVanillaFac != None
+                        SAB_FactionQuests[i].SetRelationsWithFaction(targetVanillaFac, jMap.getInt(jRelationEntryMap, "RelationValue"))
+                    endif
+                endif
+
+                entryKey = JMap.nextKey(jFactionVanillaRelationsData, entryKey, "")
+            endwhile
+        endif
         
     EndWhile
     
     ; SetupRaceGendersLvlActorAccordingToUnitData(jTestGuyData, SAB_UnitLooks_TestGuy)
     ; SetupGearListAccordingToUnitData(jTestGuyData, SAB_UnitGear_TestGuy)
 EndFunction
+
+
+Faction Function GetVanillaFactionByName(string facName)
+    int i = VanillaFactions.Length
+
+    while i > 0
+        i -= 1
+
+        if VanillaFactions[i].GetName() == facName
+            return VanillaFactions[i]
+        endif
+    endwhile
+
+    Debug.Trace("GetVanillaFactionByName: couldn't find vanilla fac with name " + facName)
+    return None
+EndFunction
+
 
 ; since this is written a lot, this helps avoid having to edit the number everywhere
 int Function GetDefaultFactionGold() global
@@ -145,3 +184,7 @@ EndFunction
 ; at least one troop line should begin with the base recruit; other lines can begin with other units, and in that way we can get a "troop tree".
 ; we can have up to 128 troop lines, because that's when we'd have to set up another array for the UI
 ; int jTroopLinesArray
+
+; a map filled with {"RelationValue":0} objects, where the keys for each entry are faction names.
+; RelationValue values are the same as the values used for set and getFactionReaction
+; int jVanillaFactionRelationsMap
