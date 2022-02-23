@@ -7,6 +7,9 @@ SAB_FactionScript[] Property SAB_FactionQuests Auto
 Faction[] Property VanillaFactions Auto
 {array containing vanilla factions of which we can edit relations with the mod factions}
 
+string[] Property VanillaFactionDisplayNames Auto
+{array contaning the names used for each faction of the vanillaFactions array. The names must be in the same order as the factions array!}
+
 ; an array of jMaps, each one defining a faction's data
 int Property jSABFactionDatasArray Auto
 
@@ -144,12 +147,11 @@ EndFunction
 
 
 Faction Function GetVanillaFactionByName(string facName)
-    int i = VanillaFactions.Length
+    int i = VanillaFactionDisplayNames.Length
 
     while i > 0
         i -= 1
-
-        if VanillaFactions[i].GetName() == facName
+        if VanillaFactionDisplayNames[i] == facName
             return VanillaFactions[i]
         endif
     endwhile

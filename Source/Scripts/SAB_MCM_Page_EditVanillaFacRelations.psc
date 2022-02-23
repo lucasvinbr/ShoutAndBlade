@@ -66,6 +66,7 @@ Function SetupPage()
     SetCursorFillMode(LEFT_TO_RIGHT)
 
     Faction[] vanillaFacs = MainPage.MainQuest.FactionDataHandler.VanillaFactions
+    string[] vanillaFacNames = MainPage.MainQuest.FactionDataHandler.VanillaFactionDisplayNames
     
     int i = vanillaFacs.Length
     jFacVanillaRelationsMap = jMap.getObj(jEditedFactionData, "jVanillaFactionRelationsMap")
@@ -79,7 +80,7 @@ Function SetupPage()
     while i > 0
         i -= 1
 
-        string facName = vanillaFacs[i].GetName()
+        string facName = vanillaFacNames[i]
         int jRelationEntryMap = jMap.getObj(jFacVanillaRelationsMap, facName)
 
         AddMenuOptionST("REL_EDIT___" + facName, facName, relationOptions[jMap.getInt(jRelationEntryMap, "RelationValue")])
