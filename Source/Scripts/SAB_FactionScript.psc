@@ -66,8 +66,18 @@ endfunction
 ; 2 - Ally
 ; 3 - Friend
 Function SetRelationsWithFaction(Faction targetFaction, int relationType)
-	targetFaction.SetReaction(OurFaction, relationType)
-	OurFaction.SetReaction(targetFaction, relationType)
+	;targetFaction.SetReaction(OurFaction, relationType)
+	;OurFaction.SetReaction(targetFaction, relationType)
+
+	if relationType == 0
+		targetFaction.SetEnemy(OurFaction, true, true)
+	elseif relationType == 1
+		targetFaction.SetEnemy(OurFaction, false, false)
+	elseif relationType == 2
+		targetFaction.SetAlly(OurFaction, false, false)
+	elseif relationType == 3
+		targetFaction.SetAlly(OurFaction, true, true)
+	endif
 EndFunction
 
 
