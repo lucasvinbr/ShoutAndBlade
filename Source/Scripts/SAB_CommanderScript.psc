@@ -323,7 +323,7 @@ int Function GetMaxSpawnedUnitsAmount()
 	int nearbyCmders = CrowdReducer.NumNearbyCmders
 	if meActor.IsInCombat() || meActor.IsDead()
 		if nearbyCmders >= JDB.solveInt(".ShoutAndBlade.cmderOptions.nearbyCmdersLimit", 5)
-			return JDB.solveInt(".ShoutAndBlade.cmderOptions.combatSpawnsDividend", 20) / nearbyCmders ; TODO make this configurable
+			return JDB.solveInt(".ShoutAndBlade.cmderOptions.combatSpawnsDividend", 20) / nearbyCmders
 		endif
 
 		return JDB.solveInt(".ShoutAndBlade.cmderOptions.maxSpawnsInCombat", 8)
@@ -336,7 +336,7 @@ int Function GetMaxBesiegingUnitsAmount()
 	int nearbyCmders = CrowdReducer.NumNearbyCmders
 
 	if nearbyCmders >= JDB.solveInt(".ShoutAndBlade.cmderOptions.nearbyCmdersLimit", 5)
-		return JDB.solveInt(".ShoutAndBlade.cmderOptions.combatSpawnsDividend", 20) / nearbyCmders ; TODO make this configurable
+		return JDB.solveInt(".ShoutAndBlade.cmderOptions.combatSpawnsDividend", 20) / nearbyCmders
 	endif
 
 	return JDB.solveInt(".ShoutAndBlade.cmderOptions.maxSpawnsWhenBesieging", 8)
