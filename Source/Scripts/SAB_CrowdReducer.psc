@@ -42,14 +42,15 @@ Function AddDeadBody(Actor body)
 			nextBodyIndexToErase = 0
 		endif
 
-		if BodiesArray[bodyIndexToEraseNow]
+		Actor bodyToDelete = BodiesArray[bodyIndexToEraseNow]
+		BodiesArray[bodyIndexToEraseNow] = None
 
-			BodiesArray[bodyIndexToEraseNow].Disable()
-			BodiesArray[bodyIndexToEraseNow].Delete()
+		if bodyToDelete
+
+			bodyToDelete.Disable()
+			bodyToDelete.Delete()
 			
 		endif
-		
-		BodiesArray[bodyIndexToEraseNow] = None
 
 		debug.Trace("deadBodyCleaner: deleted body at index " + bodyIndexToEraseNow)
 
