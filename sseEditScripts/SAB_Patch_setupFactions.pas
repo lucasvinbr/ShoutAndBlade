@@ -30,17 +30,17 @@ var
   i, j, nextAliasId: integer;
 
 begin
-  // 6 is SAB's index if no other scripts are loaded before it
-  sabFile := FileByLoadOrder(6);
-  baseFactionQuest := getRecordByFormID('0606B3F4');
-  baseFaction := getRecordByFormID('0606B3F5');
-  baseXmarker := getRecordByFormID('0607A6FA');
-  baseCmderDestAPkg := getRecordByFormID('0606B3F6');
-  baseCmderDestBPkg := getRecordByFormID('060848FF');
-  baseCmderDestCPkg := getRecordByFormID('06084900');
-  baseFollowCmderPkg := getRecordByFormID('0606B3F7');
-  factionQuestsFormList := getRecordByFormID('060755F9');
-  sabMainQuest := getRecordByFormID('0601EFC3');
+  // 5 is SAB's index if no other scripts are loaded before it
+  sabFile := FileByLoadOrder(5);
+  baseFactionQuest := getRecordByFormID('0506B3F4');
+  baseFaction := getRecordByFormID('0506B3F5');
+  baseXmarker := getRecordByFormID('0507A6FA');
+  baseCmderDestAPkg := getRecordByFormID('0506B3F6');
+  baseCmderDestBPkg := getRecordByFormID('050848FF');
+  baseCmderDestCPkg := getRecordByFormID('05084900');
+  baseFollowCmderPkg := getRecordByFormID('0506B3F7');
+  factionQuestsFormList := getRecordByFormID('050755F9');
+  sabMainQuest := getRecordByFormID('0501EFC3');
 
   factionsList := TList.Create;
   factionQuestsList := TList.Create;

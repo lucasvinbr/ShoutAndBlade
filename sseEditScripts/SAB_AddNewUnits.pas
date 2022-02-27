@@ -25,16 +25,16 @@ var
   i: integer;
 
 begin
-  //6 is SAB's index if no other scripts are loaded before it
-  sabFile := FileByLoadOrder(6);
-  baseNpc := getRecordByFormID('060477EC');
-  baseGear := getRecordByFormID('060477EE');
-  baseOutfit := getRecordByFormID('060477EF');
-  baseLooks := getRecordByFormID('060477ED');
+  //5 is SAB's index if no other scripts are loaded before it
+  sabFile := FileByLoadOrder(5);
+  baseNpc := getRecordByFormID('050477EC');
+  baseGear := getRecordByFormID('050477EE');
+  baseOutfit := getRecordByFormID('050477EF');
+  baseLooks := getRecordByFormID('050477ED');
 
-  allLooksList := getRecordByFormID('060240E0');
-  allGearsList := getRecordByFormID('060240DD');
-  allUnitsList := getRecordByFormID('060240DF');
+  allLooksList := getRecordByFormID('050240E0');
+  allGearsList := getRecordByFormID('050240DD');
+  allUnitsList := getRecordByFormID('050240DF');
 
   //create new entries!
   for i := 1 to 255 do begin

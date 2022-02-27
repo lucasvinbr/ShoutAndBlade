@@ -25,12 +25,12 @@ var
   i: integer;
 
 begin
-  //6 is SAB's index if no other scripts are loaded before it
-  sabFile := FileByLoadOrder(6);
-  baseDups := getRecordByFormID('06056EF2');
+  //5 is SAB's index if no other scripts are loaded before it
+  sabFile := FileByLoadOrder(5);
+  baseDups := getRecordByFormID('05056EF2');
 
-  allUnitsList := getRecordByFormID('060240DF');
-  allDupsList := getRecordByFormID('0605BFF4');
+  allUnitsList := getRecordByFormID('050240DF');
+  allDupsList := getRecordByFormID('0505BFF4');
 
   //create new entries!
   for i := 1 to 255 do begin

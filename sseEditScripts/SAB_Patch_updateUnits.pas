@@ -51,11 +51,11 @@ var
   i: integer;
 
 begin
-  //6 is SAB's index if no other scripts are loaded before it
-  sabFile := FileByLoadOrder(6);
-  baseNpc := getRecordByFormID('060477EC');
+  //5 is SAB's index if no other scripts are loaded before it
+  sabFile := FileByLoadOrder(5);
+  baseNpc := getRecordByFormID('050477EC');
 
-  allUnitsList := getRecordByFormID('060240DF');
+  allUnitsList := getRecordByFormID('050240DF');
 
   //update entries!
   for i := 1 to 255 do begin
