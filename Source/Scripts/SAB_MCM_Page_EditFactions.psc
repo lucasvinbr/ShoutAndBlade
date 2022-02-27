@@ -464,8 +464,8 @@ state FAC_EDIT_TROOPLINE_ENTRY_UNIT
 
 	event OnMenuOpenST(string state_id)
         int entryIndex = state_id as int
-		SetMenuDialogStartIndex(jArray.getInt(jEditedTroopLine, entryIndex, 0))
-		SetMenuDialogDefaultIndex(JMap.getInt(jEditedFactionData, "RecruitUnitIndex"))
+		SetMenuDialogStartIndex(jArray.getInt(jEditedTroopLine, entryIndex, 0) % 128)
+		SetMenuDialogDefaultIndex(JMap.getInt(jEditedFactionData, "RecruitUnitIndex") % 128)
         MainPage.MainQuest.UnitDataHandler.SetupStringArrayWithUnitIdentifiers(editedUnitIdentifiersArray, editedUnitsMenuPage)
 		SetMenuDialogOptions(editedUnitIdentifiersArray)
 	endEvent
@@ -495,6 +495,11 @@ state FAC_EDIT_TROOPLINE_ENTRY_ADD
     event OnSelectST(string state_id)
         int entryIndex = state_id as int
         int recruitIndex = JMap.getInt(jEditedFactionData, "RecruitUnitIndex")
+
+        if entryIndex > 0
+            recruitIndex = jArray.getInt(jEditedTroopLine, entryIndex - 1, recruitIndex)
+        endif
+
         JArray.addInt(jEditedTroopLine, recruitIndex)
         ForcePageReset()
 	endEvent
