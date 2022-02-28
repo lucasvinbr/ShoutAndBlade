@@ -66,9 +66,11 @@ endfunction
 ; 2 - Ally
 ; 3 - Friend
 Function SetRelationsWithFaction(Faction targetFaction, int relationType)
-	;targetFaction.SetReaction(OurFaction, relationType)
-	;OurFaction.SetReaction(targetFaction, relationType)
+	; we use this just to be able to fetch the standing with getReaction
+	targetFaction.SetReaction(OurFaction, relationType)
+	OurFaction.SetReaction(targetFaction, relationType)
 
+	; this is what actually makes them fight each other
 	if relationType == 0
 		targetFaction.SetEnemy(OurFaction, true, true)
 	elseif relationType == 1
@@ -78,6 +80,9 @@ Function SetRelationsWithFaction(Faction targetFaction, int relationType)
 	elseif relationType == 3
 		targetFaction.SetAlly(OurFaction, true, true)
 	endif
+
+	; this can be used to get the current standing
+	; debug.Trace(targetFaction.GetReaction(OurFaction))
 EndFunction
 
 
