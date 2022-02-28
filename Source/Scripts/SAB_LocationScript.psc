@@ -8,7 +8,7 @@ ObjectReference[] Property InternalSpawnPoints Auto
 ObjectReference Property DefaultLocationsContentParent Auto
 { The xmarker that should be the enable parent of all content that should be disabled when this location is taken by one of the SAB factions }
 
-int Property jNearbyLocationsArray Auto
+int Property jNearbyLocationsArray Auto Hidden
 { a jArray filled with the locationDataHandler indexes of locations near this one }
 
 ObjectReference Property MoveDestination Auto
@@ -26,7 +26,7 @@ float timeOfLastUnitLoss = 0.0
 ; used for knowing whether this location is under attack or not
 float timeSinceLastUnitLoss = 0.0
 
-SAB_CommanderScript Property InteractingCommander Auto
+SAB_CommanderScript Property InteractingCommander Auto Hidden
 { a reference to the commander currently either attacking or reinforcing this location }
 
 Function Setup(SAB_FactionScript factionScriptRef, float curGameTime = 0.0)

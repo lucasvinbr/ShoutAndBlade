@@ -34,10 +34,10 @@ Faction Property OurFaction Auto
 
 SAB_UnitsUpdater Property UnitUpdater Auto
 
-int Property jFactionData Auto
+int Property jFactionData Auto Hidden
 { This faction's data jMap }
 
-int Property jOwnedLocationIndexesArray Auto
+int Property jOwnedLocationIndexesArray Auto Hidden
 { indexes of the LocationDataHandler array that contain locations owned by this faction }
 
 bool cmderSpawnIsSet = false

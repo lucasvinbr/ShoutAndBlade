@@ -11,7 +11,7 @@ string[] Property VanillaFactionDisplayNames Auto
 {array contaning the names used for each faction of the vanillaFactions array. The names must be in the same order as the factions array!}
 
 ; an array of jMaps, each one defining a faction's data
-int Property jSABFactionDatasArray Auto
+int Property jSABFactionDatasArray Auto Hidden
 
 Function InitializeJData()
     jSABFactionDatasArray = JArray.objectWithSize(25)

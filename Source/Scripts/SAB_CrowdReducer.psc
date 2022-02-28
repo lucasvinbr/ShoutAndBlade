@@ -5,7 +5,7 @@ Scriptname SAB_CrowdReducer extends Quest
 Actor[] BodiesArray
 
 
-int Property NumNearbyCmders Auto
+int Property NumNearbyCmders Auto Hidden
 
 int numExistingBodies = 0
 int nextBodyIndexToFill = 0

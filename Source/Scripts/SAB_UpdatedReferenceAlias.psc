@@ -2,7 +2,7 @@ scriptname SAB_UpdatedReferenceAlias extends ReferenceAlias
 { a reference alias that should be updated regularly }
 
 SAB_AliasUpdater Property AliasUpdater Auto
-int Property indexInUpdater Auto
+int Property indexInUpdater Auto Hidden
 
 
 bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)

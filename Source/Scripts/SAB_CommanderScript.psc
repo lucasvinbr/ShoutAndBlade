@@ -11,7 +11,7 @@ string Property CmderDestinationType Auto
 
 ; reference to the location we're fighting against or trying to take over.
 ; this should only have a real value if we're close enough to this location
-SAB_LocationScript Property TargetLocationScript Auto
+SAB_LocationScript Property TargetLocationScript Auto Hidden
 
 SAB_CrowdReducer Property CrowdReducer Auto
 

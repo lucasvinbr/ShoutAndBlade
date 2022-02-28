@@ -37,10 +37,10 @@ FormList Property SAB_UnitAllowedRacesGenders Auto
 {list containing each actor's "looks" leveledActor. entries' indexes should be the same as unit indexes}
 
 ; an array of jMaps, each one defining a unit's data
-int Property jSABUnitDatasArray Auto
+int Property jSABUnitDatasArray Auto Hidden
 
 ; a unit data jMap just for testing
-int Property jTestGuyData Auto
+int Property jTestGuyData Auto Hidden
 
 LeveledActor Property SAB_UnitLooks_TestGuy Auto
 LeveledItem Property SAB_UnitGear_TestGuy Auto

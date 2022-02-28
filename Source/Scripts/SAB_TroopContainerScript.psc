@@ -2,43 +2,43 @@ Scriptname SAB_TroopContainerScript extends SAB_UpdatedReferenceAlias
 { script for any alias that has a list of troops they can spawn, recruit and upgrade. Should be updated regularly via alias updaters }
 
 ; a map of "unit index - amount" ints describing the units currently controlled by this commander
-int property jOwnedUnitsMap auto
+int property jOwnedUnitsMap auto Hidden
 
 ; a map of "unit index - amount" ints describing the living units currently spawned by this commander
-int property jSpawnedUnitsMap auto
+int property jSpawnedUnitsMap auto Hidden
 
 ; a map of "unit index - amount" ints describing the units that can still be spawned by this commander
-int Property jSpawnOptionsMap Auto
+int Property jSpawnOptionsMap Auto Hidden
 
 ; a simple counter for spawned living units, just to not have to iterate through the jMaps
-int property spawnedUnitsAmount = 0 auto
+int property spawnedUnitsAmount = 0 auto Hidden
 
 ; a simple counter for total owned living units, just to not have to iterate through the jMaps
-int property totalOwnedUnitsAmount = 0 auto
+int property totalOwnedUnitsAmount = 0 auto Hidden
 
 ; a reference to the SAB faction script of the ones controlling this container. Can be None if this is something that can become "neutral"
 SAB_FactionScript property factionScript auto
 
 ; troop containers need a second updater for when they're close, so that they can spawn units fast
 SAB_SpawnersUpdater Property CloseByUpdater Auto
-int property indexInCloseByUpdater auto
+int property indexInCloseByUpdater auto Hidden
 
 ; cached refs for not fetching all the time
-Actor property playerActor auto
+Actor property playerActor auto Hidden
 
 ; experience points the cmder can use to upgrade their units
-float property availableExpPoints auto
+float property availableExpPoints auto Hidden
 
-bool property isNearby = false auto
-
-; measured in days (1.0 is a day)
-float Property gameTimeOfLastExpAward = 0.0 Auto
+bool property isNearby = false auto Hidden
 
 ; measured in days (1.0 is a day)
-float Property gameTimeOfLastUnitUpgrade = 0.0 Auto
+float Property gameTimeOfLastExpAward = 0.0 Auto Hidden
+
+; measured in days (1.0 is a day)
+float Property gameTimeOfLastUnitUpgrade = 0.0 Auto Hidden
 
 ; measured in days (1.0 is a day). This is used to know whether a unit is ours or of the previous container filling this alias
-float Property gameTimeOfLastSetup Auto
+float Property gameTimeOfLastSetup Auto Hidden
 
 Function Setup(SAB_FactionScript factionScriptRef, float curGameTime = 0.0)
 	jOwnedUnitsMap = jValue.releaseAndRetain(jOwnedUnitsMap, jIntMap.object(), "ShoutAndBlade")

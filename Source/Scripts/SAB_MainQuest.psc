@@ -10,7 +10,7 @@ SAB_UnitsUpdater Property UnitsUpdater Auto
 SAB_CrowdReducer Property CrowdReducer Auto
 
 
-bool Property HasInitialized = false Auto
+bool Property HasInitialized = false Auto Hidden
 
 event OnInit()
 	if !HasInitialized
