@@ -1,24 +1,78 @@
 scriptname SAB_LocationDataHandler extends Quest
 {script for setting up and getting data for locations used by the mod.}
 
-SAB_LocationScript[] Property Locations Auto
+SAB_LocationScript[] Property Locations Auto Hidden
 { all locations used by the mod. Factions will browse this list when thinking about where to go }
 
+bool initialSetupDone = false
+
+bool isCalculatingDistances = false
+
+int Property NextAvailableLocationIndex = 0 Auto Hidden
+
 Function Initialize()
+    Locations = new SAB_LocationScript[128]
+
+    initialSetupDone = true
+EndFunction
+
+
+bool Function IsDoneSettingUp()
+    return initialSetupDone
+EndFunction
+
+
+event OnInit()
+    CalculateLocationDistances()
+endevent
+
+
+Function AddNewLocationsFromAddon(SAB_LocationDataAddon addon)
+
+    if NextAvailableLocationIndex >= 128
+        Debug.Trace("AddNewLocationsFromAddon: SAB Locations array is full! Aborting")
+        return
+    endif
+
+    while isCalculatingDistances
+        Debug.Trace("SAB queued addon location dist calculations is waiting")
+        Utility.Wait(2.0)
+    endwhile
+
+
+    SAB_LocationScript[] newLocations = addon.NewLocations
     int i = 0
 
     ; set up locations
-    while i < Locations.Length
-        Locations[i].Setup(Locations[i].factionScript)
-        
-        i += 1
+    while i != -1 && i < newLocations.Length
+        if newLocations[i]
+            Locations[NextAvailableLocationIndex] = newLocations[i]
+            
+            i += 1
+            NextAvailableLocationIndex += 1
+
+            if NextAvailableLocationIndex >= 128
+                ; break! the locations array is full
+                i = -1
+            endif
+        endif
     endwhile
 
+
+    CalculateLocationDistances()
+    
 EndFunction
 
 
 
-event OnInit()
+Function CalculateLocationDistances()
+
+    while isCalculatingDistances
+        Debug.Trace("SAB queued location dist calculations is waiting")
+        Utility.Wait(2.0)
+    endwhile
+
+    isCalculatingDistances = true
 
     int i = 0
     int j = 0
@@ -29,7 +83,7 @@ event OnInit()
     JValue.retain(jlocationDistancesMap, "ShoutAndBlade")
 
     ; fill the distances map with distances between each location
-    while i < Locations.Length
+    while i < NextAvailableLocationIndex
         
         debug.Trace(Locations[i])
         
@@ -53,7 +107,7 @@ event OnInit()
         JValue.retain(jClosestIndexesArray, "ShoutAndBlade")
         
         j = 0
-        while j < Locations.Length
+        while j < NextAvailableLocationIndex
             if i != j
                 ; check if we haven't already checked the distance between j and i
                 int jDistMapsFromJ = JIntMap.getObj(jlocationDistancesMap, j)
@@ -109,7 +163,9 @@ event OnInit()
     endwhile
 
     jValue.release(jlocationDistancesMap)
-endevent
+
+    isCalculatingDistances = false
+EndFunction
 
 
 ; returns a jArray with the indexes of the locations that have the target faction as owner
@@ -117,7 +173,7 @@ int Function GetLocationIndexesOwnedByFaction(SAB_FactionScript factionScript)
     int i = 0
     int jReturnedArray = jArray.object()
 
-    while i < Locations.Length
+    while i < NextAvailableLocationIndex
         if Locations[0].factionScript == factionScript
             JArray.addInt(jReturnedArray, i)
         endif
@@ -130,5 +186,5 @@ EndFunction
 
 ; returns a random location from the list
 SAB_LocationScript Function GetRandomLocation()
-    return Locations[Utility.RandomInt(0, Locations.Length - 1)]
+    return Locations[Utility.RandomInt(0, NextAvailableLocationIndex - 1)]
 endfunction

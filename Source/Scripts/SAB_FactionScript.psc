@@ -234,7 +234,7 @@ int Function FindAttackTargets()
 		; we don't have any location!
 		; look for neutral ones for an easier target
 		SAB_LocationScript[] locScripts = LocationDataHandler.Locations
-		i = locScripts.Length
+		i = LocationDataHandler.NextAvailableLocationIndex
 
 		while i > 0
 			i -= 1
