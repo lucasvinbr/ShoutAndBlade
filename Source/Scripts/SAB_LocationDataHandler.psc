@@ -287,12 +287,12 @@ Function UpdateLocationsAccordingToJMap()
                     if ownerFacIndex > -1 
                         if ownerFacIndex < FactionDataHandler.SAB_FactionQuests.Length
                             if locScript.factionScript != FactionDataHandler.SAB_FactionQuests[ownerFacIndex]
-                                locScript.BeTakenByFaction(FactionDataHandler.SAB_FactionQuests[ownerFacIndex])
+                                locScript.BeTakenByFaction(FactionDataHandler.SAB_FactionQuests[ownerFacIndex], true)
                             endif
                         endif
                     else 
                         if locScript.factionScript != None
-                            locScript.BecomeNeutral()
+                            locScript.BecomeNeutral(true)
                         endif
                     endif
                 endif

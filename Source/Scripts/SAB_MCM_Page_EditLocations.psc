@@ -142,10 +142,10 @@ state LOC_EDIT_LOC_OWNER
         int ownerIndex = index - 1
 
         if index == 0
-            editedLocationScript.BecomeNeutral()
+            editedLocationScript.BecomeNeutral(true)
         else
             SAB_FactionScript newOwner = MainPage.MainQuest.FactionDataHandler.SAB_FactionQuests[ownerIndex]
-            editedLocationScript.BeTakenByFaction(newOwner)
+            editedLocationScript.BeTakenByFaction(newOwner, true)
         endif
 
         int jLocDataMap = JMap.getObj(jLocationsDataMap, editedLocationScript.ThisLocation.GetName())
@@ -160,7 +160,7 @@ state LOC_EDIT_LOC_OWNER
 
 	event OnDefaultST(string state_id)
 		SetMenuOptionValueST("$sab_mcm_locationedit_ownership_option_neutral")
-        editedLocationScript.BecomeNeutral()
+        editedLocationScript.BecomeNeutral(true)
 
         int ownerIndex = -1
         int jLocDataMap = JMap.getObj(jLocationsDataMap, editedLocationScript.ThisLocation.GetName())

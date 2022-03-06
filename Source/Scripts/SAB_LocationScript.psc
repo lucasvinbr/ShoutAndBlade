@@ -292,7 +292,7 @@ bool Function BecomeNeutralIfOutOfTroops()
 		debug.Trace("location: actual spawned units count: " + GetActualSpawnedUnitsCount())
 		debug.Trace("location: actual total units count: " + GetActualTotalUnitsCount())
 		if totalOwnedUnitsAmount <= 0
-			BecomeNeutral()
+			BecomeNeutral(true)
 			return true
 		endif
 	endif
