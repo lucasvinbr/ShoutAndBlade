@@ -200,6 +200,7 @@ state LOC_EDIT_ENABLED
         endif
 
         jMap.setInt(jLocDataMap, "OwnerFactionIndex", newValueInt)
+        SetToggleOptionValueST(newValue)
 	endEvent
 
     event OnDefaultST(string state_id)
@@ -216,6 +217,7 @@ state LOC_EDIT_ENABLED
         endif
 
         jMap.setInt(jLocDataMap, "OwnerFactionIndex", newValueInt)
+        SetToggleOptionValueST(newValue)
     endevent
 
 	event OnHighlightST(string state_id)
@@ -319,7 +321,6 @@ endstate
 
 state LOC_EDIT_LOAD
     event OnSelectST(string state_id)
-        MainPage.MainQuest.SpawnerScript.HideCustomizationGuy()
         string filePath = JContainers.userDirectory() + "SAB/locationData.json"
         MainPage.isLoadingData = true
         int jReadData = JValue.readFromFile(filePath)

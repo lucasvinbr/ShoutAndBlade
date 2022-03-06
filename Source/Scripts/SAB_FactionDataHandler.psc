@@ -56,9 +56,9 @@ Function SetupStringArrayWithOwnershipIdentifiers(string[] stringArray)
 
     int endingIndex = 26
 
-    int i = 0
-
     stringArray[0] = "$sab_mcm_locationedit_ownership_option_neutral"
+
+    int i = 1
 
     while(i < endingIndex)
 
