@@ -144,8 +144,8 @@ Function RebuildEnabledLocationsArray()
     i = 128 - NextEnabledLocationIndex
 
     while 128 - i < 128
-        EnabledLocations[i] = None
-        i += 1
+        EnabledLocations[128 - i] = None
+        i -= 1
     endwhile
 
     isBusyUpdatingLocationData = false
