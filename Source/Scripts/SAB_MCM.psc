@@ -7,7 +7,7 @@ bool Property isLoadingData Auto
 int key_openMCM = -1
 
 event OnInit()
-    RegisterModule("$sab_mcm_page_options", 4)
+    RegisterModule("$sab_mcm_page_options", 5)
 endevent
 
 event OnPageInit()
@@ -157,7 +157,7 @@ state MAIN_TEST_LOAD
         isLoadingData = true
         ForcePageReset()
         int loadSuccesses = 0
-        int expectedLoadSuccesses = 3
+        int expectedLoadSuccesses = 4
 
         ShowMessage("$sab_mcm_shared_popup_msg_load_started", false)
 
@@ -196,6 +196,18 @@ state MAIN_TEST_LOAD
             Debug.Notification("SAB: faction data load complete! (" + loadSuccesses + " of " + expectedLoadSuccesses + ")")
         else
             Debug.Notification("SAB: Faction data load failed!")
+        endif
+
+        string locationFilePath = JContainers.userDirectory() + "SAB/locationData.json"
+        int jReadLocationData = JValue.readFromFile(locationFilePath)
+        if jReadLocationData != 0
+            ;force a page reset to disable all action buttons!
+            MainQuest.LocationDataHandler.jLocationsConfigMap = JValue.releaseAndRetain(MainQuest.LocationDataHandler.jLocationsConfigMap, jReadLocationData, "ShoutAndBlade")
+            MainQuest.LocationDataHandler.UpdateLocationsAccordingToJMap()
+            loadSuccesses += 1
+            Debug.Notification("SAB: location data load complete! (" + loadSuccesses + " of " + expectedLoadSuccesses + ")")
+        else
+            Debug.Notification("SAB: location data load failed!")
         endif
 
         if loadSuccesses == expectedLoadSuccesses

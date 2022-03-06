@@ -51,6 +51,26 @@ Function SetupStringArrayWithFactionIdentifiers(string[] stringArray)
     endwhile
 EndFunction
 
+; fills a 26-sized string array with faction ownership options (one option for each of the 25 factions, plus a "neutral/no faction" option)
+Function SetupStringArrayWithOwnershipIdentifiers(string[] stringArray)
+
+    int endingIndex = 26
+
+    int i = 0
+
+    stringArray[0] = "$sab_mcm_locationedit_ownership_option_neutral"
+
+    while(i < endingIndex)
+
+        int jFactionData = jArray.getObj(jSABFactionDatasArray, i - 1)
+        string facName = jMap.getStr(jFactionData, "Name", "Faction")
+
+        stringArray[i] = (i as string) + " - " + facName
+
+        i += 1
+    endwhile
+EndFunction
+
 ; returns a string array with a faction's troop lines' "preview".
 ; only the first 128 troop lines will be shown (do you really need that many troop lines? hahah)
 string[] Function CreateStringArrayWithTroopLineIdentifiers(int jTargetFactionData)
@@ -104,6 +124,7 @@ string[] Function CreateStringArrayWithTroopLineIdentifiers(int jTargetFactionDa
 
     return stringArr
 EndFunction
+
 
 ; for each faction, attempts to set up their quest using the data stored in jSABUnitDatasArray
 Function UpdateAllFactionQuestsAccordingToJMap()
@@ -160,6 +181,26 @@ Faction Function GetVanillaFactionByName(string facName)
     return None
 EndFunction
 
+
+; returns the target mod faction's index in the factions array (-1 for not found)
+int Function GetFactionIndex(SAB_FactionScript factionScript)
+
+    if factionScript == None
+        return -1
+    endif
+
+    int i = SAB_FactionQuests.Length
+
+    while i > 0
+        i -= 1
+
+        if(SAB_FactionQuests[i] == factionScript)
+            return i
+        endif
+    EndWhile
+
+    return -1
+EndFunction
 
 ; since this is written a lot, this helps avoid having to edit the number everywhere
 int Function GetDefaultFactionGold() global

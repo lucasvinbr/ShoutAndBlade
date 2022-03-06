@@ -134,7 +134,7 @@ Function RunDestinationsUpdate(float curGameTime)
 
 	; A should be an attack destination!
 	if curGameTime - gameTimeOfLastDestinationChange_A > gameTimeBeforeChangeDestination || \
-		destinationScript_A == None || destinationScript_A.factionScript == self
+		destinationScript_A == None || destinationScript_A.factionScript == self || destinationScript_A.isEnabled == false
 
 		targetLocIndex = jArray.getInt(jAttackTargetsArray, Utility.RandomInt(0, jArray.count(jAttackTargetsArray) - 1), -1)
 
@@ -150,7 +150,8 @@ Function RunDestinationsUpdate(float curGameTime)
 
 	; B can be an attack or defend destination. If no "good" targets are available, fall back to a random loc, like A
 	if curGameTime - gameTimeOfLastDestinationChange_B > gameTimeBeforeChangeDestination || \
-		 destinationScript_B == None || destinationScript_B == destinationScript_A || destinationScript_B.factionScript == self
+		 destinationScript_B == None || destinationScript_B == destinationScript_A || destinationScript_B.factionScript == self || \
+		 destinationScript_B.isEnabled == false
 
 		targetLocIndex = jArray.getInt(jDefenseTargetsArray, Utility.RandomInt(0, jArray.count(jDefenseTargetsArray) - 1), -1)
 
@@ -171,7 +172,7 @@ Function RunDestinationsUpdate(float curGameTime)
 	; destination C should be defensive. Look for locations we control that are currently contested and go there, 
 	; or just randomly patrol our locations
 	if curGameTime - gameTimeOfLastDestinationChange_C > gameTimeBeforeChangeDestination || \
-		destinationScript_C == None || destinationScript_C.factionScript != self
+		destinationScript_C == None || destinationScript_C.factionScript != self || destinationScript_C.isEnabled == false
 
 		targetLocIndex = jArray.getInt(jDefenseTargetsArray, Utility.RandomInt(0, jArray.count(jDefenseTargetsArray) - 1), -1)
 
@@ -199,6 +200,7 @@ int Function FindAttackTargets()
 	
 	int jPossibleAttackTargets = jArray.object()
 	JValue.retain(jPossibleAttackTargets, "ShoutAndBlade")
+	SAB_LocationScript[] locScripts = LocationDataHandler.Locations
 
 	if i > 0
 		; look at the locations near our own and add them to the "candidates" list
@@ -207,9 +209,10 @@ int Function FindAttackTargets()
 			int locIndex = jArray.getInt(jOwnedLocationIndexesArray, i, -1)
 
 			if locIndex != -1
-				SAB_LocationScript locScript = LocationDataHandler.Locations[locIndex]
-				; check if this location is still owned by us
-				if locScript.factionScript != self
+				SAB_LocationScript locScript = locScripts[locIndex]
+				; check if this location is still owned by us and is enabled.
+				; if not, remove it from the owneds list
+				if locScript.factionScript != self || !locScript.isEnabled
 					JArray.eraseIndex(jOwnedLocationIndexesArray, i)
 				else
 					int jNearbyLocsArray = locScript.jNearbyLocationsArray	
@@ -233,15 +236,14 @@ int Function FindAttackTargets()
 	else 
 		; we don't have any location!
 		; look for neutral ones for an easier target
-		SAB_LocationScript[] locScripts = LocationDataHandler.Locations
-		i = LocationDataHandler.NextAvailableLocationIndex
+		i = LocationDataHandler.NextLocationIndex
 
 		while i > 0
 			i -= 1
 			
-			SAB_LocationScript locScript = LocationDataHandler.Locations[i]
+			SAB_LocationScript locScript = locScripts[i]
 
-			if locScript.factionScript == None
+			if locScript.isEnabled == true && locScript.factionScript == None
 				JArray.addInt(jPossibleAttackTargets, i)
 			endif
 		endwhile
@@ -696,3 +698,9 @@ ObjectReference function GetRandomCmderDefaultSpawnPoint()
 
 	return pickedSpawnPoint
 EndFunction
+
+
+; returns this faction's name
+string Function GetFactionName()
+	return jMap.getStr(jFactionData, "name", "Faction")
+endfunction

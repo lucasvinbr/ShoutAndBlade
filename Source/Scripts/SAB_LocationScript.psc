@@ -19,6 +19,11 @@ Location Property ThisLocation Auto
 float Property GoldRewardMultiplier = 1.0 Auto
 { a multiplier applied on this location's gold award to the owner. Can make locations more or less valuable to control }
 
+float Property GarrisonSizeMultiplier = 1.0 Auto
+{ a multiplier applied on this location's maximum stored troop amount. Can make locations more or less difficult to defend }
+
+bool Property isEnabled = true Auto Hidden
+
 bool playerIsInside = false
 
 float timeOfLastUnitLoss = 0.0
@@ -31,10 +36,23 @@ SAB_CommanderScript Property InteractingCommander Auto Hidden
 
 Function Setup(SAB_FactionScript factionScriptRef, float curGameTime = 0.0)
 	parent.Setup(factionScriptRef, curGameTime)
+	isEnabled = true
+
+	if factionScriptRef != None
+		BeTakenByFaction(factionScriptRef, false)
+	endif
 EndFunction
 
-Function BeTakenByFaction(SAB_FactionScript factionScriptRef)
-	; ToggleNearbyUpdates(false)
+; makes this location neutral and removes it from all update queues
+Function DisableLocation()
+	isEnabled = false
+	BecomeNeutral(false)
+	ToggleNearbyUpdates(false)
+	AliasUpdater.UnregisterAliasFromUpdates(indexInUpdater)
+	DefaultLocationsContentParent.Enable()
+EndFunction
+
+Function BeTakenByFaction(SAB_FactionScript factionScriptRef, bool notify = true)
 	jOwnedUnitsMap = jValue.releaseAndRetain(jOwnedUnitsMap, jIntMap.object(), "ShoutAndBlade")
 	jSpawnedUnitsMap = jValue.releaseAndRetain(jSpawnedUnitsMap, jIntMap.object(), "ShoutAndBlade")
 	jSpawnOptionsMap = jValue.releaseAndRetain(jSpawnOptionsMap, jIntMap.object(), "ShoutAndBlade")
@@ -46,16 +64,25 @@ Function BeTakenByFaction(SAB_FactionScript factionScriptRef)
 	gameTimeOfLastExpAward = 0.0
 	gameTimeOfLastUnitUpgrade = 0.0
 	gameTimeOfLastSetup = 0.0
-	Debug.Trace(ThisLocation.GetName() + " has been taken by the " + jMap.getStr(factionScript.jFactionData, "name", "Faction"))
-	Debug.Notification(ThisLocation.GetName() + " has been taken by the " + jMap.getStr(factionScript.jFactionData, "name", "Faction"))
+
+	if notify
+		Debug.Trace(ThisLocation.GetName() + " has been taken by the " + jMap.getStr(factionScript.jFactionData, "name", "Faction"))
+		Debug.Notification(ThisLocation.GetName() + " has been taken by the " + jMap.getStr(factionScript.jFactionData, "name", "Faction"))
+	endif
 EndFunction
 
-; stops nearby updates and sets this location as neutral
-Function BecomeNeutral()
-	factionScript.RemoveLocationFromOwnedList(self)
-	Debug.Trace(ThisLocation.GetName() + " is no longer controlled by the " + jMap.getStr(factionScript.jFactionData, "name", "Faction"))
-	Debug.Notification(ThisLocation.GetName() + " is no longer controlled by the " + jMap.getStr(factionScript.jFactionData, "name", "Faction"))
-	; ToggleNearbyUpdates(false)
+; sets this location as not owned by any of the mod's factions. 
+; If left at this state for too long, the default content should be enabled again
+Function BecomeNeutral(bool notify = true)
+	if factionScript != None
+		factionScript.RemoveLocationFromOwnedList(self)
+
+		if notify
+			Debug.Trace(ThisLocation.GetName() + " is no longer controlled by the " + jMap.getStr(factionScript.jFactionData, "name", "Faction"))
+			Debug.Notification(ThisLocation.GetName() + " is no longer controlled by the " + jMap.getStr(factionScript.jFactionData, "name", "Faction"))
+		endif
+		
+	endif
 	factionScript = None
 EndFunction
 
@@ -64,7 +91,7 @@ Function ToggleNearbyUpdates(bool updatesEnabled)
 	
 	; debug.Trace("location: toggleNearbyUpdates " + updatesEnabled)
 	; debug.Trace("location: indexInCloseByUpdater " + indexInCloseByUpdater)
-	if updatesEnabled
+	if updatesEnabled && isEnabled
 		isNearby = true
 		if indexInCloseByUpdater == -1
 			indexInCloseByUpdater = CloseByUpdater.LocationUpdater.RegisterAliasForUpdates(self)
@@ -82,6 +109,10 @@ Function ToggleNearbyUpdates(bool updatesEnabled)
 EndFunction
 
 bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
+
+	if !isEnabled
+		return false
+	endif
 
 	if updateIndex == 1 && gameTimeOfLastSetup != 0.0
 		return RunCloseByUpdate()
@@ -161,6 +192,11 @@ endfunction
 
 
 bool function RunCloseByUpdate()
+
+	if !isEnabled
+		return false
+	endif
+
 	;debug.Trace("real time updating commander!")
 	if factionScript != None && spawnedUnitsAmount < GetMaxSpawnedUnitsAmount()
 		; spawn random units from "storage"
@@ -274,7 +310,13 @@ Function HandleAutocalcDefeat()
 EndFunction
 
 int Function GetMaxOwnedUnitsAmount()
-	return JDB.solveInt(".ShoutAndBlade.locationOptions.maxOwnedUnits", 45)
+	int calculatedMax = (JDB.solveInt(".ShoutAndBlade.locationOptions.maxOwnedUnits", 45) * GarrisonSizeMultiplier) as int
+
+	if calculatedMax < 0
+		calculatedMax = 0
+	endif
+
+	return calculatedMax
 EndFunction
 
 ; returns the maximum amount of units this container can have spawned in the world at the same time
