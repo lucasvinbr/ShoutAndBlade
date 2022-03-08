@@ -257,7 +257,7 @@ state LOC_EDIT_MULTIPLIER
             JMap.setFlt(jLocDataMap, "GoldRewardMultiplier", value)
         endif
 
-		SetSliderOptionValueST(value)
+		SetSliderOptionValueST(value, "{1}")
 	endEvent
 
 	event OnDefaultST(string state_id)
