@@ -17,7 +17,7 @@ int property spawnedUnitsAmount = 0 auto Hidden
 int property totalOwnedUnitsAmount = 0 auto Hidden
 
 ; a reference to the SAB faction script of the ones controlling this container. Can be None if this is something that can become "neutral"
-SAB_FactionScript property factionScript auto
+SAB_FactionScript property factionScript auto Hidden
 
 ; troop containers need a second updater for when they're close, so that they can spawn units fast
 SAB_SpawnersUpdater Property CloseByUpdater Auto
