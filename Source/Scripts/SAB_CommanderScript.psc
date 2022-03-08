@@ -321,6 +321,11 @@ EndFunction
 
 int Function GetMaxSpawnedUnitsAmount()
 	int nearbyCmders = CrowdReducer.NumNearbyCmders
+
+	if meActor == None
+		return 0
+	endif
+
 	if meActor.IsInCombat() || meActor.IsDead()
 		if nearbyCmders >= JDB.solveInt(".ShoutAndBlade.cmderOptions.nearbyCmdersLimit", 5)
 			return JDB.solveInt(".ShoutAndBlade.cmderOptions.combatSpawnsDividend", 20) / nearbyCmders

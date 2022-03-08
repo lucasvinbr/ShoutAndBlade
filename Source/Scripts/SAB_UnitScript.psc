@@ -48,6 +48,9 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 		return true
 	endif
 
+	if meActor == None
+		return false
+	endif
 
 	if meActor.IsDead()
 		if !deathHasBeenHandled
