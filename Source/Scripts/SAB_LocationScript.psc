@@ -16,10 +16,10 @@ ObjectReference Property MoveDestination Auto
 
 Location Property ThisLocation Auto
 
-float Property GoldRewardMultiplier = 1.0 Auto
+float Property GoldRewardMultiplier = 1.0 Auto Hidden
 { a multiplier applied on this location's gold award to the owner. Can make locations more or less valuable to control }
 
-float Property GarrisonSizeMultiplier = 1.0 Auto
+float Property GarrisonSizeMultiplier = 1.0 Auto Hidden
 { a multiplier applied on this location's maximum stored troop amount. Can make locations more or less difficult to defend }
 
 bool Property isEnabled = true Auto Hidden
