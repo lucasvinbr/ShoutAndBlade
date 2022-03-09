@@ -2,6 +2,9 @@ Scriptname SAB_LocationScript extends SAB_TroopContainerScript
 { script for a location that can be captured by SAB factions.
  This script should be added to an xmarker in the exterior world, where distance checks should work.}
 
+Cell[] Property InteriorCells Auto
+{ The cells this location contains. These cells will have their owner set to the current controlling faction }
+
 ObjectReference[] Property ExternalSpawnPoints Auto
 ObjectReference[] Property InternalSpawnPoints Auto
 
@@ -65,6 +68,14 @@ Function BeTakenByFaction(SAB_FactionScript factionScriptRef, bool notify = true
 	gameTimeOfLastUnitUpgrade = 0.0
 	gameTimeOfLastSetup = 0.0
 
+	int i = 0
+	while i < InteriorCells.Length
+		InteriorCells[i].SetFactionOwner(factionScriptRef.OurFaction)
+		InteriorCells[i].SetPublic(false)
+
+		i += 1
+	endwhile
+
 	if notify
 		Debug.Trace(ThisLocation.GetName() + " has been taken by the " + jMap.getStr(factionScript.jFactionData, "name", "Faction"))
 		Debug.Notification(ThisLocation.GetName() + " has been taken by the " + jMap.getStr(factionScript.jFactionData, "name", "Faction"))
@@ -84,6 +95,14 @@ Function BecomeNeutral(bool notify = true)
 		
 	endif
 	factionScript = None
+
+	int i = 0
+	while i < InteriorCells.Length
+		InteriorCells[i].SetFactionOwner(None)
+		InteriorCells[i].SetPublic(true)
+
+		i += 1
+	endwhile
 EndFunction
 
 ; sets isNearby and enables or disables closeBy updates
@@ -149,11 +168,14 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 	; debug.Trace("dist to player from location of faction " + jMap.getStr(factionScript.jFactionData, "name", "NEUTRAL") + ": " + distToPlayer)
 
 	; is player in this location's interior or exterior? Does this location have an interior?
-	playerIsInside = ThisLocation.IsSameLocation(playerActor.GetCurrentLocation())
+	playerIsInside = IsRefInsideThisLocation(playerActor)
 
 	if playerIsInside
 		if InternalSpawnPoints.Length > 0
-			playerIsInside = InternalSpawnPoints[0].GetDistance(playerActor) <= 4100.0 ; TODO make this configurable
+			Cell curPlayerCell = playerActor.GetParentCell()
+			if curPlayerCell == None || !curPlayerCell.IsInterior()
+				playerIsInside = false
+			endif
 		else
 			playerIsInside = false
 		endif
@@ -224,6 +246,10 @@ bool function RunCloseByUpdate()
 	
 endfunction
 
+
+bool Function IsRefInsideThisLocation(ObjectReference ref)
+	return ThisLocation.IsSameLocation(ref.GetCurrentLocation())
+EndFunction
 
 ; returns true if this location has recently lost a unit
 bool Function IsBeingContested()
