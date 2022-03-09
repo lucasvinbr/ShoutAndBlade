@@ -83,6 +83,7 @@ Actor Function SpawnUnit( ObjectReference LocationRef, Faction ownerFaction, int
 	Actor createdActor = LocationRef.PlaceActorAtMe(unitActorBase)
 	CustomizeActorAccordingToData(createdActor, jUnitDataMap)
 	createdActor.AddToFaction(ownerFaction)
+	createdActor.SetCrimeFaction(ownerFaction)
 
 	if cmderFollowIndex > -1
 		createdActor.AddToFaction(SAB_CommanderRanksFaction)
