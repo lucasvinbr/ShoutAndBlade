@@ -7,6 +7,9 @@ Actor[] BodiesArray
 
 int Property NumNearbyCmders Auto Hidden
 
+ObjectReference Property BodyDumpReference Auto
+{ reference to which bodies that will be deleted are moved }
+
 int numExistingBodies = 0
 int nextBodyIndexToFill = 0
 int nextBodyIndexToErase = 0
@@ -47,7 +50,8 @@ Function AddDeadBody(Actor body)
 
 		if bodyToDelete
 
-			bodyToDelete.Disable()
+			bodyToDelete.MoveTo(BodyDumpReference)
+			bodyToDelete.DisableNoWait()
 			bodyToDelete.Delete()
 			
 		endif
