@@ -246,12 +246,19 @@ EndEvent
 Event OnCombatStateChanged(Actor akTarget, int aeCombatState)
 	if aeCombatState == 1 || aeCombatState == 2 ; engaging or searching
 		debug.Trace("commander: started combat!")
-		; ToggleNearbyUpdates(true)
+
 		; if the current spawn is too far away,
 		; update the faction's unit spawn point to where this cmder started combat
 		ObjectReference unitSpawn = factionScript.UnitSpawnPoint.GetReference()
 		if unitSpawn.GetDistance(meActor) > 800.0
 			unitSpawn.MoveTo(meActor)
+		endif
+
+		if !isNearby
+			float playerDistance = playerActor.GetDistance(meActor)
+			if playerDistance && playerDistance <= GetIsNearbyDistance()
+				ToggleNearbyUpdates(true)
+			endif
 		endif
 	endif
 EndEvent
