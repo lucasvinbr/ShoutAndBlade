@@ -87,11 +87,15 @@ EndFunction
 
 
 event OnDeath(Actor akKiller)	
-	debug.Trace("unit: ondeath!")
+	; debug.Trace("unit: ondeath!")
 
 	if unitIndex == -1
 		debug.Trace("unit: ondeath before being fully set up!")
 		return
+	endif
+
+	if akKiller == playerActor
+		debug.Trace("player killed a unit!")
 	endif
 
 	if !deathHasBeenHandled

@@ -86,6 +86,15 @@ Function SetRelationsWithFaction(Faction targetFaction, int relationType)
 EndFunction
 
 
+Function AddActorToOurFaction(Actor targetActor)
+	targetActor.AddToFaction(OurFaction)
+EndFunction
+
+Function RemoveActorFromOurFaction(Actor targetActor)
+	targetActor.RemoveFromFaction(OurFaction)
+EndFunction
+
+
 ; returns true if the faction was updated, false if the faction can't be updated (because it's disabled, for example)
 bool Function RunUpdate(float daysPassed)
 	if jFactionData == 0

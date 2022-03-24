@@ -265,6 +265,11 @@ EndEvent
 
 event OnDeath(Actor akKiller)	
 	debug.Trace("commander: dead!")
+
+	if akKiller == playerActor
+		debug.Trace("player killed a cmder!")
+	endif
+
 	if ClearAliasIfOutOfTroops()
 		CrowdReducer.AddDeadBody(meActor)
 		meActor = None
