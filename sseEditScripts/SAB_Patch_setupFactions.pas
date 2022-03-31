@@ -49,7 +49,7 @@ begin
   factionQuestsList.Add(baseFactionQuest);
 
   // create factions!
-  for i := 1 to 25 do
+  for i := 1 to 40 do
   begin
 
     factionIndex := i;
@@ -160,7 +160,7 @@ begin
   // since factions are copied from faction00, which already has an "ally" relation to itself (faction00),
   // we can just edit the first entry of the list
   // and add the rest
-  for i := 0 to 25 do
+  for i := 0 to 40 do
   begin
   
 	factionIndex := i;
@@ -181,7 +181,7 @@ begin
 	end;
 	
 	// add relation entries for each faction
-	for j := 1 to 25 do
+	for j := 1 to 40 do
 	begin
 		curEditedElement := ElementAssign(curEditedListElement, HighInteger, nil, false);
 		SetNativeValue(ElementByPath(curEditedElement, 'Faction'), FormID(ObjectToElement(factionsList[j])));

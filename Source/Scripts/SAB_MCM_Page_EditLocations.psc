@@ -16,7 +16,7 @@ endevent
 
 Event OnPageInit()
 
-    editedFactionIdentifiersArray = new string[26]
+    editedFactionIdentifiersArray = new string[41]
 
 EndEvent
 

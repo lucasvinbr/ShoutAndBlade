@@ -17,7 +17,7 @@ endevent
 
 Event OnPageInit()
 
-    editedFactionIdentifiersArray = new string[25]
+    editedFactionIdentifiersArray = new string[40]
     relationOptions = new string[4]
     relationOptions[0] = "$sab_mcm_vanillafacrel_value_neutral"
     relationOptions[1] = "$sab_mcm_vanillafacrel_value_enemy"
