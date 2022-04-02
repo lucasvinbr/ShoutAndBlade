@@ -142,11 +142,10 @@ state PLYR_CUR_FAC
             previousFac.RemoveActorFromOurFaction(playerActor)
         endif
 
-        SAB_FactionScript newFac = MainPage.MainQuest.FactionDataHandler.SAB_FactionQuests[ownerIndex]
-        newFac.AddActorToOurFaction(playerActor)
-
-        ;TODO remove this test once we've tested hehe
-        playerActor.RemoveItem(Gold001, 1)
+        if ownerIndex != -1
+            SAB_FactionScript newFac = MainPage.MainQuest.FactionDataHandler.SAB_FactionQuests[ownerIndex]
+            newFac.AddActorToOurFaction(playerActor)
+        endif
 
         playerFactionIndex = ownerIndex
         ; jMap.setInt(jLocDataMap, "OwnerFactionIndex", ownerIndex)
