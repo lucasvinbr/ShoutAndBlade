@@ -74,7 +74,7 @@ int Function RegisterAliasForUpdates(SAB_UpdatedReferenceAlias updatedScript)
 		endif
 		; increment top index since there are no holes in the array
 		topFilledIndex = vacantIndex
-		debug.Trace("aliasUpdater: topFilledIndex is now " + topFilledIndex)
+		; debug.Trace("aliasUpdater: topFilledIndex is now " + topFilledIndex)
 	endif
 
 	int indexInArray = vacantIndex % 128

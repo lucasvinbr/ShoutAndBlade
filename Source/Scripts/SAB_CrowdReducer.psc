@@ -26,7 +26,7 @@ Function AddDeadBody(Actor body)
 	numExistingBodies += 1
 	nextBodyIndexToFill += 1
 
-	debug.Trace("deadBodyCleaner: added body to index " + nextBodyIndexToFill)
+	; debug.Trace("deadBodyCleaner: added body to index " + nextBodyIndexToFill)
 
 	if nextBodyIndexToFill >= 128
 		nextBodyIndexToFill = 0

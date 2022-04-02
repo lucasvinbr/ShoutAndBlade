@@ -35,8 +35,8 @@ Function ToggleNearbyUpdates(bool updatesEnabled)
 		if indexInCloseByUpdater == -1
 			indexInCloseByUpdater = CloseByUpdater.CmderUpdater.RegisterAliasForUpdates(self)
 			CrowdReducer.NumNearbyCmders += 1
-			debug.Trace("commander: began closebyupdating!")
-			debug.Trace("commander: nearby cmders: " + CrowdReducer.NumNearbyCmders)
+			; debug.Trace("commander: began closebyupdating!")
+			; debug.Trace("commander: nearby cmders: " + CrowdReducer.NumNearbyCmders)
 		endif
 	elseif !updatesEnabled
 		isNearby = false
@@ -44,7 +44,7 @@ Function ToggleNearbyUpdates(bool updatesEnabled)
 			CloseByUpdater.CmderUpdater.UnregisterAliasFromUpdates(indexInCloseByUpdater)
 			indexInCloseByUpdater = -1
 			CrowdReducer.NumNearbyCmders -= 1
-			debug.Trace("commander: stopped closebyupdating!")
+			; debug.Trace("commander: stopped closebyupdating!")
 		endif
 	endif
 
@@ -245,7 +245,7 @@ EndEvent
 
 Event OnCombatStateChanged(Actor akTarget, int aeCombatState)
 	if aeCombatState == 1 || aeCombatState == 2 ; engaging or searching
-		debug.Trace("commander: started combat!")
+		; debug.Trace("commander: started combat!")
 
 		; if the current spawn is too far away,
 		; update the faction's unit spawn point to where this cmder started combat
@@ -264,7 +264,7 @@ Event OnCombatStateChanged(Actor akTarget, int aeCombatState)
 EndEvent
 
 event OnDeath(Actor akKiller)	
-	debug.Trace("commander: dead!")
+	; debug.Trace("commander: dead!")
 
 	if akKiller == playerActor
 		debug.Trace("player killed a cmder!")
@@ -278,12 +278,12 @@ endEvent
 
 ; returns true if out of troops and cleared
 bool Function ClearAliasIfOutOfTroops()
-	debug.Trace("commander (" + jMap.getStr(factionScript.jFactionData, "name", "Faction") + "): clear alias if out of troops!")
-	debug.Trace("dead commander: troops left (totalOwnedUnitsAmount): " + totalOwnedUnitsAmount)
-	debug.Trace("dead commander: spawnedUnitsAmount: " + spawnedUnitsAmount)
-	debug.Trace("dead commander: actual spawnable units count: " + GetActualSpawnableUnitsCount())
-	debug.Trace("dead commander: actual spawned units count: " + GetActualSpawnedUnitsCount())
-	debug.Trace("dead commander: actual total units count: " + GetActualTotalUnitsCount())
+	; debug.Trace("commander (" + jMap.getStr(factionScript.jFactionData, "name", "Faction") + "): clear alias if out of troops!")
+	; debug.Trace("dead commander: troops left (totalOwnedUnitsAmount): " + totalOwnedUnitsAmount)
+	; debug.Trace("dead commander: spawnedUnitsAmount: " + spawnedUnitsAmount)
+	; debug.Trace("dead commander: actual spawnable units count: " + GetActualSpawnableUnitsCount())
+	; debug.Trace("dead commander: actual spawned units count: " + GetActualSpawnedUnitsCount())
+	; debug.Trace("dead commander: actual total units count: " + GetActualTotalUnitsCount())
 	if totalOwnedUnitsAmount <= 0
 		ClearCmderData()
 		return true
@@ -293,7 +293,7 @@ bool Function ClearAliasIfOutOfTroops()
 EndFunction
 
 Function HandleAutocalcDefeat()
-	debug.Trace("commander (" + jMap.getStr(factionScript.jFactionData, "name", "Faction") + "): defeated in autocalc!")
+	; debug.Trace("commander (" + jMap.getStr(factionScript.jFactionData, "name", "Faction") + "): defeated in autocalc!")
 	ClearCmderData()
 	; meActor.SetCriticalStage(meActor.CritStage_DisintegrateEnd)
 	meActor.Disable()
@@ -303,7 +303,7 @@ EndFunction
 
 ; clears the alias and stops updates
 Function ClearCmderData()
-	debug.Trace("commander: clear cmder data!")
+	; debug.Trace("commander: clear cmder data!")
 
 	if TargetLocationScript != None
 		if TargetLocationScript.InteractingCommander == self

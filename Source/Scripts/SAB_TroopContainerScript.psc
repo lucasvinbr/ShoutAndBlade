@@ -66,14 +66,14 @@ Function ToggleNearbyUpdates(bool updatesEnabled)
 		isNearby = true
 		if indexInCloseByUpdater == -1
 			indexInCloseByUpdater = CloseByUpdater.CmderUpdater.RegisterAliasForUpdates(self)
-			debug.Trace("troop container: began closebyupdating!")
+			; debug.Trace("troop container: began closebyupdating!")
 		endif
 	elseif !updatesEnabled
 		isNearby = false
 		if indexInCloseByUpdater != -1
 			CloseByUpdater.CmderUpdater.UnregisterAliasFromUpdates(indexInCloseByUpdater)
 			indexInCloseByUpdater = -1
-			debug.Trace("troop container: stopped closebyupdating!")
+			; debug.Trace("troop container: stopped closebyupdating!")
 		endif
 	endif
 
@@ -268,7 +268,7 @@ Function TryTransferUnitsToAnotherContainer(SAB_TroopContainerScript otherContai
 			; and add them to the other!
 			otherContainer.AddUnitsOfType(unitIndexToTransfer, unitAmountToTransfer)
 
-			debug.Trace("transferred " + unitAmountToTransfer + " units of index " + unitIndexToTransfer)
+			; debug.Trace("transferred " + unitAmountToTransfer + " units of index " + unitIndexToTransfer)
 		endif
 	endif
 
@@ -405,9 +405,9 @@ ReferenceAlias Function SpawnUnitAtLocation(int unitIndex, ObjectReference targe
 
 		spawnedUnitsAmount += 1
 
-		debug.Trace("unit of index " + unitIndex + " has spawned...")
-		debug.Trace("curspawnedamount of " + unitIndex + " is now " + (currentSpawnedAmount + 1))
-		debug.Trace("spawnedUnitsAmount is now " + spawnedUnitsAmount)
+		; debug.Trace("unit of index " + unitIndex + " has spawned...")
+		; debug.Trace("curspawnedamount of " + unitIndex + " is now " + (currentSpawnedAmount + 1))
+		; debug.Trace("spawnedUnitsAmount is now " + spawnedUnitsAmount)
 
 		return spawnedUnit
 	endif
@@ -420,17 +420,17 @@ EndFunction
 ; removes the despawned unit from the spawnedUnits list and adds it back to the spawnables, so that it can spawn again later
 Function OwnedUnitHasDespawned(int unitIndex, float timeOwnerWasSetup)
 
-	debug.Trace("unit of index " + unitIndex + " has despawned...")
+	; debug.Trace("unit of index " + unitIndex + " has despawned...")
 
 	if gameTimeOfLastSetup != timeOwnerWasSetup
-		debug.Trace("unit owner setup time (" + timeOwnerWasSetup + ") does not match container's ("+ gameTimeOfLastSetup +")")
+		; debug.Trace("unit owner setup time (" + timeOwnerWasSetup + ") does not match container's ("+ gameTimeOfLastSetup +")")
 		return
 	endif
 
 	int currentSpawnedAmount = jIntMap.getInt(jSpawnedUnitsMap, unitIndex) - 1
 	jIntMap.setInt(jSpawnedUnitsMap, unitIndex, currentSpawnedAmount)
 
-	debug.Trace("curspawnedamount of " + unitIndex + " is now " + (currentSpawnedAmount))
+	; debug.Trace("curspawnedamount of " + unitIndex + " is now " + (currentSpawnedAmount))
 
 	if currentSpawnedAmount <= 0
 		jIntMap.removeKey(jSpawnedUnitsMap, unitIndex)
@@ -442,7 +442,7 @@ Function OwnedUnitHasDespawned(int unitIndex, float timeOwnerWasSetup)
 
 	spawnedUnitsAmount -= 1
 
-	debug.Trace("spawnedUnitsAmount is now " + spawnedUnitsAmount)
+	; debug.Trace("spawnedUnitsAmount is now " + spawnedUnitsAmount)
 
 EndFunction
 
@@ -451,17 +451,17 @@ EndFunction
 ; removes the dead unit from the ownedUnits and spawnedUnits lists
 Function OwnedUnitHasDied(int unitIndex, float timeOwnerWasSetup)
 
-	debug.Trace("unit of index " + unitIndex + " has died...")
+	; debug.Trace("unit of index " + unitIndex + " has died...")
 
 	if gameTimeOfLastSetup != timeOwnerWasSetup
-		debug.Trace("unit owner setup time (" + timeOwnerWasSetup + ") does not match container's ("+ gameTimeOfLastSetup +")")
+		; debug.Trace("unit owner setup time (" + timeOwnerWasSetup + ") does not match container's ("+ gameTimeOfLastSetup +")")
 		return
 	endif
 
 	int currentSpawnedAmount = jIntMap.getInt(jSpawnedUnitsMap, unitIndex) - 1
 	jIntMap.setInt(jSpawnedUnitsMap, unitIndex, currentSpawnedAmount)
 
-	debug.Trace("curspawnedamount of " + unitIndex + " is now " + currentSpawnedAmount)
+	; debug.Trace("curspawnedamount of " + unitIndex + " is now " + currentSpawnedAmount)
 
 	if currentSpawnedAmount <= 0
 		jIntMap.removeKey(jSpawnedUnitsMap, unitIndex)
@@ -473,14 +473,14 @@ Function OwnedUnitHasDied(int unitIndex, float timeOwnerWasSetup)
 	int currentStoredAmount = jIntMap.getInt(jOwnedUnitsMap, unitIndex)
 	jIntMap.setInt(jOwnedUnitsMap, unitIndex, currentStoredAmount - 1)
 
-	debug.Trace("currentStoredAmount of " + unitIndex + " is now " + (currentStoredAmount - 1))
+	; debug.Trace("currentStoredAmount of " + unitIndex + " is now " + (currentStoredAmount - 1))
 
 	if currentStoredAmount - 1 <= 0
 		jIntMap.removeKey(jOwnedUnitsMap, unitIndex)
 	endif
 
-	debug.Trace("spawnedUnitsAmount is now " + spawnedUnitsAmount)
-	debug.Trace("totalOwnedUnitsAmount is now " + totalOwnedUnitsAmount)
+	; debug.Trace("spawnedUnitsAmount is now " + spawnedUnitsAmount)
+	; debug.Trace("totalOwnedUnitsAmount is now " + totalOwnedUnitsAmount)
 EndFunction
 
 
@@ -489,7 +489,7 @@ EndFunction
 ; the result is decided based on the units' autocalcpower values
 Function DoAutocalcBattle(SAB_TroopContainerScript enemyContainer)
 
-	debug.Trace("autocalc fight start!")
+	; debug.Trace("autocalc fight start!")
 	SAB_UnitDataHandler unitDataHandler = factionScript.SpawnerScript.UnitDataHandler
 
 	; we want there to be a high chance of the fight not being instantly resolved
@@ -506,7 +506,7 @@ Function DoAutocalcBattle(SAB_TroopContainerScript enemyContainer)
 	if totalOwnedUnitsAmount <= 0
 		HandleAutocalcDefeat()
 	endif
-	debug.Trace("autocalc fight end!")
+	; debug.Trace("autocalc fight end!")
 	
 EndFunction
 

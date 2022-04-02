@@ -104,7 +104,7 @@ bool Function RunUpdate(float daysPassed)
 	if jMap.hasKey(jFactionData, "enabled")
 		if daysPassed - gameTimeOfLastRealUpdate >= JDB.solveFlt(".ShoutAndBlade.factionOptions.updateInterval", 0.025)
 			gameTimeOfLastRealUpdate = daysPassed
-			Debug.Trace("updating faction " + jMap.getStr(jFactionData, "name", "Faction"))
+			; Debug.Trace("updating faction " + jMap.getStr(jFactionData, "name", "Faction"))
 
 			float goldInterval = JDB.solveFlt(".ShoutAndBlade.factionOptions.goldInterval", 0.12)
 			if daysPassed - gameTimeOfLastGoldAward >= goldInterval
@@ -291,7 +291,7 @@ int Function FindDefenseTargets()
 						JArray.addInt(jPossibleDefenseTargets, locIndex)
 					endif
 					
-					debug.Trace("location " + locScript.ThisLocation.GetName() + " autocalc power = " + locationPower)
+					; debug.Trace("location " + locScript.ThisLocation.GetName() + " autocalc power = " + locationPower)
 				endif
 
 			endif
@@ -325,7 +325,7 @@ Function ValidateCmderReachedDestination(SAB_CommanderScript commander, string c
 	if targetLocScript.IsReferenceCloseEnoughForAutocalc(cmderRef)
 		; the commander has really arrived! Do stuff like autocalc battles now.
 		; assign the location to the cmder, and then they'll figure out what to do when updating
-		Debug.Trace("commander has arrived and has been assigned the loc script!")
+		; Debug.Trace("commander has arrived and has been assigned the loc script!")
 		commander.TargetLocationScript = targetLocScript
 	endif
 
@@ -406,7 +406,7 @@ int function PurchaseRecruits(int maxAmountPurchased = 100)
 		jMap.setInt(jFactionData, "AvailableGold", currentGold - (recruitedAmount * goldCostPerRec))
 	endif
 
-	Debug.Trace("recruited " + recruitedAmount + " recruits for " + (recruitedAmount * goldCostPerRec) + " gold")
+	; Debug.Trace("recruited " + recruitedAmount + " recruits for " + (recruitedAmount * goldCostPerRec) + " gold")
 
 	return recruitedAmount
 
@@ -503,7 +503,7 @@ int function TryUpgradeUnits(int unitIndex, int unitAmount, float availableExp)
 
 					JArray.addObj(jUpgradedUnitsArray, jUpgradedUnitsMap)
 
-					Debug.Trace("upgraded " + upgradedAmount + " units for " + (upgradedAmount * goldCostPerUpg) + " gold")
+					; Debug.Trace("upgraded " + upgradedAmount + " units for " + (upgradedAmount * goldCostPerUpg) + " gold")
 				endif
 			endif
 			

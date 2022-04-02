@@ -24,7 +24,7 @@ Function Setup(int thisUnitIndex, SAB_TroopContainerScript containerRef, int ind
 	indexInUpdater = indexInUnitUpdater
 	gameTimeOwnerContainerWasSetup = gameTimeSetupOfParentContainer
 	; ToggleUpdates(true)
-	debug.Trace("unit: setup end!")
+	; debug.Trace("unit: setup end!")
 EndFunction
 
 bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
@@ -35,7 +35,7 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 		if unitIndex == -1 || gameTimeOwnerContainerWasSetup == 0.0
 			; since all units should have a valid unit index,
 			; this means this unit is probably being cleared
-			debug.Trace("unit: updated while being set up or cleared!")
+			; debug.Trace("unit: updated while being set up or cleared!")
 		else 
 			debug.Trace("unit: went poof!")
 			debug.Trace("poof unit index: " + unitIndex)
@@ -54,7 +54,7 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 
 	if meActor.IsDead()
 		if !deathHasBeenHandled
-			debug.Trace("unit: death being handled on update!")
+			; debug.Trace("unit: death being handled on update!")
 			HandleDeath()
 		endif
 		
@@ -64,7 +64,7 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 	float distToPlayer = meActor.GetDistance(playerActor)
 
 	if distToPlayer > GetIsNearbyDistance()
-		debug.Trace("unit: too far, despawn!")
+		; debug.Trace("unit: too far, despawn!")
 		ownerTroopContainer.OwnedUnitHasDespawned(unitIndex, gameTimeOwnerContainerWasSetup)
 		meActor.Disable()
 		meActor.Delete()
@@ -90,7 +90,7 @@ event OnDeath(Actor akKiller)
 	; debug.Trace("unit: ondeath!")
 
 	if unitIndex == -1
-		debug.Trace("unit: ondeath before being fully set up!")
+		; debug.Trace("unit: ondeath before being fully set up!")
 		return
 	endif
 
@@ -99,7 +99,7 @@ event OnDeath(Actor akKiller)
 	endif
 
 	if !deathHasBeenHandled
-		debug.Trace("unit: ondeath handle death!")
+		; debug.Trace("unit: ondeath handle death!")
 		HandleDeath()
 	endif
 	
@@ -113,7 +113,7 @@ Function HandleDeath()
 EndFunction
 
 Function ClearAliasData()
-	debug.Trace("unit: clear alias data!")
+	; debug.Trace("unit: clear alias data!")
 	unitIndex = -1
 	gameTimeOwnerContainerWasSetup = 0.0
 	parent.ClearAliasData()

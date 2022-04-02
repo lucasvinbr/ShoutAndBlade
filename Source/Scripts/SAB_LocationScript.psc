@@ -114,14 +114,14 @@ Function ToggleNearbyUpdates(bool updatesEnabled)
 		isNearby = true
 		if indexInCloseByUpdater == -1
 			indexInCloseByUpdater = CloseByUpdater.LocationUpdater.RegisterAliasForUpdates(self)
-			debug.Trace("location: began closebyupdating!")
+			; debug.Trace("location: began closebyupdating!")
 		endif
 	elseif !updatesEnabled
 		isNearby = false
 		if indexInCloseByUpdater != -1
 			CloseByUpdater.LocationUpdater.UnregisterAliasFromUpdates(indexInCloseByUpdater)
 			indexInCloseByUpdater = -1
-			debug.Trace("location: stopped closebyupdating!")
+			; debug.Trace("location: stopped closebyupdating!")
 		endif
 	endif
 
@@ -143,7 +143,7 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 			gameTimeOfLastExpAward = curGameTime
 			gameTimeOfLastUnitUpgrade = curGameTime
 			gameTimeOfLastSetup = curGameTime
-			debug.Trace(ThisLocation.GetName() + " now has time of last setup: " + gameTimeOfLastSetup)
+			; debug.Trace(ThisLocation.GetName() + " now has time of last setup: " + gameTimeOfLastSetup)
 		endif
 
 		; a timeOfLastUnitLoss equal to 0.0 means a unit has been lost recently
@@ -311,12 +311,12 @@ EndFunction
 ; returns true if out of troops and "neutralized"
 bool Function BecomeNeutralIfOutOfTroops()
 	if factionScript != None
-		debug.Trace("location (" + jMap.getStr(factionScript.jFactionData, "name", "Faction") + "): become neutral if out of troops!")
-		debug.Trace("location: spawnedUnitsAmount: " + spawnedUnitsAmount)
-		debug.Trace("location: troops left (totalOwnedUnitsAmount): " + totalOwnedUnitsAmount)
-		debug.Trace("location: actual spawnable units count: " + GetActualSpawnableUnitsCount())
-		debug.Trace("location: actual spawned units count: " + GetActualSpawnedUnitsCount())
-		debug.Trace("location: actual total units count: " + GetActualTotalUnitsCount())
+		; debug.Trace("location (" + jMap.getStr(factionScript.jFactionData, "name", "Faction") + "): become neutral if out of troops!")
+		; debug.Trace("location: spawnedUnitsAmount: " + spawnedUnitsAmount)
+		; debug.Trace("location: troops left (totalOwnedUnitsAmount): " + totalOwnedUnitsAmount)
+		; debug.Trace("location: actual spawnable units count: " + GetActualSpawnableUnitsCount())
+		; debug.Trace("location: actual spawned units count: " + GetActualSpawnedUnitsCount())
+		; debug.Trace("location: actual total units count: " + GetActualTotalUnitsCount())
 		if totalOwnedUnitsAmount <= 0
 			BecomeNeutral(true)
 			return true

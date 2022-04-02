@@ -28,7 +28,7 @@ EndFunction
 
 ; clears the alias and stops updates
 Function ClearAliasData()
-	debug.Trace("SAB_UpdatedReferenceAlias: clear data!")
+	; debug.Trace("SAB_UpdatedReferenceAlias: clear data!")
 	Clear()
 
 	ToggleUpdates(false)
