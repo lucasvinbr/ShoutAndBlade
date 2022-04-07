@@ -34,32 +34,36 @@ Function AddDeadBody(Actor body)
 
 	if numExistingBodies > JDB.solveInt(".ShoutAndBlade.generalOptions.maxDeadBodies", 12)
 
-		; since something else referencing the body can keep holding us up here forever,
-		; we should increment the next body to erase before deleting
-
-		int bodyIndexToEraseNow = nextBodyIndexToErase
-
-		nextBodyIndexToErase += 1
-
-		if nextBodyIndexToErase >= 128
-			nextBodyIndexToErase = 0
-		endif
-
-		Actor bodyToDelete = BodiesArray[bodyIndexToEraseNow]
-		BodiesArray[bodyIndexToEraseNow] = None
-
-		if bodyToDelete
-
-			bodyToDelete.MoveTo(BodyDumpReference)
-			bodyToDelete.DisableNoWait()
-			bodyToDelete.Delete()
-			
-		endif
-
-		debug.Trace("deadBodyCleaner: deleted body at index " + bodyIndexToEraseNow)
-
-		numExistingBodies -= 1
+		RegisterForSingleUpdate(0.01)
 		
 	endif
 
 EndFunction
+
+Event OnUpdate()
+	; since something else referencing the body can keep holding us up here forever,
+	; we should increment the next body to erase before deleting
+
+	int bodyIndexToEraseNow = nextBodyIndexToErase
+
+	nextBodyIndexToErase += 1
+
+	if nextBodyIndexToErase >= 128
+		nextBodyIndexToErase = 0
+	endif
+
+	Actor bodyToDelete = BodiesArray[bodyIndexToEraseNow]
+	BodiesArray[bodyIndexToEraseNow] = None
+
+	if bodyToDelete
+
+		bodyToDelete.MoveTo(BodyDumpReference)
+		bodyToDelete.DisableNoWait()
+		bodyToDelete.Delete()
+		
+	endif
+
+	debug.Trace("deadBodyCleaner: deleted body at index " + bodyIndexToEraseNow)
+
+	numExistingBodies -= 1
+EndEvent
