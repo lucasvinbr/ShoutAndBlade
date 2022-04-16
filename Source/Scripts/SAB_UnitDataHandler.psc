@@ -326,6 +326,9 @@ EndFunction
 ; an array of jMaps. Each jMap in the array has two fields: "itemForm" (form) and "amount" (int)
 ; int jGearArray
 
+; true if this key exists and is greater than 0
+; int IsRanged
+
 ;allowed races/genders - 0 is "none", 1 is "male only", 2 is "female only", 3 is "both"
 
 ; int RaceBreton

@@ -13,6 +13,9 @@ ReferenceAlias Property OutfitGuyAlias Auto
 Faction Property SAB_CommanderRanksFaction Auto
 { Faction used for defining which commander the unit should follow }
 
+Faction Property SAB_RangedUnitsFaction Auto
+{ Faction all units considered "ranged" should belong to }
+
 Actor spawnedCustomizationGuy
 
 Function HideCustomizationGuy()
@@ -115,6 +118,10 @@ Function CustomizeActorAccordingToData(Actor targetActor, int jUnitData)
 	targetActor.SetActorValue("TwoHanded", JMap.getFlt(jUnitData, "SkillTwoHanded", 15.0))
 	targetActor.SetActorValue("Marksman", JMap.getFlt(jUnitData, "SkillMarksman", 15.0))
 
+	if jMap.getInt(jUnitData, "IsRanged", 0) != 0
+		targetActor.AddToFaction(SAB_RangedUnitsFaction)
+	endif
+
 endFunction
 
 ;Sets actor values and actor name of the target actor based on the passed jMap's values
@@ -132,5 +139,9 @@ Function CustomizeActorAccordingToDataWithNameSuffix(Actor targetActor, int jUni
 	targetActor.SetActorValue("OneHanded", JMap.getFlt(jUnitData, "SkillOneHanded", 15.0))
 	targetActor.SetActorValue("TwoHanded", JMap.getFlt(jUnitData, "SkillTwoHanded", 15.0))
 	targetActor.SetActorValue("Marksman", JMap.getFlt(jUnitData, "SkillMarksman", 15.0))
+
+	if jMap.getInt(jUnitData, "IsRanged", 0) != 0
+		targetActor.AddToFaction(SAB_RangedUnitsFaction)
+	endif
 
 endFunction

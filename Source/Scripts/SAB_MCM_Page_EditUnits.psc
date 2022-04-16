@@ -92,6 +92,7 @@ Function SetupEditUnitsPage()
     AddSliderOptionST("UNITEDIT_BASEAV___Health", "$sab_mcm_unitedit_slider_health", JMap.getFlt(jEditedUnitData, "Health", 50.0))
     AddSliderOptionST("UNITEDIT_BASEAV___Stamina", "$sab_mcm_unitedit_slider_stamina", JMap.getFlt(jEditedUnitData, "Stamina", 50.0))
     AddSliderOptionST("UNITEDIT_BASEAV___Magicka", "$sab_mcm_unitedit_slider_magicka", JMap.getFlt(jEditedUnitData, "Magicka", 50.0))
+    AddToggleOptionST("UNITEDIT_ISRANGED", "$sab_mcm_unitedit_toggle_ranged", JMap.getInt(jEditedUnitData, "IsRanged", 0) != 0, 0)
 
     AddEmptyOption()
     AddSliderOptionST("UNITEDIT_AUTOCALC_STRENGTH", "$sab_mcm_unitedit_slider_autocalc_strength", JMap.getFlt(jEditedUnitData, "AutocalcStrength", 1.0), "{1}")
@@ -258,7 +259,33 @@ state UNITEDIT_BASEAV
         endif
     endfunction
     
+endstate
 
+state UNITEDIT_ISRANGED
+    event OnSelectST(string state_id)
+        int curValue = JMap.getInt(jEditedUnitData, "IsRanged", 0)
+
+        if curValue != 0
+            curValue = 0
+        else
+            curValue = 1
+        endif
+
+        JMap.setInt(jEditedUnitData, "IsRanged", curValue)
+
+        SetToggleOptionValueST(curValue != 0)
+	endEvent
+
+    event OnDefaultST(string state_id)
+        int curValue = 0
+        JMap.setInt(jEditedUnitData, "IsRanged", curValue)
+        SetToggleOptionValueST(curValue != 0)
+    endevent
+
+	event OnHighlightST(string state_id)
+        MainPage.ToggleQuickHotkey(true)
+		SetInfoText("$sab_mcm_unitedit_toggle_ranged_desc")
+	endEvent
 endstate
 
 state UNITEDIT_OUTFIT
