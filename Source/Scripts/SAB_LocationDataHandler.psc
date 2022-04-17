@@ -253,6 +253,7 @@ Function CalculateLocationDistances()
     endwhile
 
     jValue.release(jlocationDistancesMap)
+    jValue.zeroLifetime(jlocationDistancesMap)
 
     isBusyUpdatingLocationData = false
 EndFunction

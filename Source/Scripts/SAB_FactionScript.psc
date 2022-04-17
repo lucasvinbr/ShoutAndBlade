@@ -198,6 +198,9 @@ Function RunDestinationsUpdate(float curGameTime)
 
 	JValue.release(jAttackTargetsArray)
 	JValue.zeroLifetime(jAttackTargetsArray)
+
+	JValue.release(jDefenseTargetsArray)
+	JValue.zeroLifetime(jDefenseTargetsArray)
 EndFunction
 
 
@@ -458,6 +461,10 @@ int function TryUpgradeUnits(int unitIndex, int unitAmount, float availableExp)
 		int jUpgradedUnitData = jArray.getObj(SpawnerScript.UnitDataHandler.jSABUnitDatasArray, upgradedUnitIndex)
 
 		if jUpgradedUnitData == 0
+			jValue.release(jUpgradeOptions)
+			jValue.zeroLifetime(jUpgradeOptions)
+			jValue.release(jUpgradeResultMap)
+			jValue.zeroLifetime(jUpgradeResultMap)
 			return 0
 		endif
 
