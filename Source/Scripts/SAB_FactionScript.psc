@@ -47,6 +47,9 @@ float gameTimeOfLastRealUpdate = 0.0
 float gameTimeOfLastDestinationUpdate = 0.0
 float gameTimeOfLastGoldAward = 0.0
 
+int lastCheckedUnitAliasIndex = -1
+int lastCheckedCmderAliasIndex = -1
+
 ; prepares this faction's data and registers it for updating
 function EnableFaction(int jEnabledFactionData)
 	jFactionData = jEnabledFactionData
@@ -543,7 +546,7 @@ ReferenceAlias Function TrySpawnCommander(float curGameTime, bool onlySpawnIfHas
 
 	int cmderUnitTypeIndex = jMap.getInt(jFactionData, "CmderUnitIndex")
 
-	ReferenceAlias cmderAlias = FindEmptyAlias("Commander")
+	ReferenceAlias cmderAlias = GetFreeCmderAliasSlot()
 
 	if cmderAlias == None
 		return None
@@ -650,17 +653,50 @@ ReferenceAlias function FindEmptyAlias(string aliasPrefix)
 	endwhile
 endfunction
 
+ReferenceAlias Function GetFreeCmderAliasSlot()
+	;the alias ids used by commanders range from 13 to 27
+
+	int checkedAliasesCount = 0
+
+	While checkedAliasesCount < 15
+		lastCheckedCmderAliasIndex -= 1
+
+		if lastCheckedCmderAliasIndex < 13
+			lastCheckedCmderAliasIndex = 27
+		endif
+
+		ReferenceAlias cmderAlias = GetAlias(lastCheckedCmderAliasIndex) as ReferenceAlias
+		
+		if(!cmderAlias.GetReference())
+			return cmderAlias
+		endif
+
+		checkedAliasesCount += 1
+	EndWhile
+	
+	return None
+endFunction
+
+
 ReferenceAlias Function GetFreeUnitAliasSlot()
-	;the alias ids used by units range from 21 to 80
-	Int i = 81
-	While i > 21
-		i -= 1
-		;debug.Trace(GetAlias(i))
-		ReferenceAlias unitAlias = GetAlias(i) as ReferenceAlias
+	;the alias ids used by units range from 28 to 127
+
+	int checkedAliasesCount = 0
+
+	While checkedAliasesCount < 100
+		lastCheckedUnitAliasIndex -= 1
+
+		if lastCheckedUnitAliasIndex < 28
+			lastCheckedUnitAliasIndex = 127
+		endif
+
+		ReferenceAlias unitAlias = GetAlias(lastCheckedUnitAliasIndex) as ReferenceAlias
 		
 		if(!unitAlias.GetReference())
 			return unitAlias
 		endif
+
+		checkedAliasesCount += 1
 	EndWhile
 	
 	return None

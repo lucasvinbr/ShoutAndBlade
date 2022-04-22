@@ -241,7 +241,7 @@ begin
 	nextAliasId := GetEditValue(ElementByPath(curEditedQuest, 'ANAM')); //get next available aliasId
 	
 	// create new cmders now
-	for j := 1 to 8 do begin
+	for j := 1 to 14 do begin
 		
 		createdUnitIndex := (j + 1);
 		// the first alias of the quest is the base cmder
@@ -264,14 +264,14 @@ begin
 	// create script entries for the new cmders
 	curEditedListElement := ElementByPath(curEditedQuest, 'VMAD\Aliases');
 	// reset the aliasID counter, because we'll count through it again for each cmder
-	nextAliasId := nextAliasId - 8;
+	nextAliasId := nextAliasId - 14;
 	
-	for j := 1 to 8 do begin
+	for j := 1 to 14 do begin
 		
 		createdUnitIndex := (j + 1);
 	
-		// the first script in the alias scripts list is a cmder script!
-		curEditedElement := ElementAssign(curEditedListElement, HighInteger, ElementByIndex(curEditedListElement, 0), false);
+		// the second script in the alias scripts list is a cmder script!
+		curEditedElement := ElementAssign(curEditedListElement, HighInteger, ElementByIndex(curEditedListElement, 1), false);
 		SetEditValue(ElementByPath(curEditedElement, 'Object Union\Object v2\Alias'), nextAliasId);
 		
 		// get the properties list of the first and only script of the cmder
@@ -307,9 +307,9 @@ begin
 	curEditedListElement := ElementByPath(curEditedElement, 'Alias Package Data');
 	
 	// reset the aliasID counter, because we'll count through it again for each cmder
-	nextAliasId := nextAliasId - 8;
+	nextAliasId := nextAliasId - 14;
 	
-	for j := 1 to 8 do begin
+	for j := 1 to 14 do begin
 		
 		createdUnitIndex := (j + 1);
 		// create new package based on the first one of this fac
@@ -350,12 +350,12 @@ begin
 	
 	//we've got to update the script alias ID too
 	curEditedElementTwo := ElementByPath(curEditedQuest, 'VMAD\Aliases');
-	curEditedElementTwo := ElementByIndex(curEditedElementTwo, 1);
+	curEditedElementTwo := ElementByIndex(curEditedElementTwo, 0);
 	SetEditValue(ElementByPath(curEditedElementTwo, 'Object Union\Object v2\Alias'), nextAliasId);
 	
 	nextAliasId := nextAliasId + 1;
 	
-	for j := 1 to 59 do begin
+	for j := 1 to 99 do begin
 		
 		createdUnitIndex := (j + 1);
 		
@@ -370,10 +370,10 @@ begin
 	curEditedListElement := ElementByPath(curEditedQuest, 'VMAD\Aliases');
 	// since we've edited unit1's ID and the list is sorted, it should have moved to the end of the list!
 	curEditedElement := ElementByIndex(curEditedListElement, ElementCount(curEditedListElement) - 1);
-	// count aliases from 1 to 60 again
-	nextAliasId := nextAliasId - 59;
+	// count aliases from 1 to 100 again
+	nextAliasId := nextAliasId - 99;
 	
-	for j := 1 to 59 do begin
+	for j := 1 to 99 do begin
 		
 		createdUnitIndex := (j + 1);
 		
