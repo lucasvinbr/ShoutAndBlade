@@ -159,7 +159,8 @@ Function RunDestinationsUpdate(float curGameTime)
 
 	; B can be an attack or defend destination. If no "good" targets are available, fall back to a random loc, like A
 	if curGameTime - gameTimeOfLastDestinationChange_B > gameTimeBeforeChangeDestination || \
-		 destinationScript_B == None || destinationScript_B == destinationScript_A || destinationScript_B.factionScript == self || \
+		 destinationScript_B == None || destinationScript_B == destinationScript_A || \
+		 (destinationScript_B.factionScript == self && !destinationScript_B.IsBeingContested()) || \
 		 destinationScript_B.isEnabled == false
 
 		targetLocIndex = jArray.getInt(jDefenseTargetsArray, Utility.RandomInt(0, jArray.count(jDefenseTargetsArray) - 1), -1)
@@ -178,12 +179,16 @@ Function RunDestinationsUpdate(float curGameTime)
 		gameTimeOfLastDestinationChange_B = curGameTime
 	endif
 
-	; destination C should be defensive. Look for locations we control that are currently contested and go there, 
-	; or just randomly patrol our locations
+	; C is like B: defend if necessary, attack if not
 	if curGameTime - gameTimeOfLastDestinationChange_C > gameTimeBeforeChangeDestination || \
-		destinationScript_C == None || destinationScript_C.factionScript != self || destinationScript_C.isEnabled == false
+		(destinationScript_C.factionScript == self && !destinationScript_C.IsBeingContested()) || \
+		destinationScript_C == destinationScript_B ||destinationScript_C == None || destinationScript_C.isEnabled == false
 
 		targetLocIndex = jArray.getInt(jDefenseTargetsArray, Utility.RandomInt(0, jArray.count(jDefenseTargetsArray) - 1), -1)
+
+		if targetLocIndex == -1
+			targetLocIndex = jArray.getInt(jAttackTargetsArray, Utility.RandomInt(0, jArray.count(jAttackTargetsArray) - 1), -1)
+		endif
 
 		if targetLocIndex == -1
 			destinationScript_C = LocationDataHandler.GetRandomLocation()
