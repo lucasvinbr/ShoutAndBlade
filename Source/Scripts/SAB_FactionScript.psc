@@ -184,8 +184,9 @@ Function RunDestinationsUpdate(float curGameTime)
 
 	; C is like B: defend if necessary, attack if not
 	if curGameTime - gameTimeOfLastDestinationChange_C > gameTimeBeforeChangeDestination || \
+		destinationScript_C == None || destinationScript_C.isEnabled == false || \
 		(destinationScript_C.factionScript == self && !destinationScript_C.IsBeingContested()) || \
-		destinationScript_C == destinationScript_B ||destinationScript_C == None || destinationScript_C.isEnabled == false
+		destinationScript_C == destinationScript_B
 
 		targetLocIndex = jArray.getInt(jDefenseTargetsArray, Utility.RandomInt(0, jArray.count(jDefenseTargetsArray) - 1), -1)
 
