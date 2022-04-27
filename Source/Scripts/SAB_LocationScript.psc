@@ -6,7 +6,13 @@ Cell[] Property InteriorCells Auto
 { The cells this location contains. These cells will have their owner set to the current controlling faction }
 
 ObjectReference[] Property ExternalSpawnPoints Auto
+{ Array of objects that should be used as spawn points when outside, but close to, the location. SAB_ObjectsToUseAsSpawnsList will be used instead if not set }
+
 ObjectReference[] Property InternalSpawnPoints Auto
+{ Array of objects that should be used as spawn points when inside any of the location's interiorCells. SAB_ObjectsToUseAsSpawnsList will be used instead if not set }
+
+FormList Property SAB_ObjectsToUseAsSpawnsList Auto
+{ (Auto-fill) Formlist with objects like xmarkers, that should generally serve as "good enough" spawn points }
 
 ObjectReference Property DefaultLocationsContentParent Auto
 { The xmarker that should be the enable parent of all content that should be disabled when this location is taken by one of the SAB factions }
@@ -229,7 +235,7 @@ bool function RunCloseByUpdate()
 			; go fight the attacking cmder if we're under attack!
 			if spawnedUnitAlias != None
 				if InteractingCommander != None && InteractingCommander.factionScript != factionScript
-					(spawnedUnitAlias.GetReference() as Actor).StartCombat(InteractingCommander.GetReference() as Actor)
+					(spawnedUnitAlias.GetReference() as Actor).SendTrespassAlarm(InteractingCommander.GetReference() as Actor)
 				endif
 			endif
 		endif
@@ -299,10 +305,18 @@ EndFunction
 
 
 ObjectReference Function GetSpawnLocationForUnit()
-	if playerIsInside && InternalSpawnPoints.Length > 0
-		return InternalSpawnPoints[Utility.RandomInt(0, InternalSpawnPoints.Length - 1)]
-	else 
-		return ExternalSpawnPoints[Utility.RandomInt(0, ExternalSpawnPoints.Length - 1)]
+	if playerIsInside
+		if InternalSpawnPoints.Length > 0
+			return InternalSpawnPoints[Utility.RandomInt(0, InternalSpawnPoints.Length - 1)]
+		else
+			return Game.FindRandomReferenceOfAnyTypeInListFromRef(SAB_ObjectsToUseAsSpawnsList, playerActor, 3000)
+		endif
+	else
+		if ExternalSpawnPoints.Length > 0
+			return ExternalSpawnPoints[Utility.RandomInt(0, ExternalSpawnPoints.Length - 1)]
+		else 
+			return Game.FindRandomReferenceOfAnyTypeInListFromRef(SAB_ObjectsToUseAsSpawnsList, GetReference(), 3000)
+		endif
 	endif
 EndFunction
 
