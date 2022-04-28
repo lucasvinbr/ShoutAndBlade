@@ -177,7 +177,7 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 	playerIsInside = IsRefInsideThisLocation(playerActor)
 
 	if playerIsInside
-		if InternalSpawnPoints.Length > 0
+		if InteriorCells.Length > 0
 			Cell curPlayerCell = playerActor.GetParentCell()
 			if curPlayerCell == None || !curPlayerCell.IsInterior()
 				playerIsInside = false
@@ -309,13 +309,13 @@ ObjectReference Function GetSpawnLocationForUnit()
 		if InternalSpawnPoints.Length > 0
 			return InternalSpawnPoints[Utility.RandomInt(0, InternalSpawnPoints.Length - 1)]
 		else
-			return Game.FindRandomReferenceOfAnyTypeInListFromRef(SAB_ObjectsToUseAsSpawnsList, playerActor, 3000)
+			return Game.FindRandomReferenceOfAnyTypeInListFromRef(SAB_ObjectsToUseAsSpawnsList, playerActor, 4000)
 		endif
 	else
 		if ExternalSpawnPoints.Length > 0
 			return ExternalSpawnPoints[Utility.RandomInt(0, ExternalSpawnPoints.Length - 1)]
 		else 
-			return Game.FindRandomReferenceOfAnyTypeInListFromRef(SAB_ObjectsToUseAsSpawnsList, GetReference(), 3000)
+			return Game.FindRandomReferenceOfAnyTypeInListFromRef(SAB_ObjectsToUseAsSpawnsList, GetReference(), 4000)
 		endif
 	endif
 EndFunction
