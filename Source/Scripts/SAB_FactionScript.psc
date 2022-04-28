@@ -582,28 +582,28 @@ EndFunction
 ReferenceAlias Function SpawnUnitForTroopContainer(SAB_TroopContainerScript troopContainer, int unitIndex, ObjectReference spawnLocation, float containerSetupTime, int cmderFollowRank = -1)
 	
 	if unitIndex < 0
-		debug.Trace("spawn unit for cmder: invalid unit index!")
+		debug.Trace("spawn unit for container: invalid unit index!")
 		return None
 	endif
 
 	ReferenceAlias unitAlias = GetFreeUnitAliasSlot()
 
 	if unitAlias == None
-		debug.Trace("spawn unit for cmder: no free alias slot!")
+		debug.Trace("spawn unit for container: no free alias slot!")
 		return None
 	endif
 
 	int unitIndexInUnitUpdater = UnitUpdater.UnitUpdater.RegisterAliasForUpdates(unitAlias as SAB_UnitScript)
 
 	if unitIndexInUnitUpdater == -1
-		debug.Trace("spawn unit for cmder: unitIndexInUnitUpdater is -1!")
+		debug.Trace("spawn unit for container: unitIndexInUnitUpdater is -1!")
 		return None
 	endif
 
 	Actor spawnedUnit = SpawnerScript.SpawnUnit(spawnLocation, OurFaction, unitIndex, -1, cmderFollowRank)
 
 	if spawnedUnit == None
-		debug.Trace("spawn unit for cmder: got none as spawnedUnit, aborting!")
+		debug.Trace("spawn unit for container: got none as spawnedUnit, aborting!")
 		UnitUpdater.UnitUpdater.UnregisterAliasFromUpdates(unitIndexInUnitUpdater)
 		return None
 	endif
