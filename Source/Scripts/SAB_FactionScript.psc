@@ -19,9 +19,9 @@ SAB_SpawnerScript Property SpawnerScript Auto
 
 SAB_LocationDataHandler Property LocationDataHandler Auto
 
-SAB_LocationScript destinationScript_A
-SAB_LocationScript destinationScript_B
-SAB_LocationScript destinationScript_C
+SAB_LocationScript Property destinationScript_A Auto Hidden
+SAB_LocationScript Property destinationScript_B Auto Hidden
+SAB_LocationScript Property destinationScript_C Auto Hidden
 
 float gameTimeOfLastDestinationChange_A = 0.0
 float gameTimeOfLastDestinationChange_B = 0.0

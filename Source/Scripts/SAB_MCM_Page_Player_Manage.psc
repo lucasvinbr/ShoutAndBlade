@@ -47,7 +47,7 @@ Function SetupPage()
 
     string playerFacName = "$sab_mcm_locationedit_ownership_option_neutral"
 
-    if playerFactionIndex > 0
+    if playerFactionIndex >= 0
         jPlayerFactionData = jArray.getObj(MainPage.MainQuest.FactionDataHandler.jSABFactionDatasArray, playerFactionIndex)
         ; set up fac if it doesn't exist
         if jPlayerFactionData == 0
@@ -63,61 +63,35 @@ Function SetupPage()
 
     AddEmptyOption()
 
+    if playerFactionIndex >= 0
+        ; show faction's move destinations
+        SAB_FactionScript facScript = MainPage.MainQuest.FactionDataHandler.SAB_FactionQuests[playerFactionIndex]
 
-    AddEmptyOption()
-    AddTextOptionST("PLYR_DATA_SAVE", "$sab_mcm_factionedit_button_save", "")
-    AddTextOptionST("PLYR_DATA_LOAD", "$sab_mcm_factionedit_button_load", "")
+        AddTextOptionST("PLYR_CUR_FAC_DEST___A", "$sab_mcm_mytroops_menu_ourdest_a", GetLocationNameForOurDests(facScript.destinationScript_A))
+        AddTextOptionST("PLYR_CUR_FAC_DEST___B", "$sab_mcm_mytroops_menu_ourdest_b", GetLocationNameForOurDests(facScript.destinationScript_B))
+        AddTextOptionST("PLYR_CUR_FAC_DEST___C", "$sab_mcm_mytroops_menu_ourdest_c", GetLocationNameForOurDests(facScript.destinationScript_C))
+    endif
+
     
 EndFunction
 
-state PLYR_DATA_SAVE
-    event OnSelectST(string state_id)
-        string filePath = JContainers.userDirectory() + "SAB/factionData.json"
-        JValue.writeToFile(MainPage.MainQuest.FactionDataHandler.jSABFactionDatasArray, filePath)
-        ShowMessage("Save: " + filePath, false)
-	endEvent
 
-    event OnDefaultST(string state_id)
-        ; nothing
-    endevent
+string Function GetLocationNameForOurDests(SAB_LocationScript locScript)
+    if locScript != None
+        return locScript.ThisLocation.GetName()
+    else
+        return "$sab_mcm_mytroops_menu_ourdest_undefined"
+    endif
+EndFunction
 
-	event OnHighlightST(string state_id)
-        MainPage.ToggleQuickHotkey(true)
-		SetInfoText("$sab_mcm_factionedit_button_save_desc")
-	endEvent
-endstate
 
-state PLYR_DATA_LOAD
-    event OnSelectST(string state_id)
-        MainPage.MainQuest.SpawnerScript.HideCustomizationGuy()
-        string filePath = JContainers.userDirectory() + "SAB/factionData.json"
-        MainPage.isLoadingData = true
-        int jReadData = JValue.readFromFile(filePath)
-        if jReadData != 0
-            ShowMessage("$sab_mcm_shared_popup_msg_load_started", false)
-            ;force a page reset to disable all action buttons!
-            ForcePageReset()
-            MainPage.MainQuest.FactionDataHandler.jSABFactionDatasArray = JValue.releaseAndRetain(MainPage.MainQuest.FactionDataHandler.jSABFactionDatasArray, jReadData, "ShoutAndBlade")
-            MainPage.MainQuest.FactionDataHandler.EnsureArrayCounts()
-            MainPage.MainQuest.FactionDataHandler.UpdateAllFactionQuestsAccordingToJMap()
-            MainPage.isLoadingData = false
-            Debug.Notification("SAB: Load complete!")
-            ShowMessage("$sab_mcm_shared_popup_msg_load_success", false)
-            ForcePageReset()
-        else
-            MainPage.isLoadingData = false
-            ShowMessage("$sab_mcm_shared_popup_msg_load_fail", false)
-        endif
-	endEvent
-
-    event OnDefaultST(string state_id)
-        ; nothing
-    endevent
+state PLYR_CUR_FAC_DEST
 
 	event OnHighlightST(string state_id)
         MainPage.ToggleQuickHotkey(true)
-		SetInfoText("$sab_mcm_factionedit_button_load_desc")
+		SetInfoText("$sab_mcm_mytroops_menu_ourdest_desc")
 	endEvent
+
 endstate
 
 
