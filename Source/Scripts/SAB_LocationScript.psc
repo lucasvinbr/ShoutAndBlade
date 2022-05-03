@@ -15,7 +15,7 @@ FormList Property SAB_ObjectsToUseAsSpawnsList Auto
 { (Auto-fill) Formlist with objects like xmarkers, that should generally serve as "good enough" spawn points }
 
 ObjectReference Property DefaultLocationsContentParent Auto
-{ The xmarker that should be the enable parent of all content that should be disabled when this location is taken by one of the SAB factions }
+{ (Optional) The xmarker that should be the enable parent of all content that should be disabled when this location is taken by one of the SAB factions }
 
 int Property jNearbyLocationsArray Auto Hidden
 { a jArray filled with the locationDataHandler indexes of locations near this one }
@@ -58,7 +58,11 @@ Function DisableLocation()
 	BecomeNeutral(false)
 	ToggleNearbyUpdates(false)
 	AliasUpdater.UnregisterAliasFromUpdates(indexInUpdater)
-	DefaultLocationsContentParent.Enable()
+
+	if DefaultLocationsContentParent != None
+		DefaultLocationsContentParent.Enable()
+	endif
+	
 EndFunction
 
 Function BeTakenByFaction(SAB_FactionScript factionScriptRef, bool notify = true)
@@ -194,10 +198,12 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 
 		; if a faction controls this location, disable default content if it's still enabled.
 		; if it's neutral, enable it back!
-		if factionScript != None && !DefaultLocationsContentParent.IsDisabled()
-			DefaultLocationsContentParent.Disable()
-		elseif factionScript == None && DefaultLocationsContentParent.IsDisabled()
-			DefaultLocationsContentParent.Enable()
+		if DefaultLocationsContentParent != None
+			if factionScript != None && !DefaultLocationsContentParent.IsDisabled()
+				DefaultLocationsContentParent.Disable()
+			elseif factionScript == None && DefaultLocationsContentParent.IsDisabled()
+				DefaultLocationsContentParent.Enable()
+			endif
 		endif
 			
 	endif
