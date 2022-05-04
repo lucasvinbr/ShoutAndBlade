@@ -63,7 +63,8 @@ Event OnUpdate()
 		
 	endif
 
-	debug.Trace("deadBodyCleaner: deleted body at index " + bodyIndexToEraseNow)
-
 	numExistingBodies -= 1
+	
+	debug.Trace("deadBodyCleaner: deleted body at index " + bodyIndexToEraseNow)
+	debug.Trace("deadBodyCleaner: bodycount is now " + numExistingBodies)
 EndEvent

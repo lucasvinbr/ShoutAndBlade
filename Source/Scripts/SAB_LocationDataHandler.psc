@@ -372,8 +372,7 @@ int Function GetLocationIndexesOwnedByFaction(SAB_FactionScript factionScript)
 EndFunction
 
 
-; returns a random location from the enabled locations list.
-; if the enabled locations list is being rebuilt
+; returns a random location from the enabled locations list
 SAB_LocationScript Function GetRandomLocation()
     return EnabledLocations[Utility.RandomInt(0, NextEnabledLocationIndex - 1)]
 endfunction

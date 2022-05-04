@@ -1,13 +1,13 @@
 Scriptname SAB_TroopContainerScript extends SAB_UpdatedReferenceAlias
 { script for any alias that has a list of troops they can spawn, recruit and upgrade. Should be updated regularly via alias updaters }
 
-; a map of "unit index - amount" ints describing the units currently controlled by this commander
+; a map of "unit index - amount" ints describing the units currently controlled by this container
 int property jOwnedUnitsMap auto Hidden
 
-; a map of "unit index - amount" ints describing the living units currently spawned by this commander
+; a map of "unit index - amount" ints describing the living units currently spawned by this container
 int property jSpawnedUnitsMap auto Hidden
 
-; a map of "unit index - amount" ints describing the units that can still be spawned by this commander
+; a map of "unit index - amount" ints describing the units that can still be spawned by this container
 int Property jSpawnOptionsMap Auto Hidden
 
 ; a simple counter for spawned living units, just to not have to iterate through the jMaps

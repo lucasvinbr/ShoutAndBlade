@@ -118,14 +118,14 @@ EndFunction
 
 Event OnCombatStateChanged(Actor akTarget, int aeCombatState)
 	if aeCombatState == 1 || aeCombatState == 2 ; engaging or searching
-		debug.Trace("player: started combat!")
+		; debug.Trace("player: started combat!")
 
 		; if the current spawn is too far away,
 		; update the spawn point to where the combat started
 		
-		if TroopSpawnPoint.GetDistance(playerActor) > 4000.0
-			TroopSpawnPoint.MoveTo(playerActor)
-		endif
+		; if TroopSpawnPoint.GetDistance(playerActor) > 4000.0
+		; 	TroopSpawnPoint.MoveTo(playerActor)
+		; endif
 
 	endif
 EndEvent
