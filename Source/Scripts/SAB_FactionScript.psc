@@ -762,3 +762,49 @@ EndFunction
 string Function GetFactionName()
 	return jMap.getStr(jFactionData, "name", "Faction")
 endfunction
+
+; returns the amount of currently "active" commanders
+; (an active cmder may not necessarily be alive, but still hasn't had their alias cleared)
+int Function GetNumActiveCommanders()
+	;the alias ids used by commanders range from 13 to 27
+	int numActiveCmders = 0
+	int i = 28
+
+	While i > 13
+		i -= 1
+
+		ReferenceAlias cmderAlias = GetAlias(i) as ReferenceAlias
+		
+		if(cmderAlias.GetReference())
+			numActiveCmders += 1
+		endif
+
+	EndWhile
+	
+	return numActiveCmders
+EndFunction
+
+
+; returns the combined autocalc power of all currently "active" commanders' armies
+; (an active cmder may not necessarily be alive, but still hasn't had their alias cleared)
+float Function GetTotalActiveCommandersAutocalcPower()
+	;the alias ids used by commanders range from 13 to 27
+	float totalPower = 0
+	int i = 28
+
+	SAB_UnitDataHandler unitDataHandler = SpawnerScript.UnitDataHandler
+
+	While i > 13
+		i -= 1
+
+		ReferenceAlias cmderAlias = GetAlias(i) as ReferenceAlias
+		
+		if(cmderAlias.GetReference())
+			SAB_CommanderScript cmderScript = cmderAlias as SAB_CommanderScript
+			totalPower += unitDataHandler.GetTotalAutocalcPowerFromArmy(cmderScript.jOwnedUnitsMap)
+		endif
+
+	EndWhile
+	
+	return totalPower
+EndFunction
