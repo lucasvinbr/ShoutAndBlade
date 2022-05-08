@@ -163,12 +163,14 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 						; the location is neutral! Let's take it
 						TargetLocationScript.InteractingCommander = self
 						TargetLocationScript.BeTakenByFaction(factionScript, true)
+						TryTransferUnitsToAnotherContainer(TargetLocationScript)
 					endif
 				else
 					; if the player is nearby but the location is empty, take it
 					if TargetLocationScript.factionScript == None
 						TargetLocationScript.InteractingCommander = self
 						TargetLocationScript.BeTakenByFaction(factionScript, true)
+						TryTransferUnitsToAnotherContainer(TargetLocationScript)
 					endif
 				endif
 			endif
