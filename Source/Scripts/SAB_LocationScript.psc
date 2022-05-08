@@ -265,7 +265,7 @@ EndFunction
 
 ; returns true if this location has recently lost a unit
 bool Function IsBeingContested()
-	return timeSinceLastUnitLoss > 0.1 ;TODO make this configurable
+	return timeOfLastUnitLoss == 0.0 || timeSinceLastUnitLoss < 0.1
 endfunction
 
 ; the location can only get involved in autocalc battles if the player isn't nearby.
