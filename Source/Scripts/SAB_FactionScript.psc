@@ -545,6 +545,10 @@ ReferenceAlias Function TrySpawnCommander(float curGameTime, bool onlySpawnIfHas
 	; find a spawn for the cmder
 	ObjectReference cmderSpawn = GetCmderSpawnPoint()
 
+	if cmderSpawn == None
+		return None
+	endif
+
 	int cmderUnitTypeIndex = jMap.getInt(jFactionData, "CmderUnitIndex")
 
 	ReferenceAlias cmderAlias = GetFreeCmderAliasSlot()
@@ -581,6 +585,10 @@ EndFunction
 ; find a free unit slot and spawn a unit of the desired type
 ReferenceAlias Function SpawnUnitForTroopContainer(SAB_TroopContainerScript troopContainer, int unitIndex, ObjectReference spawnLocation, float containerSetupTime, int cmderFollowRank = -1)
 	
+	if spawnLocation == None
+		return None
+	endif
+
 	if unitIndex < 0
 		debug.Trace("spawn unit for container: invalid unit index!")
 		return None
