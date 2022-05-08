@@ -395,6 +395,31 @@ Function RemoveLocationFromOwnedList(SAB_LocationScript locationScript)
 	
 EndFunction
 
+; if we're still owners of the attacked loc and aren't busy defending some other loc that's also being attacked,
+; change one of our defensive objectives to the attacked loc
+Function ReactToLocationUnderAttack(SAB_LocationScript attackedLoc, float curGameTime)
+	if attackedLoc.factionScript == self
+		if destinationScript_B == None || destinationScript_B.factionScript != self || \
+			(destinationScript_B.factionScript == self && !destinationScript_B.IsBeingContested()) || \
+			destinationScript_B.isEnabled == false
+
+			destinationScript_B = attackedLoc
+			CmderDestination_B.GetReference().MoveTo(destinationScript_B.MoveDestination)
+			gameTimeOfLastDestinationChange_B = curGameTime
+		
+		elseif destinationScript_C == None || destinationScript_C.isEnabled == false || \
+				destinationScript_C.factionScript != self || \
+				(destinationScript_C.factionScript == self && !destinationScript_C.IsBeingContested()) || \
+				destinationScript_C == destinationScript_B
+		
+				destinationScript_C = attackedLoc
+				CmderDestination_C.GetReference().MoveTo(destinationScript_C.MoveDestination)
+				gameTimeOfLastDestinationChange_C = curGameTime
+
+		endif
+	endif
+EndFunction
+
 
 ; spends gold and returns a number of recruits "purchased".
 ; the caller should do something with this number

@@ -35,10 +35,10 @@ bool Property isEnabled = true Auto Hidden
 
 bool playerIsInside = false
 
-float timeOfLastUnitLoss = 0.0
+float timeOfLastUnitLoss = -1.0
 
 ; used for knowing whether this location is under attack or not
-float timeSinceLastUnitLoss = 0.0
+float timeSinceLastUnitLoss = 1.0
 
 SAB_CommanderScript Property InteractingCommander Auto Hidden
 { a reference to the commander currently either attacking or reinforcing this location }
@@ -160,6 +160,11 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 		if timeOfLastUnitLoss == 0.0
 			timeOfLastUnitLoss = curGameTime
 			timeSinceLastUnitLoss = 0.0
+
+			; notify our owners about the attack
+			if factionScript
+				factionScript.ReactToLocationUnderAttack(self, curGameTime)
+			endif
 		else 
 			timeSinceLastUnitLoss = curGameTime - timeOfLastUnitLoss
 		endif
