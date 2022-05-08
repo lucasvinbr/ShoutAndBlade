@@ -49,7 +49,7 @@ Function AddNewLocationsFromAddon(SAB_LocationDataAddon addon)
 
     while isBusyUpdatingLocationData
         Debug.Trace("SAB queued addon location dist calculations is waiting")
-        Utility.Wait(2.0)
+        Utility.Wait(0.1)
     endwhile
 
     isBusyUpdatingLocationData = true
@@ -84,7 +84,7 @@ Function SetLocationEnabled(SAB_LocationScript locScript, bool enable)
 
     while isBusyUpdatingLocationData
         Debug.Trace("SAB queued location dist calculations is waiting")
-        Utility.Wait(2.0)
+        Utility.Wait(0.1)
     endwhile
 
     isBusyUpdatingLocationData = true
@@ -121,7 +121,7 @@ Function RebuildEnabledLocationsArray()
 
     while isBusyUpdatingLocationData
         Debug.Trace("SAB queued location dist calculations is waiting")
-        Utility.Wait(2.0)
+        Utility.Wait(0.1)
     endwhile
 
     isBusyUpdatingLocationData = true
@@ -159,7 +159,7 @@ Function CalculateLocationDistances()
 
     while isBusyUpdatingLocationData
         Debug.Trace("SAB queued location dist calculations is waiting")
-        Utility.Wait(2.0)
+        Utility.Wait(0.1)
     endwhile
 
     isBusyUpdatingLocationData = true
@@ -181,7 +181,7 @@ Function CalculateLocationDistances()
         debug.Trace(baseRef)
 
         while !baseRef
-            Utility.Wait(0.5)
+            Utility.Wait(0.15)
             baseRef = EnabledLocations[i].GetReference()
             debug.Trace(baseRef)
         endwhile
@@ -234,7 +234,7 @@ Function CalculateLocationDistances()
                 JIntMap.setFlt(jDistMapsFromI, j, distance)
             endif
             j += 1
-            Utility.Wait(0.1)
+            ;Utility.Wait(0.1)
         endwhile
 
         ; store the (limited to 3 elements) closest locations array in the location script
@@ -249,7 +249,7 @@ Function CalculateLocationDistances()
         jValue.zeroLifetime(jClosestIndexesArray)
 
         i += 1
-        Utility.Wait(0.1)
+        ;Utility.Wait(0.1)
     endwhile
 
     jValue.release(jlocationDistancesMap)
