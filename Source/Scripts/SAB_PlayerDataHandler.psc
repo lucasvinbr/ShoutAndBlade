@@ -3,10 +3,42 @@ scriptname SAB_PlayerDataHandler extends Quest
 
 SAB_PlayerCommanderScript Property PlayerCommanderScript Auto
 
+SAB_FactionScript Property PlayerFaction Auto Hidden
+
+
+Function Initialize()
+	; code
+EndFunction
+
 
 ReferenceAlias Function SpawnPlayerUnit(int unitIndex, ObjectReference targetLocation, float containerSetupTime)
 	; TODO copy factionScript spawn procedure, fetching empty aliases from the player quest instead of faction quest
 EndFunction
+
+; runs procedures needed for leaving previous faction (if any) and joining the new one. 
+; Target faction can be None if the player is just leaving
+Function JoinFaction(SAB_FactionScript targetFaction)
+
+	if PlayerFaction == targetFaction
+		return
+	endif
+
+	; leave previous faction if any
+	Actor playerActor = Game.GetPlayer()
+
+	; make player leave previous faction, then join the new one
+	if PlayerFaction != targetFaction
+		PlayerFaction.RemovePlayerFromOurFaction(playerActor)
+	endif
+
+	PlayerFaction = targetFaction
+	; if faction isn't none, set up cmder markers
+	if PlayerFaction != None
+		PlayerFaction.AddPlayerToOurFaction(playerActor, self)
+	endif
+	
+EndFunction
+
 
 ; playerData jmap entries:
 

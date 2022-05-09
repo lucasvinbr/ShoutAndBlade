@@ -111,17 +111,17 @@ state PLYR_CUR_FAC
         Actor playerActor = Game.GetPlayer()
 
         ; make player leave previous faction, then join the new one
-        if playerFactionIndex > -1
-            SAB_FactionScript previousFac = MainPage.MainQuest.FactionDataHandler.SAB_FactionQuests[playerFactionIndex]
-            previousFac.RemoveActorFromOurFaction(playerActor)
-        endif
+        SAB_FactionScript newFac = None
 
         if ownerIndex != -1
-            SAB_FactionScript newFac = MainPage.MainQuest.FactionDataHandler.SAB_FactionQuests[ownerIndex]
-            newFac.AddActorToOurFaction(playerActor)
+            newFac = MainPage.MainQuest.FactionDataHandler.SAB_FactionQuests[ownerIndex]
         endif
 
+        MainPage.MainQuest.PlayerDataHandler.JoinFaction(newFac)
+
         playerFactionIndex = ownerIndex
+
+        ForcePageReset()
         ; jMap.setInt(jLocDataMap, "OwnerFactionIndex", ownerIndex)
 	endEvent
 

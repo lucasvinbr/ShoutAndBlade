@@ -8,6 +8,7 @@ SAB_BackgroundUpdater Property BackgroundUpdater Auto
 SAB_SpawnersUpdater Property SpawnersUpdater Auto
 SAB_UnitsUpdater Property UnitsUpdater Auto
 SAB_CrowdReducer Property CrowdReducer Auto
+SAB_PlayerDataHandler Property PlayerDataHandler Auto
 
 
 bool Property HasInitialized = false Auto Hidden
@@ -23,6 +24,7 @@ event OnInit()
 		UnitsUpdater.Initialize()
 		CrowdReducer.Initialize()
 		LocationDataHandler.Initialize()
+		PlayerDataHandler.Initialize()
 		
 
 		; Debug.StartScriptProfiling("SAB_SpawnerScript")

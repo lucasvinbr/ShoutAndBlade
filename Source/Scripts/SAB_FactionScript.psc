@@ -40,6 +40,8 @@ int Property jFactionData Auto Hidden
 int Property jOwnedLocationIndexesArray Auto Hidden
 { indexes of the LocationDataHandler array that contain locations owned by this faction }
 
+SAB_PlayerDataHandler playerHandler
+
 bool cmderSpawnIsSet = false
 
 ; measured in days (1.0 is a day)
@@ -89,10 +91,24 @@ Function SetRelationsWithFaction(Faction targetFaction, int relationType)
 EndFunction
 
 
+Function AddPlayerToOurFaction(Actor playerActor, SAB_PlayerDataHandler playerDataHandler)
+	playerActor.AddToFaction(OurFaction)
+	playerHandler = playerDataHandler
+	ToggleCmderMarkersDisplay(true)
+EndFunction
+
+Function RemovePlayerFromOurFaction(Actor playerActor)
+	playerActor.RemoveFromFaction(OurFaction)
+	ToggleCmderMarkersDisplay(false)
+	playerHandler = None
+EndFunction
+
+; don't use this for the player! use AddPlayerToOurFaction in that case
 Function AddActorToOurFaction(Actor targetActor)
 	targetActor.AddToFaction(OurFaction)
 EndFunction
 
+; don't use this for the player!
 Function RemoveActorFromOurFaction(Actor targetActor)
 	targetActor.RemoveFromFaction(OurFaction)
 EndFunction
@@ -400,8 +416,8 @@ EndFunction
 Function ReactToLocationUnderAttack(SAB_LocationScript attackedLoc, float curGameTime)
 	if attackedLoc.factionScript == self
 		if destinationScript_B == None || destinationScript_B.factionScript != self || \
-			(destinationScript_B.factionScript == self && !destinationScript_B.IsBeingContested()) || \
-			destinationScript_B.isEnabled == false
+				(destinationScript_B.factionScript == self && !destinationScript_B.IsBeingContested()) || \
+				destinationScript_B.isEnabled == false
 
 			destinationScript_B = attackedLoc
 			CmderDestination_B.GetReference().MoveTo(destinationScript_B.MoveDestination)
@@ -412,9 +428,9 @@ Function ReactToLocationUnderAttack(SAB_LocationScript attackedLoc, float curGam
 				(destinationScript_C.factionScript == self && !destinationScript_C.IsBeingContested()) || \
 				destinationScript_C == destinationScript_B
 		
-				destinationScript_C = attackedLoc
-				CmderDestination_C.GetReference().MoveTo(destinationScript_C.MoveDestination)
-				gameTimeOfLastDestinationChange_C = curGameTime
+			destinationScript_C = attackedLoc
+			CmderDestination_C.GetReference().MoveTo(destinationScript_C.MoveDestination)
+			gameTimeOfLastDestinationChange_C = curGameTime
 
 		endif
 	endif
@@ -576,11 +592,13 @@ ReferenceAlias Function TrySpawnCommander(float curGameTime, bool onlySpawnIfHas
 
 	int cmderUnitTypeIndex = jMap.getInt(jFactionData, "CmderUnitIndex")
 
-	ReferenceAlias cmderAlias = GetFreeCmderAliasSlot()
+	int cmderAliasID = GetFreeCmderAliasID()
 
-	if cmderAlias == None
+	if cmderAliasID == -1
 		return None
 	endif
+
+	ReferenceAlias cmderAlias = GetAlias(cmderAliasID) as ReferenceAlias
 
 	; check if we can afford creating a new cmder
 	int cmderCost = JDB.solveInt(".ShoutAndBlade.factionOptions.createCmderCost", 250)
@@ -602,6 +620,11 @@ ReferenceAlias Function TrySpawnCommander(float curGameTime, bool onlySpawnIfHas
 	; debug.Trace("spawned cmder package is " + cmderUnit.GetCurrentPackage())
 
 	jMap.setInt(jFactionData, "AvailableGold", currentGold - cmderCost)
+
+	; draw a map marker for this cmder!
+	if playerHandler
+		SetObjectiveDisplayed(cmderAliasID, true, true)
+	endif
 
 	return cmderAlias
 
@@ -687,7 +710,8 @@ ReferenceAlias function FindEmptyAlias(string aliasPrefix)
 	endwhile
 endfunction
 
-ReferenceAlias Function GetFreeCmderAliasSlot()
+; returns -1 if no free ID is found
+int Function GetFreeCmderAliasID()
 	;the alias ids used by commanders range from 13 to 27
 
 	int checkedAliasesCount = 0
@@ -702,13 +726,13 @@ ReferenceAlias Function GetFreeCmderAliasSlot()
 		ReferenceAlias cmderAlias = GetAlias(lastCheckedCmderAliasIndex) as ReferenceAlias
 		
 		if(!cmderAlias.GetReference())
-			return cmderAlias
+			return lastCheckedCmderAliasIndex
 		endif
 
 		checkedAliasesCount += 1
 	EndWhile
 	
-	return None
+	return -1
 endFunction
 
 
@@ -817,6 +841,18 @@ int Function GetNumActiveCommanders()
 	return numActiveCmders
 EndFunction
 
+
+Function ToggleCmderMarkersDisplay(bool markersEnabled)
+	;the alias ids used by commanders range from 13 to 27
+	int i = 28
+
+	While i > 13
+		i -= 1
+
+		SetObjectiveDisplayed(i, markersEnabled, true)
+
+	EndWhile
+EndFunction
 
 ; returns the combined autocalc power of all currently "active" commanders' armies
 ; (an active cmder may not necessarily be alive, but still hasn't had their alias cleared)
