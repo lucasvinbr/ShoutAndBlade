@@ -261,6 +261,40 @@ begin
 		
 	end;
 	
+	
+	
+	// create marker objectives for the new cmders
+	curEditedListElement := ElementByPath(curEditedQuest, 'Objectives');
+	// reset the aliasID counter, because we'll count through it again for each cmder
+	nextAliasId := nextAliasId - 14;
+	
+	for j := 1 to 14 do begin
+		
+		createdUnitIndex := (j + 1);
+	
+		// the marker for the first cmder is already set up, so we should just copy it
+		curEditedElement := ElementAssign(curEditedListElement, HighInteger, ElementByIndex(curEditedListElement, 0), false);
+		SetEditValue(ElementByPath(curEditedElement, 'QOBJ'), nextAliasId); //objective index
+		
+		// set marker text: "cmder heading towards A, B or C"
+		if (j mod 3) = 0 then begin
+			SetEditValue(ElementByPath(curEditedElement, 'NNAM'), 'Your SAB Faction Commander headed towards destination A');
+		end else if (j mod 3) = 1 then begin
+			SetEditValue(ElementByPath(curEditedElement, 'NNAM'), 'Your SAB Faction Commander headed towards destination B');
+		end else begin
+			SetEditValue(ElementByPath(curEditedElement, 'NNAM'), 'Your SAB Faction Commander headed towards destination C');
+		end;
+		
+		// set the actual target in the targets list to the new alias.
+		// there's only one target per objective
+		curEditedElement := ElementByIndex(ElementByPath(curEditedElement, 'Targets'), 0);
+		SetEditValue(ElementByPath(curEditedElement, 'QSTA\Alias'), nextAliasId); //target alias
+		
+		nextAliasId := nextAliasId + 1;
+	end;
+	
+	
+	
 	// create script entries for the new cmders
 	curEditedListElement := ElementByPath(curEditedQuest, 'VMAD\Aliases');
 	// reset the aliasID counter, because we'll count through it again for each cmder
