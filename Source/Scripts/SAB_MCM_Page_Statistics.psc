@@ -10,6 +10,7 @@ int numStatsPages = 0
 int jdisplayedDataArray
 
 bool isReloadingCurInfoSet = true
+bool showLoadingMsgOnNextReset = true
 
 string[] infoSets
 
@@ -51,6 +52,14 @@ Function SetupPage()
 
     AddTextOptionST("STATS_REFRESH_INFO_SET", "$sab_mcm_stats_button_refresh", "")
 
+    ; show a loading message to look a bit less like we froze
+    if showLoadingMsgOnNextReset
+        AddTextOptionST("SHARED_LOADING", "$sab_mcm_shared_loading", "")
+        showLoadingMsgOnNextReset = false
+        ForcePageReset()
+        return
+    endif
+
     if isReloadingCurInfoSet
         jdisplayedDataArray = jValue.releaseAndRetain(jdisplayedDataArray, jArray.object(), "ShoutAndBlade")
     endif
@@ -61,6 +70,7 @@ Function SetupPage()
         SetupFactionStatistics()
     endif
 
+    debug.Trace("numstatspages: " + numStatsPages)
     ; if there are too many entries, paginate!
     if numStatsPages > 1
         ; add pagintation slider
@@ -103,7 +113,7 @@ Function SetupLocationStatistics()
 
         ; calculate how many pages we'll need to show the content
         curStatsPage = 0
-        numStatsPages = Math.Ceiling(jArray.count(jdisplayedDataArray) / entriesPerPage)
+        numStatsPages = Math.Ceiling((jArray.count(jdisplayedDataArray) as float) / entriesPerPage)
     endif
 
     ; create the MCM entries now
@@ -158,7 +168,7 @@ Function SetupFactionStatistics()
 
         ; calculate how many pages we'll need to show the content
         curStatsPage = 0
-        numStatsPages = Math.Ceiling(jArray.count(jdisplayedDataArray) / entriesPerPage)
+        numStatsPages = Math.Ceiling((jArray.count(jdisplayedDataArray) as float) / entriesPerPage)
     endif
 
     ; create the MCM entries now
@@ -198,6 +208,7 @@ state STATS_CUR_INFO_SET
 		SetMenuOptionValueST(infoSets[index])
         curInfoSetBeingShown = index
         isReloadingCurInfoSet = true
+        showLoadingMsgOnNextReset = true
         ForcePageReset()
 	endEvent
 
@@ -206,6 +217,7 @@ state STATS_CUR_INFO_SET
         SetMenuOptionValueST(infoSets[index])
 		curInfoSetBeingShown = index
         isReloadingCurInfoSet = true
+        showLoadingMsgOnNextReset = true
         ForcePageReset()
 	endEvent
 
@@ -220,6 +232,7 @@ endstate
 state STATS_REFRESH_INFO_SET
     event OnSelectST(string state_id)
         isReloadingCurInfoSet = true
+        showLoadingMsgOnNextReset = true
         ForcePageReset()
 	endEvent
 
@@ -246,6 +259,7 @@ state STATS_CUR_DISPLAYED_PAGE_SLIDER
         curStatsPage = actualValue as int
 
 		SetSliderOptionValueST(value)
+        ForcePageReset()
 	endEvent
 
 	event OnDefaultST(string state_id)
@@ -255,6 +269,7 @@ state STATS_CUR_DISPLAYED_PAGE_SLIDER
         curStatsPage = actualValue as int
 
 		SetSliderOptionValueST(value)
+        ForcePageReset()
 	endEvent
 
 	event OnHighlightST(string state_id)
