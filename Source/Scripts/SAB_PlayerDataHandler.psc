@@ -27,7 +27,7 @@ Function JoinFaction(SAB_FactionScript targetFaction)
 	Actor playerActor = Game.GetPlayer()
 
 	; make player leave previous faction, then join the new one
-	if PlayerFaction != targetFaction
+	if PlayerFaction != None && PlayerFaction != targetFaction
 		PlayerFaction.RemovePlayerFromOurFaction(playerActor)
 	endif
 
