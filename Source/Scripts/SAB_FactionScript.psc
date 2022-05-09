@@ -423,10 +423,11 @@ Function ReactToLocationUnderAttack(SAB_LocationScript attackedLoc, float curGam
 			CmderDestination_B.GetReference().MoveTo(destinationScript_B.MoveDestination)
 			gameTimeOfLastDestinationChange_B = curGameTime
 		
-		elseif destinationScript_C == None || destinationScript_C.isEnabled == false || \
+		elseif destinationScript_B != attackedLoc && \
+				(destinationScript_C == None || destinationScript_C.isEnabled == false || \
 				destinationScript_C.factionScript != self || \
 				(destinationScript_C.factionScript == self && !destinationScript_C.IsBeingContested()) || \
-				destinationScript_C == destinationScript_B
+				destinationScript_C == destinationScript_B)
 		
 			destinationScript_C = attackedLoc
 			CmderDestination_C.GetReference().MoveTo(destinationScript_C.MoveDestination)
