@@ -1,5 +1,5 @@
 scriptname SAB_UnitsUpdater extends Quest
-{ updater for things that should spawn units, like nearby commanders. }
+{ updater for units, actors that are spawned by troop containers. }
 
 SAB_AliasUpdater Property UnitUpdater Auto
 
@@ -22,6 +22,6 @@ Event OnUpdate()
 
 		;debug.Trace("unit updater loop end")
 	; endwhile
-	RegisterForSingleUpdate(0.25)
+	RegisterForSingleUpdate(0.15)
 
 EndEvent
