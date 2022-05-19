@@ -624,7 +624,7 @@ ReferenceAlias Function TrySpawnCommander(float curGameTime, bool onlySpawnIfHas
 
 	; draw a map marker for this cmder!
 	if playerHandler
-		SetObjectiveDisplayed(cmderAliasID, true, true)
+		SetObjectiveDisplayed(cmderAliasID, true, false)
 	endif
 
 	return cmderAlias
@@ -850,7 +850,7 @@ Function ToggleCmderMarkersDisplay(bool markersEnabled)
 	While i > 13
 		i -= 1
 
-		SetObjectiveDisplayed(i, markersEnabled, true)
+		SetObjectiveDisplayed(i, markersEnabled, false)
 
 	EndWhile
 EndFunction
