@@ -75,11 +75,6 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 		return true
 	endif
 
-	float distToPlayer = playerActor.GetDistance(meActor)
-	; debug.Trace("dist to player from cmder of faction " + jMap.getStr(factionScript.jFactionData, "name", "Faction") + ": " + distToPlayer)
-
-	ToggleNearbyUpdates(distToPlayer <= GetIsNearbyDistance())
-
 	if !meActor.IsDead()
 		if !meActor.IsInCombat()
 			;debug.Trace("game time updating commander!")
@@ -105,7 +100,10 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 			meActor = None
 			return true
 		else
-			if !isNearby
+			; we check against the current "nearby" distance here,
+			; to be able to despawn less relevant dead cmders
+			float playerDistance = playerActor.GetDistance(meActor)
+			if playerDistance && playerDistance > GetIsNearbyDistance()
 				; we're dead and despawning but still had troops!
 				; give the faction some gold to compensate a little
 				factionScript.GetGoldFromDespawningCommander(jOwnedUnitsMap)
@@ -186,8 +184,6 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 endfunction
 
 
-
-
 ObjectReference Function GetSpawnLocationForUnit()
 	ObjectReference spawnLocation = meActor
 
@@ -239,6 +235,29 @@ Function SpawnBesiegingUnitAtPos(ObjectReference targetLocation)
 EndFunction
 
 
+Event OnAttachedToCell()
+	if !isNearby
+		ToggleNearbyUpdates(true)
+	endif
+EndEvent
+
+Event OnCellAttach()
+	if !isNearby
+		ToggleNearbyUpdates(true)
+	endif
+EndEvent
+
+Event OnCellDetach()
+	if isNearby
+		ToggleNearbyUpdates(false)
+	endif
+EndEvent
+
+Event OnDetachedFromCell()
+	if isNearby
+		ToggleNearbyUpdates(false)
+	endif
+EndEvent
 
 Event OnPackageEnd(Package akOldPackage)
 	; this is kind of reliable, but the cmder has to ge to the exact point, so we should probably run other, more "relaxed", checks
