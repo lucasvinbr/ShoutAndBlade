@@ -278,11 +278,11 @@ begin
 		
 		// set marker text: "cmder heading towards A, B or C"
 		if (j mod 3) = 0 then begin
-			SetEditValue(ElementByPath(curEditedElement, 'NNAM'), 'Your SAB Faction Commander headed towards destination A');
+			SetEditValue(ElementByPath(curEditedElement, 'NNAM'), 'Commander headed towards <Alias=CmderDestinationA_Loc>');
 		end else if (j mod 3) = 1 then begin
-			SetEditValue(ElementByPath(curEditedElement, 'NNAM'), 'Your SAB Faction Commander headed towards destination B');
+			SetEditValue(ElementByPath(curEditedElement, 'NNAM'), 'Commander headed towards <Alias=CmderDestinationB_Loc>');
 		end else begin
-			SetEditValue(ElementByPath(curEditedElement, 'NNAM'), 'Your SAB Faction Commander headed towards destination C');
+			SetEditValue(ElementByPath(curEditedElement, 'NNAM'), 'Commander headed towards <Alias=CmderDestinationC_Loc>');
 		end;
 		
 		// set the actual target in the targets list to the new alias.
