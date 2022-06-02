@@ -713,15 +713,15 @@ endfunction
 
 ; returns -1 if no free ID is found
 int Function GetFreeCmderAliasID()
-	;the alias ids used by commanders range from 13 to 27
+	;the alias ids used by commanders range from 17 to 31
 
 	int checkedAliasesCount = 0
 
 	While checkedAliasesCount < 15
 		lastCheckedCmderAliasIndex -= 1
 
-		if lastCheckedCmderAliasIndex < 13
-			lastCheckedCmderAliasIndex = 27
+		if lastCheckedCmderAliasIndex < 17
+			lastCheckedCmderAliasIndex = 31
 		endif
 
 		ReferenceAlias cmderAlias = GetAlias(lastCheckedCmderAliasIndex) as ReferenceAlias
@@ -738,15 +738,15 @@ endFunction
 
 
 ReferenceAlias Function GetFreeUnitAliasSlot()
-	;the alias ids used by units range from 28 to 127
+	;the alias ids used by units range from 32 to 131
 
 	int checkedAliasesCount = 0
 
 	While checkedAliasesCount < 100
 		lastCheckedUnitAliasIndex -= 1
 
-		if lastCheckedUnitAliasIndex < 28
-			lastCheckedUnitAliasIndex = 127
+		if lastCheckedUnitAliasIndex < 32
+			lastCheckedUnitAliasIndex = 131
 		endif
 
 		ReferenceAlias unitAlias = GetAlias(lastCheckedUnitAliasIndex) as ReferenceAlias
@@ -824,11 +824,11 @@ endfunction
 ; returns the amount of currently "active" commanders
 ; (an active cmder may not necessarily be alive, but still hasn't had their alias cleared)
 int Function GetNumActiveCommanders()
-	;the alias ids used by commanders range from 13 to 27
+	;the alias ids used by commanders range from 17 to 31
 	int numActiveCmders = 0
-	int i = 28
+	int i = 32
 
-	While i > 13
+	While i > 17
 		i -= 1
 
 		ReferenceAlias cmderAlias = GetAlias(i) as ReferenceAlias
@@ -844,10 +844,10 @@ EndFunction
 
 
 Function ToggleCmderMarkersDisplay(bool markersEnabled)
-	;the alias ids used by commanders range from 13 to 27
-	int i = 28
+	;the alias ids used by commanders range from 17 to 31
+	int i = 32
 
-	While i > 13
+	While i > 17
 		i -= 1
 
 		SetObjectiveDisplayed(i, markersEnabled, false)
@@ -858,13 +858,13 @@ EndFunction
 ; returns the combined autocalc power of all currently "active" commanders' armies
 ; (an active cmder may not necessarily be alive, but still hasn't had their alias cleared)
 float Function GetTotalActiveCommandersAutocalcPower()
-	;the alias ids used by commanders range from 13 to 27
+	;the alias ids used by commanders range from 17 to 31
 	float totalPower = 0
-	int i = 28
+	int i = 32
 
 	SAB_UnitDataHandler unitDataHandler = SpawnerScript.UnitDataHandler
 
-	While i > 13
+	While i > 17
 		i -= 1
 
 		ReferenceAlias cmderAlias = GetAlias(i) as ReferenceAlias
