@@ -744,7 +744,7 @@ int Function GetDefaultIntValueForOption(string category, string entryName)
         if entryName == "maxOwnedUnits"
             return SAB_FactionDataHandler.GetDefaultFactionGold()
         elseif entryName == "maxSpawnsOutsideCombat"
-            return 2
+            return 6
         elseif entryName == "maxSpawnsWhenBesieging"
             return 8
         elseif entryName == "maxSpawnsInCombat"

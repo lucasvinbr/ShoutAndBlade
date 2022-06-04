@@ -354,19 +354,25 @@ EndFunction
 
 int Function GetMaxSpawnedUnitsAmount()
 	int nearbyCmders = CrowdReducer.NumNearbyCmders
-
+	
 	if meActor == None
 		return 0
 	endif
 
 	if meActor.IsInCombat() || meActor.IsDead()
 		if nearbyCmders >= JDB.solveInt(".ShoutAndBlade.cmderOptions.nearbyCmdersLimit", 5)
+			; debug.Trace("Cmder GetMaxSpawnedUnitsAmount: in combat and above nearbyCmdersLimit. MaxAmount: " + \
+			; 				(JDB.solveInt(".ShoutAndBlade.cmderOptions.combatSpawnsDividend", 20) / nearbyCmders))
 			return JDB.solveInt(".ShoutAndBlade.cmderOptions.combatSpawnsDividend", 20) / nearbyCmders
 		endif
 
+		; debug.Trace("Cmder GetMaxSpawnedUnitsAmount: in combat. MaxAmount: " + \
+		; 					(JDB.solveInt(".ShoutAndBlade.cmderOptions.maxSpawnsInCombat", 8)))
 		return JDB.solveInt(".ShoutAndBlade.cmderOptions.maxSpawnsInCombat", 8)
 	else
-		return JDB.solveInt(".ShoutAndBlade.cmderOptions.maxSpawnsOutsideCombat", 2)
+		; debug.Trace("Cmder GetMaxSpawnedUnitsAmount: peaceful. MaxAmount: " + \
+		; 					(JDB.solveInt(".ShoutAndBlade.cmderOptions.maxSpawnsOutsideCombat", 6)))
+		return JDB.solveInt(".ShoutAndBlade.cmderOptions.maxSpawnsOutsideCombat", 6)
 	endif
 EndFunction
 
