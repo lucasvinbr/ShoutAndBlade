@@ -272,17 +272,17 @@ begin
 		
 		createdUnitIndex := (j + 1);
 	
-		// the marker for the first cmder is already set up, so we should just copy it
-		curEditedElement := ElementAssign(curEditedListElement, HighInteger, ElementByIndex(curEditedListElement, 0), false);
+		// the marker for the first cmder is already set up (after 3 markers for each of the faction's destinations), so we should just copy it
+		curEditedElement := ElementAssign(curEditedListElement, HighInteger, ElementByIndex(curEditedListElement, 3), false);
 		SetEditValue(ElementByPath(curEditedElement, 'QOBJ'), nextAliasId); //objective index
 		
 		// set marker text: "cmder heading towards A, B or C"
 		if (j mod 3) = 0 then begin
-			SetEditValue(ElementByPath(curEditedElement, 'NNAM'), 'Your SAB Faction Commander headed towards destination A');
+			SetEditValue(ElementByPath(curEditedElement, 'NNAM'), 'Commander headed towards A');
 		end else if (j mod 3) = 1 then begin
-			SetEditValue(ElementByPath(curEditedElement, 'NNAM'), 'Your SAB Faction Commander headed towards destination B');
+			SetEditValue(ElementByPath(curEditedElement, 'NNAM'), 'Commander headed towards B');
 		end else begin
-			SetEditValue(ElementByPath(curEditedElement, 'NNAM'), 'Your SAB Faction Commander headed towards destination C');
+			SetEditValue(ElementByPath(curEditedElement, 'NNAM'), 'Commander headed towards C');
 		end;
 		
 		// set the actual target in the targets list to the new alias.

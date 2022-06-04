@@ -40,6 +40,8 @@ int Property jFactionData Auto Hidden
 int Property jOwnedLocationIndexesArray Auto Hidden
 { indexes of the LocationDataHandler array that contain locations owned by this faction }
 
+
+; the player-related handler script. if this var has a value assigned, it probably means the player belongs to this faction
 SAB_PlayerDataHandler playerHandler
 
 bool cmderSpawnIsSet = false
@@ -94,12 +96,12 @@ EndFunction
 Function AddPlayerToOurFaction(Actor playerActor, SAB_PlayerDataHandler playerDataHandler)
 	playerActor.AddToFaction(OurFaction)
 	playerHandler = playerDataHandler
-	ToggleCmderMarkersDisplay(true)
+	ToggleObjectiveMarkersDisplay(true)
 EndFunction
 
 Function RemovePlayerFromOurFaction(Actor playerActor)
 	playerActor.RemoveFromFaction(OurFaction)
-	ToggleCmderMarkersDisplay(false)
+	ToggleObjectiveMarkersDisplay(false)
 	playerHandler = None
 EndFunction
 
@@ -174,6 +176,11 @@ Function RunDestinationsUpdate(float curGameTime)
 
 		CmderDestination_A.GetReference().MoveTo(destinationScript_A.MoveDestination)
 		gameTimeOfLastDestinationChange_A = curGameTime
+
+		; show quest update to tell plyr the faction has changed priorities
+		if playerHandler
+			SetObjectiveDisplayed(0, true, true)
+		endif
 	endif
 
 	; B can be an attack or defend destination. If no "good" targets are available, fall back to a random loc, like A
@@ -196,6 +203,11 @@ Function RunDestinationsUpdate(float curGameTime)
 
 		CmderDestination_B.GetReference().MoveTo(destinationScript_B.MoveDestination)
 		gameTimeOfLastDestinationChange_B = curGameTime
+
+		; show quest update to tell plyr the faction has changed priorities
+		if playerHandler
+			SetObjectiveDisplayed(1, true, true)
+		endif
 	endif
 
 	; C is like B, but flipped: attack if any target is available, defend if not
@@ -218,6 +230,11 @@ Function RunDestinationsUpdate(float curGameTime)
 
 		CmderDestination_C.GetReference().MoveTo(destinationScript_C.MoveDestination)
 		gameTimeOfLastDestinationChange_C = curGameTime
+
+		; show quest update to tell plyr the faction has changed priorities
+		if playerHandler
+			SetObjectiveDisplayed(2, true, true)
+		endif
 	endif
 
 
@@ -843,7 +860,7 @@ int Function GetNumActiveCommanders()
 EndFunction
 
 
-Function ToggleCmderMarkersDisplay(bool markersEnabled)
+Function ToggleObjectiveMarkersDisplay(bool markersEnabled)
 	;the alias ids used by commanders range from 13 to 27
 	int i = 28
 
@@ -853,6 +870,11 @@ Function ToggleCmderMarkersDisplay(bool markersEnabled)
 		SetObjectiveDisplayed(i, markersEnabled, false)
 
 	EndWhile
+
+	; show markers for the destinations as well
+	SetObjectiveDisplayed(0, markersEnabled, markersEnabled)
+	SetObjectiveDisplayed(1, markersEnabled, markersEnabled)
+	SetObjectiveDisplayed(2, markersEnabled, markersEnabled)
 EndFunction
 
 ; returns the combined autocalc power of all currently "active" commanders' armies
