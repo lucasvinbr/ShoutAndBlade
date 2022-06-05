@@ -9,6 +9,9 @@ int Property CmderFollowFactionRank Auto
 string Property CmderDestinationType Auto
 { can be "A", "B" or "C". Defines which of the 3 faction destinations this cmder will always go to }
 
+Faction Property SAB_CmderConfidenceFaction Auto
+{ used to help the commander know when it's best to flee instead of fight }
+
 ; reference to the location we're fighting against or trying to take over.
 ; this should only have a real value if we're close enough to this location
 SAB_LocationScript Property TargetLocationScript Auto Hidden
@@ -23,6 +26,7 @@ Function Setup(SAB_FactionScript factionScriptRef, float curGameTime = 0.0)
 	TargetLocationScript = None
 	parent.Setup(factionScriptRef, curGameTime)
 	availableExpPoints = JDB.solveFlt(".ShoutAndBlade.cmderOptions.initialExpPoints", 600.0)
+	UpdateConfidenceLevel()
 EndFunction
 
 ; sets isNearby and enables or disables closeBy updates
@@ -90,9 +94,6 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 				endif
 			endif
 			
-			; Utility.Wait(0.01)
-			meActor.EvaluatePackage()
-			
 		endif
 	else 
 		if ClearAliasIfOutOfTroops()
@@ -117,6 +118,8 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 	endif
 
 
+	UpdateConfidenceLevel()
+	meActor.EvaluatePackage()
 	; both living and dead cmders can fight for locations
 
 	if TargetLocationScript != None
@@ -234,15 +237,29 @@ Function SpawnBesiegingUnitAtPos(ObjectReference targetLocation)
 
 EndFunction
 
+; sets the "confidence faction" rank for this cmder. The higher the more confidence
+Function UpdateConfidenceLevel()
+	if !meActor
+		return
+	endif
+
+	if totalOwnedUnitsAmount > (GetMaxOwnedUnitsAmount() / 10)
+		meActor.SetFactionRank(SAB_CmderConfidenceFaction, 1)
+	else
+		meActor.SetFactionRank(SAB_CmderConfidenceFaction, 0)
+	endif
+
+EndFunction
+
 
 Event OnAttachedToCell()
-	if !isNearby
+	if meActor && !isNearby
 		ToggleNearbyUpdates(true)
 	endif
 EndEvent
 
 Event OnCellAttach()
-	if !isNearby
+	if meActor && !isNearby
 		ToggleNearbyUpdates(true)
 	endif
 EndEvent
@@ -296,6 +313,11 @@ event OnDeath(Actor akKiller)
 		meActor = None
 	endif
 endEvent
+
+Function OwnedUnitHasDied(int unitIndex, float timeOwnerWasSetup)
+	parent.OwnedUnitHasDied(unitIndex, timeOwnerWasSetup)
+	UpdateConfidenceLevel()
+EndFunction
 
 ; returns true if out of troops and cleared
 bool Function ClearAliasIfOutOfTroops()
