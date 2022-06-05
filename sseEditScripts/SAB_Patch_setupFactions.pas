@@ -87,13 +87,13 @@ begin
     SetNativeValue(ElementByPath(curEditedElement, 'Object v2\FormID'), FormID(curEditedQuest));
 	
 	
-	// make faction quest script's variables point to this quest instead of the base one
+	// make faction quest script's variables point to its own quest instead of the base one
 	curEditedListElement := ElementByPath(curEditedQuest, 'VMAD\Scripts');
 	curEditedElement := ElementByIndex(curEditedListElement, 0);
 	// get script's properties...
 	curEditedListElement := ElementByPath(curEditedElement, 'Properties');
 	
-	// most of the properties of the faction script point to our quest
+	// most of the properties of the faction script point to its own quest
 	// (we avoid the exceptions below)
 	for j := 0 to ElementCount(curEditedListElement) do
 	begin
@@ -229,7 +229,7 @@ begin
 		curEditedListElement := ElementByPath(curEditedQuest, 'Aliases');
 		curEditedElement := ElementByIndex(curEditedListElement, 0); //commander1
 		curEditedElement := ElementByPath(curEditedElement, 'Alias Package Data');
-		SetNativeValue(ElementByIndex(curEditedElement, 0), FormID(cmderDestAPkg));
+		SetNativeValue(ElementByIndex(curEditedElement, 1), FormID(cmderDestAPkg)); // it's the second package in the cmder stack
 		
 		curEditedElement := ElementByIndex(curEditedListElement, 1); //unit1
 		curEditedElement := ElementByPath(curEditedElement, 'Alias Package Data');
@@ -251,12 +251,13 @@ begin
 		nextAliasId := nextAliasId + 1;
 		curEditedElement := ElementByPath(curEditedElement, 'Alias Package Data');
 		
+		// "go to destination X" is the second package in the cmder stack
 		if (j mod 3) = 0 then begin
-			SetNativeValue(ElementByIndex(curEditedElement, 0), FormID(cmderDestAPkg));
+			SetNativeValue(ElementByIndex(curEditedElement, 1), FormID(cmderDestAPkg)); 
 		end else if (j mod 3) = 1 then begin
-			SetNativeValue(ElementByIndex(curEditedElement, 0), FormID(cmderDestBPkg));
+			SetNativeValue(ElementByIndex(curEditedElement, 1), FormID(cmderDestBPkg));
 		end else begin
-			SetNativeValue(ElementByIndex(curEditedElement, 0), FormID(cmderDestCPkg));
+			SetNativeValue(ElementByIndex(curEditedElement, 1), FormID(cmderDestCPkg));
 		end;
 		
 	end;
@@ -439,7 +440,7 @@ begin
   // comment this out if you don't want those messages
   { AddMessage('Processing: ' + FullPath(e)); }
   // same as above line, but using SkyrimUtils
-  log('Processing: ' + FullPath(e));
+  //log('Processing: ' + FullPath(e));
   // processing code goes here
 
 end;
