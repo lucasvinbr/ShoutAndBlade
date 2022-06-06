@@ -76,13 +76,15 @@ EndFunction
 
 
 float Function GetIsNearbyDistance()
-	int nearbyCmders = CrowdReducer.NumNearbyCmders
+	; int nearbyCmders = CrowdReducer.NumNearbyCmders
 
-	if nearbyCmders >= JDB.solveInt(".ShoutAndBlade.cmderOptions.nearbyCmdersLimit", 5)
-		return JDB.solveFlt(".ShoutAndBlade.cmderOptions.nearbyDistanceDividend", 16384.0) / nearbyCmders
-	endif
+	; if nearbyCmders >= JDB.solveInt(".ShoutAndBlade.cmderOptions.nearbyCmdersLimit", 5)
+	; 	return JDB.solveFlt(".ShoutAndBlade.cmderOptions.nearbyDistanceDividend", 16384.0) / nearbyCmders
+	; endif
 
-	return JDB.solveFlt(".ShoutAndBlade.cmderOptions.isNearbyDistance", 4096.0)
+	; testing separate fixed value here
+	return 8192.0
+	;return JDB.solveFlt(".ShoutAndBlade.cmderOptions.isNearbyDistance", 4096.0)
 EndFunction
 
 
