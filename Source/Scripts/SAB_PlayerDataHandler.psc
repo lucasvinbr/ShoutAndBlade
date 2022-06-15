@@ -14,7 +14,7 @@ Function Initialize()
 	; code
 EndFunction
 
-Function  OpenPurchaseRecruitsMenu()
+Function OpenPurchaseRecruitsMenu()
 	; cancel procedure if we're not in any faction
 	if PlayerFaction == None
 		return
