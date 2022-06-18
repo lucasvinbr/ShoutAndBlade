@@ -19,9 +19,10 @@ event OnInit()
 endevent
 
 Event OnPageInit()
-    infoSets = new string[2]
+    infoSets = new string[3]
     infoSets[0] = "$sab_mcm_stats_menu_statspage_loc_statuses"
     infoSets[1] = "$sab_mcm_stats_menu_statspage_faction_statuses"
+    infoSets[2] = "$sab_mcm_stats_menu_statspage_debug"
 EndEvent
 
 Event OnVersionUpdate(Int a_version)
@@ -68,6 +69,8 @@ Function SetupPage()
         SetupLocationStatistics()    
     elseif curInfoSetBeingShown == 1 ; faction statuses
         SetupFactionStatistics()
+    elseif curInfoSetBeingShown == 2 ; debug
+        SetupDebugStatistics()
     endif
 
     debug.Trace("numstatspages: " + numStatsPages)
@@ -195,6 +198,17 @@ Function SetupFactionStatistics()
     
 EndFunction
 
+Function SetupDebugStatistics()
+    SetCursorFillMode(LEFT_TO_RIGHT)
+
+    if isReloadingCurInfoSet
+        curStatsPage = 0
+        numStatsPages = 1
+    endif
+
+    AddTextOptionST("STATS_DISPLAY___NEARBYCMDERS", "$sab_mcm_stats_menu_statspage_debug_nearbycmders", MainPage.MainQuest.CrowdReducer.NumNearbyCmders)
+    
+EndFunction
 
 state STATS_CUR_INFO_SET
 
