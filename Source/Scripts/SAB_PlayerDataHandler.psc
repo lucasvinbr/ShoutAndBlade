@@ -31,25 +31,43 @@ Function OpenPurchaseUnitsMenu(int unitIndex = -1)
 		return
 	endif
 
+	int numUnitsAvailable = utility.RandomInt(2, 25) ; TODO make this configurable (max and min units available per recruiter)
+
+	; figure out purchased unit's cost
+	int jRecruitObj = jArray.getObj(SpawnerScript.UnitDataHandler.jSABUnitDatasArray, unitIndex)
+	int goldCostPerRec = jMap.getInt(jRecruitObj, "GoldCost", 10)
+
 	;opens "how many units?" box, with options ranging from none to 5, depending on how much gold player has
 	;the last option makes the menu open again, incrementing the desired number by 5 (5 plus the new choice)
 	;this can be done indefinitely (5 plus 5 plus 5 plus 5 plus 4: you'll hire 24 units... or less, if your gold or the unit limit ends)
 	int numberOfUnitsToPurchase = 0
 	
-	int chosenMsgBoxIndex = HowManyUnitsMsg.show(numberOfUnitsToPurchase)
+	int chosenMsgBoxIndex = HowManyUnitsMsg.show(numUnitsAvailable, numUnitsAvailable, numberOfUnitsToPurchase, goldCostPerRec)
 	while chosenMsgBoxIndex == 6
 		numberOfUnitsToPurchase += 5
-		chosenMsgBoxIndex = HowManyUnitsMsg.show(numberOfUnitsToPurchase)
+		chosenMsgBoxIndex = HowManyUnitsMsg.show(numUnitsAvailable, numUnitsAvailable, numberOfUnitsToPurchase, goldCostPerRec)
 	endwhile
-	
+
 	numberOfUnitsToPurchase += chosenMsgBoxIndex
 	
-	; figure out purchased unit's cost
-	int jRecruitObj = jArray.getObj(SpawnerScript.UnitDataHandler.jSABUnitDatasArray, unitIndex)
-	int goldCostPerRec = jMap.getInt(jRecruitObj, "GoldCost", 10)
+	if chosenMsgBoxIndex == 7 ; "all" option
+		numberOfUnitsToPurchase = numUnitsAvailable
+	endif
 	
-	; add units and deduct gold from player
+	
 	Actor player = Game.GetPlayer()
+	int playerGold = player.GetItemCount(Gold001)
+
+	; clamp number of recruited units based on player's gold
+	int maxUnitsPlayerCanAfford = playerGold % goldCostPerRec
+
+	if numberOfUnitsToPurchase > maxUnitsPlayerCanAfford
+		numberOfUnitsToPurchase = maxUnitsPlayerCanAfford
+	endif
+
+	; add units and deduct gold from player
+	player.RemoveItem(Gold001, goldCostPerRec * numberOfUnitsToPurchase)
+	PlayerCommanderScript.AddUnitsOfType(unitIndex, numberOfUnitsToPurchase)
 	
 endFunction
 
@@ -76,9 +94,12 @@ Function JoinFaction(SAB_FactionScript targetFaction)
 	endif
 
 	PlayerFaction = targetFaction
-	; if faction isn't none, set up cmder markers
+	; if faction isn't none, set up cmder markers and quest stage
 	if PlayerFaction != None
 		PlayerFaction.AddPlayerToOurFaction(playerActor, self)
+		SetStage(10)
+	else
+		SetStage(0)
 	endif
 	
 EndFunction
