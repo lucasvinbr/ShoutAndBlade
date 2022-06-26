@@ -53,7 +53,7 @@ Function SetupPage()
 
     ; set up a list of the current player units.
     ; show a message if there are no units
-    int nextUnitIndex = JIntMap.nextKey(jPlyrUnitsMap, 0, -1)
+    int nextUnitIndex = JIntMap.nextKey(jPlyrUnitsMap, -1, -1)
     while nextUnitIndex != -1
         int nextUnitCount = jIntMap.getInt(jPlyrUnitsMap, nextUnitIndex)
         if nextUnitCount > 0
@@ -251,7 +251,7 @@ state PLYR_UPGRADE_ALL
         int curUnitCount = jIntMap.getInt(jPlyrUnitsMap, currentSelectedUnitTypeIndex)
 
         int upgradeResultUnit = state_id as int
-        UpgradeCurSelectedUnit(upgradeResultUnit, 1)
+        UpgradeCurSelectedUnit(upgradeResultUnit, curUnitCount)
 	endEvent
 
 	event OnHighlightST(string state_id)
