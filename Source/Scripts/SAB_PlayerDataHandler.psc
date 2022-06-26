@@ -150,15 +150,15 @@ EndFunction
 
 
 ReferenceAlias Function GetFreeUnitAliasSlot()
-	;the alias ids used by units range from 28 to 127
+	;the alias ids used by units range from 3 to 102
 
 	int checkedAliasesCount = 0
 
 	While checkedAliasesCount < 100
 		lastCheckedUnitAliasIndex -= 1
 
-		if lastCheckedUnitAliasIndex < 28
-			lastCheckedUnitAliasIndex = 127
+		if lastCheckedUnitAliasIndex < 3
+			lastCheckedUnitAliasIndex = 102
 		endif
 
 		ReferenceAlias unitAlias = GetAlias(lastCheckedUnitAliasIndex) as ReferenceAlias
@@ -175,11 +175,11 @@ endFunction
 
 
 SAB_UnitScript Function GetSpawnedUnitOfType(int unitTypeIndex)
-	;the alias ids used by units range from 28 to 127
+	;the alias ids used by units range from 3 to 102
 
-	int nextAliasToCheck = 128
+	int nextAliasToCheck = 103
 
-	While nextAliasToCheck > 28
+	While nextAliasToCheck > 3
 		nextAliasToCheck -= 1
 
 		SAB_UnitScript unitAlias = GetAlias(lastCheckedUnitAliasIndex) as SAB_UnitScript
