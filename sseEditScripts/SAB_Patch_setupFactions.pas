@@ -24,7 +24,7 @@ var
   baseFactionQuest, baseFaction, baseXmarker,
   baseCmderDestAPkg, baseCmderDestBPkg, baseCmderDestCPkg, baseFollowCmderPkg,
   cmderDestAPkg, cmderDestBPkg, cmderDestCPkg, followCmderPkg,
-  factionQuestsFormList, sabMainQuest,
+  factionQuestsFormList, sabMainQuest, sabPlayerQuest,
   curEditedFaction, curEditedQuest, curEditedElement, curEditedElementTwo, curEditedListElement: IInterface;
   factionIndex, propertyName, createdUnitIndex: string;
   i, j, nextAliasId: integer;
@@ -41,12 +41,63 @@ begin
   baseFollowCmderPkg := getRecordByFormID('0506B3F7');
   factionQuestsFormList := getRecordByFormID('050755F9');
   sabMainQuest := getRecordByFormID('0501EFC3');
+  sabPlayerQuest := getRecordByFormID('0510D4CD');
 
   factionsList := TList.Create;
   factionQuestsList := TList.Create;
 
   factionsList.Add(baseFaction);
   factionQuestsList.Add(baseFactionQuest);
+  
+	// set up player quest units!
+	// we have unit0 set up, we just have to make copies of it
+	curEditedQuest := sabPlayerQuest;
+	curEditedListElement := ElementByPath(curEditedQuest, 'Aliases');
+	// base unit is index 1
+	curEditedElement := ElementByIndex(curEditedListElement, 1);
+
+	// set the base unit's aliasID to the next ID, so that we can have all units in one block over which we can iterate by ID
+	nextAliasId := GetEditValue(ElementByPath(curEditedQuest, 'ANAM')); //get next available aliasId
+	SetEditValue(ElementByPath(curEditedElement, 'ALST'), nextAliasId); //set alias ID
+
+	//we've got to update the script alias ID too
+	curEditedElementTwo := ElementByPath(curEditedQuest, 'VMAD\Aliases');
+	curEditedElementTwo := ElementByIndex(curEditedElementTwo, 1); //it's the second entry in the alias scripts list
+	SetEditValue(ElementByPath(curEditedElementTwo, 'Object Union\Object v2\Alias'), nextAliasId);
+
+	nextAliasId := nextAliasId + 1;
+
+	for j := 1 to 99 do begin
+		
+		createdUnitIndex := (j + 1);
+		
+		curEditedElementTwo := ElementAssign(curEditedListElement, HighInteger, curEditedElement, false);
+		SetEditValue(ElementByPath(curEditedElementTwo, 'ALID'), 'Unit' + createdUnitIndex); //set alias name
+		SetEditValue(ElementByPath(curEditedElementTwo, 'ALST'), nextAliasId); //set alias ID
+		
+		nextAliasId := nextAliasId + 1;
+	end;
+
+	// make lots of copies of the unit script as well
+	curEditedListElement := ElementByPath(curEditedQuest, 'VMAD\Aliases');
+	// since we've edited unit1's ID and the list is sorted, it should have moved to the end of the list!
+	curEditedElement := ElementByIndex(curEditedListElement, ElementCount(curEditedListElement) - 1);
+	// count aliases from 1 to 100 again
+	nextAliasId := nextAliasId - 99;
+
+	for j := 1 to 99 do begin
+		
+		createdUnitIndex := (j + 1);
+		
+		curEditedElementTwo := ElementAssign(curEditedListElement, HighInteger, curEditedElement, false);
+		SetEditValue(ElementByPath(curEditedElementTwo, 'Object Union\Object v2\Alias'), nextAliasId);
+		
+		nextAliasId := nextAliasId + 1;
+	end;
+
+
+	// finally, set the next available aliasID in the quest
+	SetEditValue(ElementByPath(curEditedQuest, 'ANAM'), nextAliasId);
 
   // create factions!
   for i := 1 to 40 do
