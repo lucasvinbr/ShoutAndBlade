@@ -10,11 +10,13 @@ SAB_SpawnerScript Property SpawnerScript Auto
 Message Property HowManyUnitsMsg Auto
 Form Property Gold001 Auto
 
+int lastCheckedUnitAliasIndex = -1
+
 Function Initialize()
-	; code
+	
 EndFunction
 
-Function OpenPurchaseRecruitsMenu()
+Function OpenPurchaseFactionRecruitsMenu()
 	; cancel procedure if we're not in any faction
 	if PlayerFaction == None
 		return
@@ -59,7 +61,7 @@ Function OpenPurchaseUnitsMenu(int unitIndex = -1)
 	int playerGold = player.GetItemCount(Gold001)
 
 	; clamp number of recruited units based on player's gold
-	int maxUnitsPlayerCanAfford = playerGold % goldCostPerRec
+	int maxUnitsPlayerCanAfford = Math.Floor(playerGold / goldCostPerRec)
 
 	if numberOfUnitsToPurchase > maxUnitsPlayerCanAfford
 		numberOfUnitsToPurchase = maxUnitsPlayerCanAfford
@@ -73,8 +75,48 @@ endFunction
 
 
 
-ReferenceAlias Function SpawnPlayerUnit(int unitIndex, ObjectReference targetLocation, float containerSetupTime)
-	; TODO copy factionScript spawn procedure, fetching empty aliases from the player quest instead of faction quest
+ReferenceAlias Function SpawnPlayerUnit(int unitIndex, ObjectReference spawnLocation, float containerSetupTime)
+	if spawnLocation == None
+		return None
+	endif
+
+	if PlayerFaction == None
+		return None
+	endif
+
+	if unitIndex < 0
+		debug.Trace("spawn unit for container: invalid unit index!")
+		return None
+	endif
+
+	ReferenceAlias unitAlias = GetFreeUnitAliasSlot()
+
+	if unitAlias == None
+		debug.Trace("spawn unit for container: no free alias slot!")
+		return None
+	endif
+
+	int unitIndexInUnitUpdater = PlayerFaction.UnitUpdater.UnitUpdater.RegisterAliasForUpdates(unitAlias as SAB_UnitScript)
+
+	if unitIndexInUnitUpdater == -1
+		debug.Trace("spawn unit for container: unitIndexInUnitUpdater is -1!")
+		return None
+	endif
+
+	Actor spawnedUnit = SpawnerScript.SpawnUnit(spawnLocation, PlayerFaction.OurFaction, unitIndex, -1, 0)
+
+	if spawnedUnit == None
+		debug.Trace("spawn unit for container: got none as spawnedUnit, aborting!")
+		PlayerFaction.UnitUpdater.UnitUpdater.UnregisterAliasFromUpdates(unitIndexInUnitUpdater)
+		return None
+	endif
+
+	unitAlias.ForceRefTo(spawnedUnit)
+	(unitAlias as SAB_UnitScript).Setup(unitIndex, PlayerCommanderScript, unitIndexInUnitUpdater, containerSetupTime)
+
+	; debug.Trace("spawned unit package is " + spawnedUnit.GetCurrentPackage())
+
+	return unitAlias
 EndFunction
 
 ; runs procedures needed for leaving previous faction (if any) and joining the new one. 
@@ -102,8 +144,54 @@ Function JoinFaction(SAB_FactionScript targetFaction)
 		SetStage(0)
 	endif
 	
+	PlayerCommanderScript.Setup(PlayerFaction)
+
 EndFunction
 
+
+ReferenceAlias Function GetFreeUnitAliasSlot()
+	;the alias ids used by units range from 28 to 127
+
+	int checkedAliasesCount = 0
+
+	While checkedAliasesCount < 100
+		lastCheckedUnitAliasIndex -= 1
+
+		if lastCheckedUnitAliasIndex < 28
+			lastCheckedUnitAliasIndex = 127
+		endif
+
+		ReferenceAlias unitAlias = GetAlias(lastCheckedUnitAliasIndex) as ReferenceAlias
+		
+		if(!unitAlias.GetReference())
+			return unitAlias
+		endif
+
+		checkedAliasesCount += 1
+	EndWhile
+	
+	return None
+endFunction
+
+
+SAB_UnitScript Function GetSpawnedUnitOfType(int unitTypeIndex)
+	;the alias ids used by units range from 28 to 127
+
+	int nextAliasToCheck = 128
+
+	While nextAliasToCheck > 28
+		nextAliasToCheck -= 1
+
+		SAB_UnitScript unitAlias = GetAlias(lastCheckedUnitAliasIndex) as SAB_UnitScript
+		
+		if(unitAlias.unitIndex)
+			return unitAlias
+		endif
+
+	EndWhile
+	
+	return None
+endFunction
 
 ; playerData jmap entries:
 

@@ -1,7 +1,7 @@
 Scriptname SAB_UnitScript extends SAB_UpdatedReferenceAlias  
 
 ; the unit type index of this unit
-int unitIndex = -1
+int Property unitIndex = -1 auto hidden
 
 ; reference to the troop container that spawned us. If we die/despawn, we should tell them
 SAB_TroopContainerScript ownerTroopContainer
@@ -65,10 +65,7 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 
 	if distToPlayer > GetIsNearbyDistance()
 		; debug.Trace("unit: too far, despawn!")
-		ownerTroopContainer.OwnedUnitHasDespawned(unitIndex, gameTimeOwnerContainerWasSetup)
-		meActor.Disable()
-		meActor.Delete()
-		ClearAliasData()
+		Despawn()
 	endif
 
 	return true
@@ -111,6 +108,21 @@ Function HandleDeath()
 	deathHasBeenHandled = true
 	ownerTroopContainer.OwnedUnitHasDied(unitIndex, gameTimeOwnerContainerWasSetup)
 	CrowdReducer.AddDeadBody(meActor)
+	ClearAliasData()
+EndFunction
+
+Function Despawn()
+	ownerTroopContainer.OwnedUnitHasDespawned(unitIndex, gameTimeOwnerContainerWasSetup)
+	meActor.Disable()
+	meActor.Delete()
+	ClearAliasData()
+EndFunction
+
+; despawn, but removes the unit from the container's list instead of adding it back as spawnable
+Function DespawnAndDontReturnToContainer()
+	ownerTroopContainer.OwnedUnitHasDied(unitIndex, gameTimeOwnerContainerWasSetup)
+	meActor.Disable()
+	meActor.Delete()
 	ClearAliasData()
 EndFunction
 

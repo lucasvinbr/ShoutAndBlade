@@ -15,7 +15,7 @@ bool showLoadingMsgOnNextReset = true
 string[] infoSets
 
 event OnInit()
-    RegisterModule("$sab_mcm_page_statistics", 6)
+    RegisterModule("$sab_mcm_page_statistics", 7)
 endevent
 
 Event OnPageInit()

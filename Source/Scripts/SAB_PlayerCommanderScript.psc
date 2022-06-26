@@ -12,8 +12,13 @@ ObjectReference Property TroopSpawnPoint Auto
 
 Function Setup(SAB_FactionScript factionScriptRef, float curGameTime = 0.0)
 	TargetLocationScript = None
-	parent.Setup(factionScriptRef, curGameTime)
-	availableExpPoints = JDB.solveFlt(".ShoutAndBlade.cmderOptions.initialExpPoints", 600.0)
+	if jOwnedUnitsMap == 0
+		parent.Setup(factionScriptRef, curGameTime)
+	else 
+		; just update player's faction if this script was already set up before
+		factionScript = factionScriptRef
+	endif
+	
 EndFunction
 
 ; sets isNearby and enables or disables closeBy updates
@@ -53,10 +58,10 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 	endif
 
 	;debug.Trace("game time updating commander (pre check)!")
-	float expAwardInterval = JDB.solveFlt(".ShoutAndBlade.cmderOptions.expAwardInterval", 0.08)
+	float expAwardInterval = JDB.solveFlt(".ShoutAndBlade.playerOptions.expAwardInterval", 0.08)
 	if curGameTime - gameTimeOfLastExpAward >= expAwardInterval
 		int numAwardsObtained = ((curGameTime - gameTimeOfLastExpAward) / expAwardInterval) as int
-		availableExpPoints += JDB.solveFlt(".ShoutAndBlade.cmderOptions.awardedXpPerInterval", 500.0) * numAwardsObtained
+		availableExpPoints += playerActor.GetLevel() * JDB.solveFlt(".ShoutAndBlade.playerOptions.expAwardPerPlayerLevel", 25.0) * numAwardsObtained
 		gameTimeOfLastExpAward = curGameTime
 	endif
 	
@@ -69,9 +74,11 @@ endfunction
 
 
 ObjectReference Function GetSpawnLocationForUnit()
-	ObjectReference spawnLocation = playerActor
+	ObjectReference spawnLocation = TroopSpawnPoint
 
-	; TODO let player set a spawn elsewhere
+	if TroopSpawnPoint.GetDistance(playerActor) > 1500.0
+		spawnLocation = playerActor
+	endif
 
 	return spawnLocation
 EndFunction
@@ -126,13 +133,65 @@ Event OnCombatStateChanged(Actor akTarget, int aeCombatState)
 		; if TroopSpawnPoint.GetDistance(playerActor) > 4000.0
 		; 	TroopSpawnPoint.MoveTo(playerActor)
 		; endif
+		ToggleNearbyUpdates(true)
 
+	else
+		ToggleNearbyUpdates(false)
 	endif
 EndEvent
 
+; tries to remove units from this container, even if they are currently spawned
+Function RemoveUnitsOfType(int unitTypeIndex, int amountToRemove)
+	if amountToRemove <= 0
+		return
+	endif
+	int spawnedsCount = JIntMap.getInt(jSpawnedUnitsMap, unitTypeIndex)
+	int reservesCount = JIntMap.getInt(jSpawnOptionsMap, unitTypeIndex)
+	
+	if	amountToRemove > spawnedsCount + reservesCount
+		amountToRemove = spawnedsCount + reservesCount
+	endif
+
+	; we try to only mess with the reserves if possible
+	if reservesCount > 0
+		int reservesToRemove = reservesCount
+		if amountToRemove < reservesToRemove
+			reservesToRemove = amountToRemove
+		endif
+
+		totalOwnedUnitsAmount -= 1
+
+		int currentStoredAmount = jIntMap.getInt(jOwnedUnitsMap, unitTypeIndex)
+		jIntMap.setInt(jOwnedUnitsMap, unitTypeIndex, currentStoredAmount - 1)
+
+		if currentStoredAmount - 1 <= 0
+			jIntMap.removeKey(jOwnedUnitsMap, unitTypeIndex)
+		endif
+
+		int currentSpawnableAmount = jIntMap.getInt(jSpawnOptionsMap, unitTypeIndex)
+		jIntMap.setInt(jSpawnOptionsMap, unitTypeIndex, currentSpawnableAmount - 1)
+
+		if currentSpawnableAmount - 1 <= 0
+			jIntMap.removeKey(jSpawnOptionsMap, unitTypeIndex)
+		endif
+
+		amountToRemove -= reservesToRemove
+	endif
+
+	; if there are more units to remove, we've got to search for them in the spawned units list and despawn them
+	while amountToRemove > 0
+		SAB_UnitScript unitToRemove = PlayerDataHandler.GetSpawnedUnitOfType(unitTypeIndex)
+
+		if unitToRemove != None
+			unitToRemove.DespawnAndDontReturnToContainer()
+		endif
+
+		amountToRemove -= 1 ; assume we removed successfully, or else we may keep checking forever
+	endwhile
+EndFunction
 
 int Function GetMaxOwnedUnitsAmount()
-	return JDB.solveInt(".ShoutAndBlade.cmderOptions.maxOwnedUnits", 30)
+	return JDB.solveInt(".ShoutAndBlade.playerOptions.maxOwnedUnits", 30)
 EndFunction
 
 int Function GetMaxSpawnedUnitsAmount()
