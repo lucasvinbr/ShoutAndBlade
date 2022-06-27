@@ -33,7 +33,7 @@ Function OpenPurchaseUnitsMenu(int unitIndex = -1)
 		return
 	endif
 
-	int numUnitsAvailable = utility.RandomInt(2, 25) ; TODO make this configurable (max and min units available per recruiter)
+	int numUnitsAvailable = utility.RandomInt(8, 25) ; TODO make this configurable (max and min units available per recruiter)
 
 	; figure out purchased unit's cost
 	int jRecruitObj = jArray.getObj(SpawnerScript.UnitDataHandler.jSABUnitDatasArray, unitIndex)
@@ -44,15 +44,15 @@ Function OpenPurchaseUnitsMenu(int unitIndex = -1)
 	;this can be done indefinitely (5 plus 5 plus 5 plus 5 plus 4: you'll hire 24 units... or less, if your gold or the unit limit ends)
 	int numberOfUnitsToPurchase = 0
 	
-	int chosenMsgBoxIndex = HowManyUnitsMsg.show(numUnitsAvailable, numUnitsAvailable, numberOfUnitsToPurchase, goldCostPerRec)
-	while chosenMsgBoxIndex == 6
+	int chosenMsgBoxIndex = HowManyUnitsMsg.show(numUnitsAvailable, numberOfUnitsToPurchase, goldCostPerRec)
+	while chosenMsgBoxIndex == 6 && numberOfUnitsToPurchase < numUnitsAvailable
 		numberOfUnitsToPurchase += 5
-		chosenMsgBoxIndex = HowManyUnitsMsg.show(numUnitsAvailable, numUnitsAvailable, numberOfUnitsToPurchase, goldCostPerRec)
+		chosenMsgBoxIndex = HowManyUnitsMsg.show(numUnitsAvailable, numberOfUnitsToPurchase, goldCostPerRec)
 	endwhile
 
 	numberOfUnitsToPurchase += chosenMsgBoxIndex
 	
-	if chosenMsgBoxIndex == 7 ; "all" option
+	if chosenMsgBoxIndex == 7 || numberOfUnitsToPurchase > numUnitsAvailable ; "all" option
 		numberOfUnitsToPurchase = numUnitsAvailable
 	endif
 	

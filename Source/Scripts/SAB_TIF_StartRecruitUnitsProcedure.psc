@@ -6,7 +6,6 @@ Scriptname SAB_TIF_StartRecruitUnitsProcedure Extends TopicInfo Hidden
 Function Fragment_0(ObjectReference akSpeakerRef)
 Actor akSpeaker = akSpeakerRef as Actor
 ;BEGIN CODE
-debug.Trace("start purchase recruits procedure!")
 (GetOwningQuest() as SAB_PlayerDataHandler).OpenPurchaseFactionRecruitsMenu()
 ;END CODE
 EndFunction
