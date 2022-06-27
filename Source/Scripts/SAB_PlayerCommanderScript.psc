@@ -148,9 +148,14 @@ Function RemoveUnitsOfType(int unitTypeIndex, int amountToRemove)
 	int spawnedsCount = JIntMap.getInt(jSpawnedUnitsMap, unitTypeIndex)
 	int reservesCount = JIntMap.getInt(jSpawnOptionsMap, unitTypeIndex)
 	
+	; debug.Trace("total unis " + (spawnedsCount + reservesCount))
+	; debug.Trace("we want to remove " + amountToRemove)
+
 	if	amountToRemove > spawnedsCount + reservesCount
 		amountToRemove = spawnedsCount + reservesCount
 	endif
+
+	; debug.Trace("clamped to " + amountToRemove)
 
 	; we try to only mess with the reserves if possible
 	if reservesCount > 0
@@ -159,19 +164,19 @@ Function RemoveUnitsOfType(int unitTypeIndex, int amountToRemove)
 			reservesToRemove = amountToRemove
 		endif
 
-		totalOwnedUnitsAmount -= 1
+		totalOwnedUnitsAmount -= reservesToRemove
 
 		int currentStoredAmount = jIntMap.getInt(jOwnedUnitsMap, unitTypeIndex)
-		jIntMap.setInt(jOwnedUnitsMap, unitTypeIndex, currentStoredAmount - 1)
+		jIntMap.setInt(jOwnedUnitsMap, unitTypeIndex, currentStoredAmount - reservesToRemove)
 
-		if currentStoredAmount - 1 <= 0
+		if currentStoredAmount - reservesToRemove <= 0
 			jIntMap.removeKey(jOwnedUnitsMap, unitTypeIndex)
 		endif
 
 		int currentSpawnableAmount = jIntMap.getInt(jSpawnOptionsMap, unitTypeIndex)
-		jIntMap.setInt(jSpawnOptionsMap, unitTypeIndex, currentSpawnableAmount - 1)
+		jIntMap.setInt(jSpawnOptionsMap, unitTypeIndex, currentSpawnableAmount - reservesToRemove)
 
-		if currentSpawnableAmount - 1 <= 0
+		if currentSpawnableAmount - reservesToRemove <= 0
 			jIntMap.removeKey(jSpawnOptionsMap, unitTypeIndex)
 		endif
 

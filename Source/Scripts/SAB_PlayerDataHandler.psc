@@ -177,14 +177,18 @@ endFunction
 SAB_UnitScript Function GetSpawnedUnitOfType(int unitTypeIndex)
 	;the alias ids used by units range from 3 to 102
 
+	if unitTypeIndex < 0
+		return None
+	endif
+
 	int nextAliasToCheck = 103
 
 	While nextAliasToCheck > 3
 		nextAliasToCheck -= 1
 
-		SAB_UnitScript unitAlias = GetAlias(lastCheckedUnitAliasIndex) as SAB_UnitScript
+		SAB_UnitScript unitAlias = GetAlias(nextAliasToCheck) as SAB_UnitScript
 		
-		if(unitAlias.unitIndex)
+		if(unitAlias.unitIndex == unitTypeIndex)
 			return unitAlias
 		endif
 
