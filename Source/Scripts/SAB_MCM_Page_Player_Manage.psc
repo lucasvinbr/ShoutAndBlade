@@ -59,49 +59,13 @@ Function SetupPage()
         if nextUnitCount > 0
             int jUnitData = JArray.getObj(jUnitDatasArray, nextUnitIndex)
             if jUnitData != 0
-                bool canUpgrade = false
-                if troopLinesCount > 0
-                    ; iterate through troop lines until we find at least one upgrade option we can afford
-                    int relevantTroopLineLength = 0
-                    int i = 0
-                    int j = 0
-
-                    while i < troopLinesCount
-                        int jCurTroopLineArr = jArray.getObj(jFacTroopLinesArr, i)
-                        relevantTroopLineLength = jValue.count(jCurTroopLineArr) - 1 ; no need to look at the last index
-
-                        j = 0
-                        while j < relevantTroopLineLength
-                            if jArray.getInt(jCurTroopLineArr, j, -1) == nextUnitIndex
-                                int upgOptionIndex = jArray.getInt(jCurTroopLineArr, j + 1)
-                                int jUpgOptionData = jArray.getObj(jUnitData, upgOptionIndex)
-
-                                if jUpgOptionData != 0
-                                    int goldCostPerUpg = jMap.getInt(jUpgOptionData, "GoldCost", 10)
-		                            float expCostPerUpg = jMap.getFlt(jUpgOptionData, "ExpCost", 10.0)
-
-                                    if goldCostPerUpg <= playerGoldAmount && expCostPerUpg <= expPointsAvailable
-                                        ; we found one affordable upgrade! break loops and go check the next unit
-                                        canUpgrade = true
-                                        j = relevantTroopLineLength
-                                        i = troopLinesCount
-                                    endif
-                                endif
-                            endif
-                            ; Utility.Wait(0.01)
-                            j += 1
-                        endwhile
-
-                        i += 1
-                    endwhile
-                endif
                 
                 ; add unit button, possibly with the "upgradable" tag
-                string upgradableTag = ""
-                if canUpgrade
-                    upgradableTag = "$sab_mcm_mytroops_troop_upgradable"
+                string entryTag = ""
+                if currentSelectedUnitTypeIndex == nextUnitIndex
+                    entryTag = "$sab_mcm_mytroops_troop_selected"
                 endif
-                AddTextOptionST("PLYR_PICKTROOP___" + nextUnitIndex, nextUnitCount + " " + JMap.getStr(jUnitData, "Name", "Recruit"), upgradableTag)
+                AddTextOptionST("PLYR_PICKTROOP___" + nextUnitIndex, nextUnitCount + " " + JMap.getStr(jUnitData, "Name", "Recruit"), entryTag)
             endif
         endif
 
@@ -111,6 +75,7 @@ Function SetupPage()
     ; right side: cur EXP amount, cur selected unit upgrade options
     SetCursorPosition(1)
     AddTextOptionST("PLYR_EXP", "$sab_mcm_mytroops_exp_available", expPointsAvailable, 0)
+    AddTextOptionST("PLYR_GOLD", "$sab_mcm_mytroops_gold_available", playerGoldAmount, 0)
 
     string expHeaderText = "$sab_mcm_mytroops_header_no_unit"
     int jSelectedUnitData = jArray.getObj(jUnitDatasArray, currentSelectedUnitTypeIndex, 0)
@@ -158,12 +123,9 @@ Function SetupPage()
                 int goldCostPerUpg = jMap.getInt(jUpgradedUnitData, "GoldCost", 10)
 		        float expCostPerUpg = jMap.getFlt(jUpgradedUnitData, "ExpCost", 10.0)
 
-                AddTextOptionST("PLYR_UPGRADETO_NAME___" + upgradedUnitIndex, JMap.getStr(jUpgradedUnitData, "Name", "Recruit"), "")
+                AddSliderOptionST("PLYR_UPGRADETO_NAME___" + upgradedUnitIndex, "Upgrade to " + JMap.getStr(jUpgradedUnitData, "Name", "Recruit"), 0, "")
                 AddTextOptionST("PLYR_UPGRADETO_COST_GOLD___" + upgradedUnitIndex, "$sab_mcm_mytroops_upgrade_unit_cost_gold", goldCostPerUpg)
                 AddTextOptionST("PLYR_UPGRADETO_COST_EXP___" + upgradedUnitIndex, "$sab_mcm_mytroops_upgrade_unit_cost_exp", expCostPerUpg)
-                AddTextOptionST("PLYR_UPGRADE_ONE___" + upgradedUnitIndex, "$sab_mcm_mytroops_upgrade_unit_btn_upgrade_one", "")
-                AddTextOptionST("PLYR_UPGRADE_TEN___" + upgradedUnitIndex, "$sab_mcm_mytroops_upgrade_unit_btn_upgrade_ten", "")
-                AddTextOptionST("PLYR_UPGRADE_ALL___" + upgradedUnitIndex, "$sab_mcm_mytroops_upgrade_unit_btn_upgrade_all", "")
                 AddEmptyOption()
             endif
         endwhile
@@ -195,10 +157,37 @@ state PLYR_EXP
 
 endstate
 
-state PLYR_UPGRADETO_NAME
+state PLYR_GOLD
 
 	event OnHighlightST(string state_id)
         MainPage.ToggleQuickHotkey(true)
+		SetInfoText("$sab_mcm_mytroops_gold_available_desc")
+	endEvent
+
+endstate
+
+state PLYR_UPGRADETO_NAME
+
+    event OnSliderOpenST(string state_id)
+        int upgradeResultUnit = state_id as int
+        int jPlyrUnitsMap = MainPage.MainQuest.PlayerDataHandler.PlayerCommanderScript.jOwnedUnitsMap
+        int curUnitCount = jIntMap.getInt(jPlyrUnitsMap, currentSelectedUnitTypeIndex)
+
+		SetSliderDialogStartValue(0)
+		SetSliderDialogDefaultValue(0)
+        int maxUpgradeableUnits = GetNumPossibleUpgradesToTargetUnitType(upgradeResultUnit, curUnitCount)
+		SetSliderDialogRange(0, maxUpgradeableUnits)
+		SetSliderDialogInterval(1)
+	endEvent
+
+	event OnSliderAcceptST(string state_id, float value)
+        int upgradeResultUnit = state_id as int
+        UpgradeCurSelectedUnit(upgradeResultUnit, value as int)
+	endEvent
+
+	event OnHighlightST(string state_id)
+        MainPage.ToggleQuickHotkey(true)
+        SetInfoText("$sab_mcm_mytroops_upgrade_unit_slider_desc")
 	endEvent
 
 endstate
@@ -221,62 +210,45 @@ state PLYR_UPGRADETO_COST_EXP
 
 endstate
 
-state PLYR_UPGRADE_ONE
-    event OnSelectST(string state_id)
-        int upgradeResultUnit = state_id as int
-        UpgradeCurSelectedUnit(upgradeResultUnit, 1)
-	endEvent
 
-	event OnHighlightST(string state_id)
-        MainPage.ToggleQuickHotkey(true)
-		SetInfoText("$sab_mcm_mytroops_upgrade_unit_btn_upgrade_one_desc")
-	endEvent
-endstate
+Function UpgradeCurSelectedUnit(int upgradeResultUnitIndex, int numUnitsToUpgrade)
+    SAB_PlayerCommanderScript plyr = MainPage.MainQuest.PlayerDataHandler.PlayerCommanderScript
+    int jUnitDatasArray = MainPage.MainQuest.UnitDataHandler.jSABUnitDatasArray
 
-state PLYR_UPGRADE_TEN
-    event OnSelectST(string state_id)
-        int upgradeResultUnit = state_id as int
-        UpgradeCurSelectedUnit(upgradeResultUnit, 10)
-	endEvent
+    int jUpgradedUnitData = jArray.getObj(jUnitDatasArray, upgradeResultUnitIndex)
+    int goldCostPerUpg = jMap.getInt(jUpgradedUnitData, "GoldCost", 10)
+    float expCostPerUpg = jMap.getFlt(jUpgradedUnitData, "ExpCost", 10.0)
 
-	event OnHighlightST(string state_id)
-        MainPage.ToggleQuickHotkey(true)
-		SetInfoText("$sab_mcm_mytroops_upgrade_unit_btn_upgrade_ten_desc")
-	endEvent
-endstate
+    int actualUpgradedNumber = GetNumPossibleUpgradesToTargetUnitType(upgradeResultUnitIndex, numUnitsToUpgrade)
 
-state PLYR_UPGRADE_ALL
-    event OnSelectST(string state_id)
-        int jPlyrUnitsMap = MainPage.MainQuest.PlayerDataHandler.PlayerCommanderScript.jOwnedUnitsMap
-        int curUnitCount = jIntMap.getInt(jPlyrUnitsMap, currentSelectedUnitTypeIndex)
+    plyr.AddUnitsOfType(upgradeResultUnitIndex, actualUpgradedNumber)
+    plyr.RemoveUnitsOfType(currentSelectedUnitTypeIndex, actualUpgradedNumber)
 
-        int upgradeResultUnit = state_id as int
-        UpgradeCurSelectedUnit(upgradeResultUnit, curUnitCount)
-	endEvent
+    if actualUpgradedNumber > 0
+        plyr.availableExpPoints -= actualUpgradedNumber * expCostPerUpg
+        plyr.playerActor.RemoveItem(Gold001, actualUpgradedNumber * goldCostPerUpg)
+        ForcePageReset()
+    endif
+    
+EndFunction
 
-	event OnHighlightST(string state_id)
-        MainPage.ToggleQuickHotkey(true)
-		SetInfoText("$sab_mcm_mytroops_upgrade_unit_btn_upgrade_all_desc")
-	endEvent
-endstate
-
-
-Function UpgradeCurSelectedUnit(int upgradeResultUnit, int numUnitsToUpgrade)
+; returns the max number of units we can afford to upgrade to the target type
+int Function GetNumPossibleUpgradesToTargetUnitType(int targetType, int numAvailableUnitsToUpgrade)
     SAB_PlayerCommanderScript plyr = MainPage.MainQuest.PlayerDataHandler.PlayerCommanderScript
     int jUnitDatasArray = MainPage.MainQuest.UnitDataHandler.jSABUnitDatasArray
     float expPointsAvailable = plyr.availableExpPoints
     int playerGoldAmount = plyr.playerActor.GetItemCount(Gold001)
 
-    int jUpgradedUnitData = jArray.getObj(jUnitDatasArray, upgradeResultUnit)
+    int jUpgradedUnitData = jArray.getObj(jUnitDatasArray, targetType)
     int goldCostPerUpg = jMap.getInt(jUpgradedUnitData, "GoldCost", 10)
     float expCostPerUpg = jMap.getFlt(jUpgradedUnitData, "ExpCost", 10.0)
 
-    int actualUpgradedNumber = numUnitsToUpgrade
+    int actualUpgradedNumber = numAvailableUnitsToUpgrade
 
     if goldCostPerUpg > 0
         actualUpgradedNumber = playerGoldAmount / goldCostPerUpg
-        if actualUpgradedNumber > numUnitsToUpgrade
-            actualUpgradedNumber = numUnitsToUpgrade
+        if actualUpgradedNumber > numAvailableUnitsToUpgrade
+            actualUpgradedNumber = numAvailableUnitsToUpgrade
         endif	
     endif
 
@@ -287,13 +259,5 @@ Function UpgradeCurSelectedUnit(int upgradeResultUnit, int numUnitsToUpgrade)
         endif
     endif
 
-    plyr.AddUnitsOfType(upgradeResultUnit, actualUpgradedNumber)
-    plyr.RemoveUnitsOfType(currentSelectedUnitTypeIndex, actualUpgradedNumber)
-
-    if actualUpgradedNumber > 0
-        plyr.availableExpPoints -= actualUpgradedNumber * expCostPerUpg
-        plyr.playerActor.RemoveItem(Gold001, actualUpgradedNumber * goldCostPerUpg)
-        ForcePageReset()
-    endif
-    
+    return actualUpgradedNumber
 EndFunction
