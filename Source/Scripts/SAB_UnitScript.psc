@@ -120,6 +120,7 @@ EndFunction
 
 ; despawn, but removes the unit from the container's list instead of adding it back as spawnable
 Function DespawnAndDontReturnToContainer()
+	deathHasBeenHandled = true
 	ownerTroopContainer.OwnedUnitHasDied(unitIndex, gameTimeOwnerContainerWasSetup)
 	meActor.Disable()
 	meActor.Delete()

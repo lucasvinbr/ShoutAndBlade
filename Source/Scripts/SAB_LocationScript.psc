@@ -24,6 +24,7 @@ ObjectReference Property MoveDestination Auto
 { this is the destination commanders will head to. It can be inside the location itself }
 
 Location Property ThisLocation Auto
+{ this should be set to the interior location, where moveDestination is }
 
 float Property GoldRewardMultiplier = 1.0 Auto Hidden
 { a multiplier applied on this location's gold award to the owner. Can make locations more or less valuable to control }
@@ -265,6 +266,7 @@ endfunction
 
 
 bool Function IsRefInsideThisLocation(ObjectReference ref)
+	;debug.Trace(ThisLocation + ": is same location as " + ref.GetCurrentLocation() + "?")
 	return ThisLocation.IsSameLocation(ref.GetCurrentLocation())
 EndFunction
 
@@ -320,7 +322,7 @@ ObjectReference Function GetSpawnLocationForUnit()
 		if InternalSpawnPoints.Length > 0
 			return InternalSpawnPoints[Utility.RandomInt(0, InternalSpawnPoints.Length - 1)]
 		else
-			return Game.FindRandomReferenceOfAnyTypeInListFromRef(SAB_ObjectsToUseAsSpawnsList, playerActor, 4000)
+			return Game.FindRandomReferenceOfAnyTypeInListFromRef(SAB_ObjectsToUseAsSpawnsList, playerActor, 1500)
 		endif
 	else
 		if ExternalSpawnPoints.Length > 0
