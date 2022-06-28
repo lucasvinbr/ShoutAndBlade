@@ -37,8 +37,10 @@ Function ToggleNearbyUpdates(bool updatesEnabled)
 	if updatesEnabled
 		isNearby = true
 		if indexInCloseByUpdater == -1
-			indexInCloseByUpdater = CloseByUpdater.CmderUpdater.RegisterAliasForUpdates(self)
-			CrowdReducer.NumNearbyCmders += 1
+			indexInCloseByUpdater = CloseByUpdater.CmderUpdater.RegisterAliasForUpdates(self, indexInCloseByUpdater)
+			if indexInCloseByUpdater != -1
+				CrowdReducer.NearbyCmdersList.AddForm(GetReference())
+			endif
 			; debug.Trace("commander: began closebyupdating!")
 			; debug.Trace("commander: nearby cmders: " + CrowdReducer.NumNearbyCmders)
 		endif
@@ -47,7 +49,7 @@ Function ToggleNearbyUpdates(bool updatesEnabled)
 		if indexInCloseByUpdater != -1
 			CloseByUpdater.CmderUpdater.UnregisterAliasFromUpdates(indexInCloseByUpdater)
 			indexInCloseByUpdater = -1
-			CrowdReducer.NumNearbyCmders -= 1
+			CrowdReducer.RemoveCmderFromNearbyList(GetReference())
 			; debug.Trace("commander: stopped closebyupdating!")
 		endif
 	endif
@@ -354,9 +356,9 @@ Function ClearCmderData()
 		endif
 	endif
 
-	Clear()
 	ToggleNearbyUpdates(false)
 	ToggleUpdates(false)
+	Clear()
 
 EndFunction
 

@@ -124,7 +124,7 @@ Function ToggleNearbyUpdates(bool updatesEnabled)
 	if updatesEnabled && isEnabled
 		isNearby = true
 		if indexInCloseByUpdater == -1
-			indexInCloseByUpdater = CloseByUpdater.LocationUpdater.RegisterAliasForUpdates(self)
+			indexInCloseByUpdater = CloseByUpdater.LocationUpdater.RegisterAliasForUpdates(self, indexInCloseByUpdater)
 			; debug.Trace("location: began closebyupdating!")
 		endif
 	elseif !updatesEnabled
@@ -319,6 +319,7 @@ EndFunction
 
 ObjectReference Function GetSpawnLocationForUnit()
 	if playerIsInside
+		debug.Trace("player is inside " + ThisLocation.GetName())
 		if InternalSpawnPoints.Length > 0
 			return InternalSpawnPoints[Utility.RandomInt(0, InternalSpawnPoints.Length - 1)]
 		else

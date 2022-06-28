@@ -13,7 +13,7 @@ Form Property Gold001 Auto
 int lastCheckedUnitAliasIndex = -1
 
 Function Initialize()
-	
+	PlayerCommanderScript.Setup(None)
 EndFunction
 
 Function OpenPurchaseFactionRecruitsMenu()

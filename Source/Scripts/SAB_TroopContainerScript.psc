@@ -21,7 +21,7 @@ SAB_FactionScript property factionScript auto Hidden
 
 ; troop containers need a second updater for when they're close, so that they can spawn units fast
 SAB_SpawnersUpdater Property CloseByUpdater Auto
-int property indexInCloseByUpdater auto Hidden
+int property indexInCloseByUpdater = -1 auto Hidden
 
 ; cached refs for not fetching all the time
 Actor property playerActor auto Hidden
@@ -48,9 +48,9 @@ Function Setup(SAB_FactionScript factionScriptRef, float curGameTime = 0.0)
 	totalOwnedUnitsAmount = 0
 	spawnedUnitsAmount = 0
 	factionScript = factionScriptRef
-	indexInUpdater = AliasUpdater.RegisterAliasForUpdates(self)
-	isNearby = false
-	indexInCloseByUpdater = -1
+	if indexInUpdater == -1
+		indexInUpdater = AliasUpdater.RegisterAliasForUpdates(self, indexInUpdater)
+	endif
 	playerActor = Game.GetPlayer()
 	gameTimeOfLastExpAward = 0.0
 	gameTimeOfLastUnitUpgrade = -10.0 ; assign a big negative value to make sure the container recruits/upgrades ASAP
@@ -65,7 +65,7 @@ Function ToggleNearbyUpdates(bool updatesEnabled)
 	if updatesEnabled
 		isNearby = true
 		if indexInCloseByUpdater == -1
-			indexInCloseByUpdater = CloseByUpdater.CmderUpdater.RegisterAliasForUpdates(self)
+			indexInCloseByUpdater = CloseByUpdater.CmderUpdater.RegisterAliasForUpdates(self, indexInCloseByUpdater)
 			; debug.Trace("troop container: began closebyupdating!")
 		endif
 	elseif !updatesEnabled

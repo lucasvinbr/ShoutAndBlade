@@ -58,13 +58,19 @@ endFunction
 
 
 ; returns the alias's index in the active aliases array, or -1 if we failed to find a vacant index
-int Function RegisterAliasForUpdates(SAB_UpdatedReferenceAlias updatedScript)
+int Function RegisterAliasForUpdates(SAB_UpdatedReferenceAlias updatedScript, int currentIndex = -1)
+
+	if currentIndex != -1
+		debug.Trace(GetName() + " wanted to register " + updatedScript + ", but it already had an index")
+		return -1
+	endif
 
 	int vacantIndex = topFilledIndex + 1
 
 	if !jValue.empty(jKnownVacantSlots)
 		; we know of a hole in the array, let's fill it
 		vacantIndex = jArray.getInt(jKnownVacantSlots, 0)
+		; debug.Trace("got vacant alias index from hole: " + vacantIndex)
 		jArray.eraseIndex(jKnownVacantSlots, 0)
 	else 
 		if vacantIndex >= 256
@@ -90,6 +96,12 @@ EndFunction
 
 ; nullifies the alias's index in the arrays and add the index to the "holes" jArray
 Function UnregisterAliasFromUpdates(int aliasIndex)
+	; debug.Trace("unregister alias " + aliasIndex)
+
+	if aliasIndex < 0
+		return
+	endif
+
 	int indexInArray = aliasIndex % 128
 
 	if aliasIndex > 127

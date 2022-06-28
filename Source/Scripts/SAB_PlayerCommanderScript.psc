@@ -29,17 +29,19 @@ Function ToggleNearbyUpdates(bool updatesEnabled)
 	if updatesEnabled
 		isNearby = true
 		if indexInCloseByUpdater == -1
-			indexInCloseByUpdater = CloseByUpdater.CmderUpdater.RegisterAliasForUpdates(self)
-			CrowdReducer.NumNearbyCmders += 1
-			debug.Trace("player: began closebyupdating!")
-			debug.Trace("player: nearby cmders: " + CrowdReducer.NumNearbyCmders)
+			indexInCloseByUpdater = CloseByUpdater.CmderUpdater.RegisterAliasForUpdates(self, indexInCloseByUpdater)
+			if indexInCloseByUpdater != -1
+				CrowdReducer.NearbyCmdersList.AddForm(GetReference())
+				debug.Trace("player: began closebyupdating!")
+				debug.Trace("player: nearby cmders: " + CrowdReducer.NumNearbyCmders)
+			endif
 		endif
 	elseif !updatesEnabled
 		isNearby = false
 		if indexInCloseByUpdater != -1
 			CloseByUpdater.CmderUpdater.UnregisterAliasFromUpdates(indexInCloseByUpdater)
 			indexInCloseByUpdater = -1
-			CrowdReducer.NumNearbyCmders -= 1
+			CrowdReducer.RemoveCmderFromNearbyList(GetReference())
 			debug.Trace("player: stopped closebyupdating!")
 		endif
 	endif
@@ -100,6 +102,8 @@ ReferenceAlias Function SpawnUnitAtLocation(int unitIndex, ObjectReference targe
 			jIntMap.removeKey(jSpawnOptionsMap, unitIndex)
 		endif
 
+		(spawnedUnit.GetReference() as Actor).SetPlayerTeammate(true, true)
+
 		spawnedUnitsAmount += 1
 
 		return spawnedUnit
@@ -135,8 +139,8 @@ Event OnCombatStateChanged(Actor akTarget, int aeCombatState)
 		; endif
 		ToggleNearbyUpdates(true)
 
-	else
-		ToggleNearbyUpdates(false)
+	; else
+	; 	ToggleNearbyUpdates(false)
 	endif
 EndEvent
 

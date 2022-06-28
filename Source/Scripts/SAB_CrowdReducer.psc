@@ -5,7 +5,13 @@ Scriptname SAB_CrowdReducer extends Quest
 Actor[] BodiesArray
 
 
-int Property NumNearbyCmders Auto Hidden
+int Property NumNearbyCmders Hidden
+	int Function Get()
+		return NearbyCmdersList.GetSize()
+	EndFunction
+EndProperty
+
+FormList Property NearbyCmdersList Auto
 
 ObjectReference Property BodyDumpReference Auto
 { reference to which bodies that will be deleted are moved }
@@ -21,7 +27,6 @@ EndFunction
 
 ; stores the dead body in the bodies array and, if the body limit is reached, deletes the oldest body
 Function AddDeadBody(Actor body)
-
 	BodiesArray[nextBodyIndexToFill] = body
 	numExistingBodies += 1
 	nextBodyIndexToFill += 1
@@ -75,3 +80,7 @@ Event OnUpdate()
 
 	endwhile
 EndEvent
+
+Function RemoveCmderFromNearbyList(Form cmderForm)
+	NearbyCmdersList.RemoveAddedForm(cmderForm)
+EndFunction

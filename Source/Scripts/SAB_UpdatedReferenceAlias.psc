@@ -2,7 +2,7 @@ scriptname SAB_UpdatedReferenceAlias extends ReferenceAlias
 { a reference alias that should be updated regularly }
 
 SAB_AliasUpdater Property AliasUpdater Auto
-int Property indexInUpdater Auto Hidden
+int Property indexInUpdater = -1 Auto Hidden
 
 
 bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
@@ -15,7 +15,7 @@ Function ToggleUpdates(bool updatesEnabled)
 	
 	if updatesEnabled
 		if indexInUpdater == -1
-			indexInUpdater = AliasUpdater.RegisterAliasForUpdates(self)
+			indexInUpdater = AliasUpdater.RegisterAliasForUpdates(self, indexInUpdater)
 		endif
 	elseif !updatesEnabled
 		if indexInUpdater != -1
