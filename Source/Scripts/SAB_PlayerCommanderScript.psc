@@ -41,7 +41,7 @@ Function ToggleNearbyUpdates(bool updatesEnabled)
 		if indexInCloseByUpdater != -1
 			CloseByUpdater.CmderUpdater.UnregisterAliasFromUpdates(indexInCloseByUpdater)
 			indexInCloseByUpdater = -1
-			CrowdReducer.RemoveCmderFromNearbyList(GetReference())
+			CrowdReducer.RemoveCmderFromNearbyList(GetReference(), playerActor)
 			debug.Trace("player: stopped closebyupdating!")
 		endif
 	endif

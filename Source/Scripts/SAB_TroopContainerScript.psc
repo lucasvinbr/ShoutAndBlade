@@ -347,7 +347,7 @@ EndFunction
 
 ; attempts to spawn a group of units in one of our spawn points
 Function SpawnUnitBatch()
-	int maxBatchSize = 5
+	int maxBatchSize = 99
 	int spawnedCount = 0
 
 	ObjectReference spawnLocation = GetSpawnLocationForUnit()

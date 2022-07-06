@@ -75,12 +75,24 @@ Event OnUpdate()
 		numExistingBodies -= 1
 		bodiesErased += 1
 		
-		debug.Trace("deadBodyCleaner: deleted body at index " + bodyIndexToEraseNow)
-		debug.Trace("deadBodyCleaner: bodycount is now " + numExistingBodies)
+		;debug.Trace("deadBodyCleaner: deleted body at index " + bodyIndexToEraseNow)
+		;debug.Trace("deadBodyCleaner: bodycount is now " + numExistingBodies)
 
 	endwhile
 EndEvent
 
-Function RemoveCmderFromNearbyList(Form cmderForm)
+Function RemoveCmderFromNearbyList(Form cmderForm, Actor playerRef)
 	NearbyCmdersList.RemoveAddedForm(cmderForm)
+
+	; entries' validity check
+	int i = NearbyCmdersList.GetSize()
+
+	While i > 0
+		i -= 1
+		ObjectReference testedRef = NearbyCmdersList.GetAt(i) as ObjectReference
+		if !testedRef || playerRef.GetDistance(testedRef) > 10000
+			NearbyCmdersList.RemoveAddedForm(testedRef)
+			debug.Trace("removed invalid cmder from nearby list")
+		endif
+	EndWhile
 EndFunction

@@ -96,7 +96,7 @@ ReferenceAlias Function SpawnPlayerUnit(int unitIndex, ObjectReference spawnLoca
 		return None
 	endif
 
-	int unitIndexInUnitUpdater = PlayerFaction.UnitUpdater.UnitUpdater.RegisterAliasForUpdates(unitAlias as SAB_UnitScript)
+	int unitIndexInUnitUpdater = PlayerFaction.UnitUpdater.UnitUpdater.RegisterAliasForUpdates(unitAlias as SAB_UnitScript, -1)
 
 	if unitIndexInUnitUpdater == -1
 		debug.Trace("spawn unit for container: unitIndexInUnitUpdater is -1!")

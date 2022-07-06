@@ -667,7 +667,7 @@ ReferenceAlias Function SpawnUnitForTroopContainer(SAB_TroopContainerScript troo
 		return None
 	endif
 
-	int unitIndexInUnitUpdater = UnitUpdater.UnitUpdater.RegisterAliasForUpdates(unitAlias as SAB_UnitScript)
+	int unitIndexInUnitUpdater = UnitUpdater.UnitUpdater.RegisterAliasForUpdates(unitAlias as SAB_UnitScript, -1)
 
 	if unitIndexInUnitUpdater == -1
 		debug.Trace("spawn unit for container: unitIndexInUnitUpdater is -1!")

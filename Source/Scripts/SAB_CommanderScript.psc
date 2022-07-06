@@ -49,12 +49,29 @@ Function ToggleNearbyUpdates(bool updatesEnabled)
 		if indexInCloseByUpdater != -1
 			CloseByUpdater.CmderUpdater.UnregisterAliasFromUpdates(indexInCloseByUpdater)
 			indexInCloseByUpdater = -1
-			CrowdReducer.RemoveCmderFromNearbyList(GetReference())
+			CrowdReducer.RemoveCmderFromNearbyList(GetReference(), playerActor)
 			; debug.Trace("commander: stopped closebyupdating!")
 		endif
 	endif
 
 EndFunction
+
+
+bool function RunCloseByUpdate()
+	parent.RunCloseByUpdate()
+
+	; some cmders seem to slip by our nearby checks, so here's another one
+	if !isNearby
+		debug.Trace("nearby updating a cmder with isNearby set to false!")
+		float playerDistance = playerActor.GetDistance(meActor)
+		if playerDistance && playerDistance > 10000
+			debug.Trace("nearby updating a cmder with isNearby set to false AND that is far away!")
+			ToggleNearbyUpdates(false)
+		endif
+	endif
+	return true	
+endfunction
+
 
 bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 
@@ -96,6 +113,15 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 				endif
 			endif
 			
+		endif
+
+		; some cmders seem to slip by our attach/detach checks, so here's another one
+		if isNearby
+			float playerDistance = playerActor.GetDistance(meActor)
+			if playerDistance && playerDistance > 10000
+				debug.Trace("cmder was considered to be nearby but was actually far away")
+				ToggleNearbyUpdates(false)
+			endif
 		endif
 	else 
 		if ClearAliasIfOutOfTroops()
