@@ -15,6 +15,8 @@ int jKnownVacantSlots
 
 bool hasUpdatedAnElement = false
 
+int Property numActives = 0 Auto Hidden
+
 function Initialize()
 	debug.Trace("alias updater: initialize!")
 	SAB_ActiveElementsOne = new SAB_UpdatedReferenceAlias[128]
@@ -91,6 +93,8 @@ int Function RegisterAliasForUpdates(SAB_UpdatedReferenceAlias updatedScript, in
 		SAB_ActiveElementsTwo[indexInArray] = updatedScript
 	endif
 
+	numActives += 1
+
 	return vacantIndex
 EndFunction
 
@@ -111,4 +115,6 @@ Function UnregisterAliasFromUpdates(int aliasIndex)
 	endif
 
 	JArray.addInt(jKnownVacantSlots, aliasIndex)
+
+	numActives -= 1
 EndFunction

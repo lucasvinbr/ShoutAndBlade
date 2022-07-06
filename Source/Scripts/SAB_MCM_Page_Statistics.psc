@@ -206,7 +206,21 @@ Function SetupDebugStatistics()
         numStatsPages = 1
     endif
 
-    AddTextOptionST("STATS_DISPLAY___NEARBYCMDERS", "$sab_mcm_stats_menu_statspage_debug_nearbycmders", MainPage.MainQuest.CrowdReducer.NumNearbyCmders)
+    SAB_CrowdReducer crowdReducer = MainPage.MainQuest.CrowdReducer
+
+    AddTextOptionST("STATS_DISPLAY___NEARBYCMDERS", "$sab_mcm_stats_menu_statspage_debug_nearbycmders", crowdReducer.NumNearbyCmders)
+    AddTextOptionST("STATS_DISPLAY___NEARBYLOCS_ALIAS", "$sab_mcm_stats_menu_statspage_debug_nearbylocs_aliases", MainPage.MainQuest.SpawnersUpdater.LocationUpdater.numActives)
+    AddTextOptionST("STATS_DISPLAY___NEARBYCMDERS_ALIAS", "$sab_mcm_stats_menu_statspage_debug_nearbycmders_aliases", MainPage.MainQuest.SpawnersUpdater.CmderUpdater.numActives)
+
+    FormList cmdersList = crowdReducer.NearbyCmdersList
+    Actor plyrRef = game.GetPlayer()
+    int i = crowdReducer.NumNearbyCmders
+    ; show all cmders in list
+    While i > 0
+        i -= 1
+        ObjectReference cmderRef = cmdersList.GetAt(i) as ObjectReference
+        AddTextOptionST("STATS_DISPLAY___NEARBYCMDERS" + i, cmderRef.GetFormID(), plyrRef.GetDistance(cmderRef))
+    EndWhile
     
 EndFunction
 
