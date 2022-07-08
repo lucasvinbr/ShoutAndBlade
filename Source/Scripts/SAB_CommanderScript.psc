@@ -415,9 +415,9 @@ int Function GetMaxSpawnedUnitsAmount()
 			; debug.Trace("Cmder GetMaxSpawnedUnitsAmount: in combat and above nearbyCmdersLimit. MaxAmount: " + \
 			; 				(JDB.solveInt(".ShoutAndBlade.cmderOptions.combatSpawnsDividend", 20) / nearbyCmders))
 			int numSpawns = JDB.solveInt(".ShoutAndBlade.cmderOptions.combatSpawnsDividend", 20) / nearbyCmders
-			if numSpawns < 1
-				numSpawns = 1
-			endif
+			; if numSpawns < 1
+			; 	numSpawns = 1
+			; endif
 			return numSpawns
 		endif
 
