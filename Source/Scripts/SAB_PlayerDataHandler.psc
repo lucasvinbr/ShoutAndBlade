@@ -44,10 +44,10 @@ Function OpenPurchaseUnitsMenu(int unitIndex = -1)
 	;this can be done indefinitely (5 plus 5 plus 5 plus 5 plus 4: you'll hire 24 units... or less, if your gold or the unit limit ends)
 	int numberOfUnitsToPurchase = 0
 	
-	int chosenMsgBoxIndex = HowManyUnitsMsg.show(numUnitsAvailable, numberOfUnitsToPurchase, goldCostPerRec)
+	int chosenMsgBoxIndex = HowManyUnitsMsg.show(numUnitsAvailable, goldCostPerRec, numberOfUnitsToPurchase)
 	while chosenMsgBoxIndex == 6 && numberOfUnitsToPurchase < numUnitsAvailable
 		numberOfUnitsToPurchase += 5
-		chosenMsgBoxIndex = HowManyUnitsMsg.show(numUnitsAvailable, numberOfUnitsToPurchase, goldCostPerRec)
+		chosenMsgBoxIndex = HowManyUnitsMsg.show(numUnitsAvailable, goldCostPerRec,numberOfUnitsToPurchase)
 	endwhile
 
 	numberOfUnitsToPurchase += chosenMsgBoxIndex
