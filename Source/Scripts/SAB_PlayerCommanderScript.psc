@@ -128,20 +128,20 @@ Function SpawnBesiegingUnitAtPos(ObjectReference targetLocation)
 EndFunction
 
 Event OnCombatStateChanged(Actor akTarget, int aeCombatState)
-	if aeCombatState == 1 || aeCombatState == 2 ; engaging or searching
-		; debug.Trace("player: started combat!")
+	; if aeCombatState == 1 || aeCombatState == 2 ; engaging or searching
+	; 	; debug.Trace("player: started combat!")
 
-		; if the current spawn is too far away,
-		; update the spawn point to where the combat started
+	; 	; if the current spawn is too far away,
+	; 	; update the spawn point to where the combat started
 		
-		; if TroopSpawnPoint.GetDistance(playerActor) > 4000.0
-		; 	TroopSpawnPoint.MoveTo(playerActor)
-		; endif
-		ToggleNearbyUpdates(true)
+	; 	; if TroopSpawnPoint.GetDistance(playerActor) > 4000.0
+	; 	; 	TroopSpawnPoint.MoveTo(playerActor)
+	; 	; endif
+	; 	ToggleNearbyUpdates(true)
 
-	; else
-	; 	ToggleNearbyUpdates(false)
-	endif
+	; ; else
+	; ; 	ToggleNearbyUpdates(false)
+	; endif
 EndEvent
 
 ; tries to remove units from this container, even if they are currently spawned

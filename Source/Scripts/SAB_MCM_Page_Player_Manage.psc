@@ -37,8 +37,11 @@ Function SetupPage()
     endif
 
     SetCursorFillMode(TOP_TO_BOTTOM)
-
     SAB_PlayerCommanderScript plyr = MainPage.MainQuest.PlayerDataHandler.PlayerCommanderScript
+
+    AddToggleOptionST("PLYR_TOGGLE_SPAWNTROOPS", "$sab_mcm_mytroops_toggle_troop_spawning", plyr.isNearby)
+    AddEmptyOption()
+    
     int jUnitDatasArray = MainPage.MainQuest.UnitDataHandler.jSABUnitDatasArray
     float expPointsAvailable = plyr.availableExpPoints
     int playerGoldAmount = plyr.playerActor.GetItemCount(Gold001)
@@ -132,6 +135,31 @@ Function SetupPage()
     endif
     
 EndFunction
+
+
+state PLYR_TOGGLE_SPAWNTROOPS
+    event OnSelectST(string state_id)
+        SAB_PlayerCommanderScript plyr = MainPage.MainQuest.PlayerDataHandler.PlayerCommanderScript
+
+        plyr.ToggleNearbyUpdates(!plyr.isNearby)
+        
+        SetToggleOptionValueST(plyr.isNearby)
+	endEvent
+
+    event OnDefaultST(string state_id)
+        SAB_PlayerCommanderScript plyr = MainPage.MainQuest.PlayerDataHandler.PlayerCommanderScript
+
+        plyr.ToggleNearbyUpdates(false)
+        
+        SetToggleOptionValueST(plyr.isNearby)
+    endevent
+
+	event OnHighlightST(string state_id)
+        MainPage.ToggleQuickHotkey(true)
+		SetInfoText("$sab_mcm_mytroops_toggle_troop_spawning_desc")
+	endEvent
+endstate
+
 
 state PLYR_PICKTROOP
     
