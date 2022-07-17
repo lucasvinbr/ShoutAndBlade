@@ -70,6 +70,31 @@ Function SetupPage()
         AddTextOptionST("PLYR_CUR_FAC_DEST___A", "$sab_mcm_mytroops_menu_ourdest_a", GetLocationNameForOurDests(facScript.destinationScript_A))
         AddTextOptionST("PLYR_CUR_FAC_DEST___B", "$sab_mcm_mytroops_menu_ourdest_b", GetLocationNameForOurDests(facScript.destinationScript_B))
         AddTextOptionST("PLYR_CUR_FAC_DEST___C", "$sab_mcm_mytroops_menu_ourdest_c", GetLocationNameForOurDests(facScript.destinationScript_C))
+
+        SetCursorPosition(1)
+
+        ; faction's locations
+        AddTextOptionST("PLYR_CUR_FAC_NUM_LOCS", "$sab_mcm_myfaction_numlocs", jArray.count(facScript.jOwnedLocationIndexesArray))
+
+        ; attack targets (debug)
+        ; int jAttackTargetsArray = facScript.FindAttackTargets()
+
+        ; int i = jArray.count(jAttackTargetsArray)
+        ; SAB_LocationDataHandler locHandler = facScript.LocationDataHandler
+
+        ; While i > 0
+        ;     i -= 1
+
+        ;     int locIndex = jArray.getInt(jAttackTargetsArray, i, -1)
+            
+        ;     if locIndex >= 0
+        ;         string locName = locHandler.Locations[locIndex].ThisLocation.GetName()
+        ;         AddTextOptionST("PLYR_CUR_FAC_NUM_LOCS" + locName, "$sab_mcm_myfaction_numlocs", locName)
+        ;     endif
+            
+        ; EndWhile
+
+        ; jValue.release(jAttackTargetsArray)
     endif
 
     
@@ -86,12 +111,17 @@ EndFunction
 
 
 state PLYR_CUR_FAC_DEST
-
 	event OnHighlightST(string state_id)
         MainPage.ToggleQuickHotkey(true)
 		SetInfoText("$sab_mcm_mytroops_menu_ourdest_desc")
 	endEvent
+endstate
 
+state PLYR_CUR_FAC_NUM_LOCS
+	event OnHighlightST(string state_id)
+        MainPage.ToggleQuickHotkey(true)
+		SetInfoText("$sab_mcm_myfaction_numlocs_desc")
+	endEvent
 endstate
 
 
