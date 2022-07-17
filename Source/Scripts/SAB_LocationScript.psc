@@ -214,6 +214,7 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 			
 	endif
 
+	; if we're not under attack, run the unit maintenance checks
 	if !IsBeingContested() && curGameTime - gameTimeOfLastUnitUpgrade >= JDB.solveFlt(".ShoutAndBlade.locationOptions.unitMaintenanceInterval", 0.1)
 		gameTimeOfLastUnitUpgrade = curGameTime
 
@@ -237,27 +238,18 @@ bool function RunCloseByUpdate()
 		return false
 	endif
 
-	;debug.Trace("real time updating commander!")
-	if factionScript != None && spawnedUnitsAmount < GetMaxSpawnedUnitsAmount()
-		; spawn random units from "storage"
-		int unitIndex = GetUnitIndexToSpawn()
-		if unitIndex >= 0
-			ReferenceAlias spawnedUnitAlias = SpawnUnitAtLocation(unitIndex, GetSpawnLocationForUnit())
-
-			; go fight the attacking cmder if we're under attack!
-			if spawnedUnitAlias != None
-				if InteractingCommander != None && InteractingCommander.factionScript != factionScript
-					(spawnedUnitAlias.GetReference() as Actor).SendTrespassAlarm(InteractingCommander.GetReference() as Actor)
-				endif
-			endif
+	; spawn random units from "storage". If we're under attack, spawn groups of units instead of one at a time
+	if factionScript != None
+		if IsBeingContested()
+			SpawnUnitBatch()
+		else
+			SpawnRandomUnitAtPos(GetSpawnLocationForUnit())
 		endif
 	endif
 
 	; if we're being attacked by another faction, spawn their units around this location, to make the attack "visible"
 	if InteractingCommander != None && InteractingCommander.factionScript != factionScript
-		
 		InteractingCommander.SpawnBesiegingUnitAtPos(GetSpawnLocationForUnit())
-		
 	endif
 
 	return true

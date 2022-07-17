@@ -370,7 +370,29 @@ Function SpawnUnitBatch()
 	endwhile
 EndFunction
 
+; attempts to spawn a group of units at a specific point
+Function SpawnUnitBatchAtLocation(ObjectReference spawnLocation)
+	int maxBatchSize = 99
+	int spawnedCount = 0
 
+	int spawnedsLimit = GetMaxSpawnedUnitsAmount()
+
+	while spawnedCount < maxBatchSize && spawnedUnitsAmount < spawnedsLimit 
+		int unitIndexToSpawn = GetUnitIndexToSpawn()
+
+		if unitIndexToSpawn >= 0
+			SpawnUnitAtLocation(unitIndexToSpawn, spawnLocation)
+			spawnedCount += 1
+		else 
+			; stop spawning, we're out of spawnable units
+			spawnedCount = maxBatchSize 
+		endif
+
+		; update the max spawneds amount, in case it has changed due to stuff like cmders entering combat
+		spawnedsLimit = GetMaxSpawnedUnitsAmount()
+		
+	endwhile
+EndFunction
 
 Function SpawnRandomUnitAtPos(ObjectReference targetLocation)
 

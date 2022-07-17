@@ -6,6 +6,9 @@ int Property unitIndex = -1 auto hidden
 ; reference to the troop container that spawned us. If we die/despawn, we should tell them
 SAB_TroopContainerScript ownerTroopContainer
 
+; ownerTroopContainer, cast to Location
+SAB_LocationScript ownerContainerLocation
+
 Actor meActor
 Actor Property playerActor Auto
 SAB_CrowdReducer Property CrowdReducer Auto
@@ -19,6 +22,7 @@ float gameTimeOwnerContainerWasSetup = 0.0
 Function Setup(int thisUnitIndex, SAB_TroopContainerScript containerRef, int indexInUnitUpdater, float gameTimeSetupOfParentContainer)
 	deathHasBeenHandled = false
 	ownerTroopContainer = containerRef
+	ownerContainerLocation = containerRef as SAB_LocationScript
 	unitIndex = thisUnitIndex
 	meActor = GetReference() as Actor
 	indexInUpdater = indexInUnitUpdater
@@ -66,6 +70,17 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 	if distToPlayer > GetIsNearbyDistance()
 		; debug.Trace("unit: too far, despawn!")
 		Despawn()
+		return true
+	endif
+
+	if ownerContainerLocation != None
+		; if we're guarding a location and it is under attack, keep trying to find the enemy
+		if meActor && !meActor.IsInCombat()
+			SAB_CommanderScript cmderInOurLocation = ownerContainerLocation.InteractingCommander
+			if cmderInOurLocation != None && cmderInOurLocation.factionScript != ownerContainerLocation.factionScript
+				meActor.StartCombat(cmderInOurLocation.GetReference() as Actor)
+			endif
+		endif
 	endif
 
 	return true
