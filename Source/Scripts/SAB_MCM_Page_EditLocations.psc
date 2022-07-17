@@ -59,7 +59,9 @@ Function SetupPage()
         return
     endif
 
-    editedLocationIdentifiersArray = MainPage.MainQuest.LocationDataHandler.CreateStringArrayWithLocationIdentifiers()
+    SAB_LocationDataHandler locHandler = MainPage.MainQuest.LocationDataHandler
+
+    editedLocationIdentifiersArray = locHandler.CreateStringArrayWithLocationIdentifiers()
 
     if editedLocationIdentifiersArray.Length <= 0
         AddTextOptionST("NO_LOCS_FOUND", "$sab_mcm_locationedit_text_no_locs_found", "")
@@ -68,9 +70,9 @@ Function SetupPage()
 
     SetCursorFillMode(TOP_TO_BOTTOM)
 
-    jLocationsDataMap = MainPage.MainQuest.LocationDataHandler.jLocationsConfigMap
+    jLocationsDataMap = locHandler.jLocationsConfigMap
 
-    editedLocationScript = MainPage.MainQuest.LocationDataHandler.Locations[editedLocationIndex]
+    editedLocationScript = locHandler.Locations[editedLocationIndex]
 
     AddMenuOptionST("LOC_EDIT_CUR_LOC", "$sab_mcm_locationedit_menu_currentloc", editedLocationScript.ThisLocation.GetName())
 
@@ -94,6 +96,24 @@ Function SetupPage()
     AddEmptyOption()
     AddTextOptionST("LOC_EDIT_SAVE", "$sab_mcm_locationedit_button_save", "")
     AddTextOptionST("LOC_EDIT_LOAD", "$sab_mcm_locationedit_button_load", "")
+
+    AddEmptyOption()
+
+    int jNearbyLocsArray = editedLocationScript.jNearbyLocationsArray
+    int i = jArray.count(jNearbyLocsArray)
+
+    While i > 0
+        i -= 1
+
+        int locIndex = jArray.getInt(jNearbyLocsArray, i, -1)
+            
+        if locIndex >= 0
+            string locName = locHandler.Locations[locIndex].ThisLocation.GetName()
+            AddTextOptionST("LOC_NEARBY___" + locName, "$sab_mcm_locationedit_nearbyloc", locName)
+        endif
+    EndWhile
+
+    AddTextOptionST("LOC_RECALC_NEARBY", "$sab_mcm_locationedit_recalculate_nearbyloc", "")
     
 EndFunction
 
@@ -300,6 +320,28 @@ state NO_LOCS_FOUND
 	endEvent
 
 endstate
+
+state LOC_NEARBY
+
+	event OnHighlightST(string state_id)
+        MainPage.ToggleQuickHotkey(true)
+		SetInfoText("$sab_mcm_locationedit_nearbyloc_desc")
+	endEvent
+
+endstate
+
+state LOC_RECALC_NEARBY
+    event OnSelectST(string state_id)
+        MainPage.MainQuest.LocationDataHandler.CalculateLocationDistances()
+        ShowMessage("$sab_mcm_locationedit_recalculate_nearbyloc_desc", false)
+	endEvent
+
+	event OnHighlightST(string state_id)
+        MainPage.ToggleQuickHotkey(true)
+		SetInfoText("$sab_mcm_locationedit_recalculate_nearbyloc_desc")
+	endEvent
+endstate
+
 
 state LOC_EDIT_SAVE
     event OnSelectST(string state_id)

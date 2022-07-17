@@ -189,7 +189,7 @@ Function CalculateLocationDistances()
         int jDistMapsFromI = jIntMap.object()
         JIntMap.setObj(jlocationDistancesMap, i, jDistMapsFromI)
 
-        ; also prepare the "top 3 closest" jArray
+        ; also prepare the "top 3 closest to cur loc" jArray
         int jDistancesArray = jArray.object()
         JValue.retain(jDistancesArray, "ShoutAndBlade")
 
@@ -215,7 +215,9 @@ Function CalculateLocationDistances()
                 hasCreatedDistArrayEntry = false
                 k = jValue.count(jDistancesArray) - 1
                 while k >= 0
-                    if jArray.getFlt(jDistancesArray, k) > distance
+                    ; keep going until we find a stored distance that is smaller.
+                    ; if we find it, store the new distance right after it
+                    if jArray.getFlt(jDistancesArray, k) < distance
                         JArray.addFlt(jDistancesArray, distance, k + 1)
                         JArray.addInt(jClosestIndexesArray, j, k + 1)
                         hasCreatedDistArrayEntry = true
@@ -225,9 +227,10 @@ Function CalculateLocationDistances()
                     k -= 1
                 endwhile
 
+                ; if we couldn't find a smaller distance than the new one, it's the new smallest one!
                 if !hasCreatedDistArrayEntry
-                    JArray.addFlt(jDistancesArray, distance)
-                    JArray.addInt(jClosestIndexesArray, j)
+                    JArray.addFlt(jDistancesArray, distance, 0)
+                    JArray.addInt(jClosestIndexesArray, j, 0)
                 endif
                 
 
