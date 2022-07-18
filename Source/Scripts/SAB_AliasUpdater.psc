@@ -114,7 +114,25 @@ Function UnregisterAliasFromUpdates(int aliasIndex)
 		SAB_ActiveElementsTwo[indexInArray] = None
 	endif
 
-	JArray.addInt(jKnownVacantSlots, aliasIndex)
+	; handle this new "hole" in the filled array:
+	; if it's a hole in the top, we can just decrement the top
+	if aliasIndex == topFilledIndex
+		topFilledIndex -= 1
+	else
+		JArray.addInt(jKnownVacantSlots, aliasIndex)
+
+		; try and decrement topFilledIndex by finding holes at the top
+		int topHoleIndex = JArray.findInt(jKnownVacantSlots, topFilledIndex)
+		
+		While topHoleIndex != -1
+			debug.Trace("found hole at the top of an aliasupdater! decrementing topFilledIndex")
+			topFilledIndex -= 1
+			jArray.eraseIndex(jKnownVacantSlots, topHoleIndex)
+
+			topHoleIndex = JArray.findInt(jKnownVacantSlots, topFilledIndex)
+		EndWhile
+	endif
+	
 
 	numActives -= 1
 EndFunction
