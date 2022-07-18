@@ -156,7 +156,7 @@ begin
 			SetNativeValue(ElementByPath(curEditedElement, 'Value\Object Union\Object v2\FormID'), FormID(curEditedFaction));
 		end else begin
 			if (propertyName <> 'SpawnerScript') and (propertyName <> 'DefaultCmderSpawnPointsList') and (propertyName <> 'UnitUpdater')
-				and (propertyName <> 'LocationDataHandler') then begin
+				and (propertyName <> 'LocationDataHandler') and (propertyName <> 'DiplomacyDataHandler') then begin
 				SetNativeValue(ElementByPath(curEditedElement, 'Value\Object Union\Object v2\FormID'), FormID(curEditedQuest));
 			end;
 		end;
