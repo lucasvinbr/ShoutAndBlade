@@ -5,6 +5,8 @@ SAB_PlayerCommanderScript Property PlayerCommanderScript Auto
 
 SAB_FactionScript Property PlayerFaction Auto Hidden
 
+Faction Property VanillaPlayerFaction Auto
+
 SAB_SpawnerScript Property SpawnerScript Auto
 
 Message Property HowManyUnitsMsg Auto

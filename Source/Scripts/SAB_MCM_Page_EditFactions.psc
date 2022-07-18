@@ -250,7 +250,7 @@ state FAC_EDIT_ENABLED
             jMap.removeKey(jEditedFactionData, "enabled")
         else
             JMap.setInt(jEditedFactionData, "enabled", 1)
-            MainPage.MainQuest.FactionDataHandler.SAB_FactionQuests[editedFactionIndex].EnableFaction(jEditedFactionData)
+            MainPage.MainQuest.FactionDataHandler.SAB_FactionQuests[editedFactionIndex].EnableFaction(jEditedFactionData, editedFactionIndex)
         endif
 
         SetToggleOptionValueST(jMap.hasKey(jEditedFactionData, "enabled"))

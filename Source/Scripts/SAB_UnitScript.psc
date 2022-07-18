@@ -110,6 +110,10 @@ event OnDeath(Actor akKiller)
 
 	if akKiller == playerActor
 		debug.Trace("player killed a unit!")
+		if ownerTroopContainer.factionScript
+			ownerTroopContainer.factionScript.DiplomacyDataHandler.GlobalReactToPlayerKillingUnit(ownerTroopContainer.factionScript.GetFactionIndex())
+		endif
+		 
 	endif
 
 	if !deathHasBeenHandled

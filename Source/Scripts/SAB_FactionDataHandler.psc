@@ -136,7 +136,7 @@ Function UpdateAllFactionQuestsAccordingToJMap()
         int jFactionData = jArray.getObj(jSABFactionDatasArray, i)
 
         if jMap.hasKey(jFactionData, "enabled")
-            SAB_FactionQuests[i].EnableFaction(jFactionData)
+            SAB_FactionQuests[i].EnableFaction(jFactionData, i)
         ; else 
         ;     SAB_FactionQuests[i].DisableFaction()
         endif

@@ -9,6 +9,7 @@ SAB_SpawnersUpdater Property SpawnersUpdater Auto
 SAB_UnitsUpdater Property UnitsUpdater Auto
 SAB_CrowdReducer Property CrowdReducer Auto
 SAB_PlayerDataHandler Property PlayerDataHandler Auto
+SAB_DiplomacyDataHandler Property DiplomacyHandler Auto
 
 
 bool Property HasInitialized = false Auto Hidden
@@ -19,12 +20,14 @@ event OnInit()
 		Debug.Trace("SAB OnInit begin")
 		UnitDataHandler.InitializeJData()
 		FactionDataHandler.InitializeJData()
+		DiplomacyHandler.InitializeJData()
 		BackgroundUpdater.Initialize(FactionDataHandler.SAB_FactionQuests)
 		SpawnersUpdater.Initialize()
 		UnitsUpdater.Initialize()
 		CrowdReducer.Initialize()
 		LocationDataHandler.Initialize()
 		PlayerDataHandler.Initialize()
+		
 		
 
 		; Debug.StartScriptProfiling("SAB_SpawnerScript")

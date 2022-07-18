@@ -18,6 +18,7 @@ ReferenceAlias Property CmderDestination_C Auto
 SAB_SpawnerScript Property SpawnerScript Auto
 
 SAB_LocationDataHandler Property LocationDataHandler Auto
+SAB_DiplomacyDataHandler Property DiplomacyDataHandler Auto
 
 SAB_LocationScript Property destinationScript_A Auto Hidden
 SAB_LocationScript Property destinationScript_B Auto Hidden
@@ -40,7 +41,6 @@ int Property jFactionData Auto Hidden
 int Property jOwnedLocationIndexesArray Auto Hidden
 { indexes of the LocationDataHandler array that contain locations owned by this faction }
 
-
 ; the player-related handler script. if this var has a value assigned, it probably means the player belongs to this faction
 SAB_PlayerDataHandler playerHandler
 
@@ -54,8 +54,10 @@ float gameTimeOfLastGoldAward = 0.0
 int lastCheckedUnitAliasIndex = -1
 int lastCheckedCmderAliasIndex = -1
 
+int factionIndex = -1
+
 ; prepares this faction's data and registers it for updating
-function EnableFaction(int jEnabledFactionData)
+function EnableFaction(int jEnabledFactionData, int thisFactionIndex)
 	jFactionData = jEnabledFactionData
 	CmderDestination_A.GetReference().MoveTo(GetRandomCmderDefaultSpawnPoint())
 	CmderDestination_B.GetReference().MoveTo(GetRandomCmderDefaultSpawnPoint())
@@ -64,6 +66,7 @@ function EnableFaction(int jEnabledFactionData)
 	destinationScript_B = None
 	destinationScript_C = None
 	jOwnedLocationIndexesArray = jValue.releaseAndRetain(jOwnedLocationIndexesArray, LocationDataHandler.GetLocationIndexesOwnedByFaction(self), "ShoutAndBlade")
+	factionIndex = thisFactionIndex
 endfunction
 
 
@@ -91,7 +94,6 @@ Function SetRelationsWithFaction(Faction targetFaction, int relationType)
 	; this can be used to get the current standing
 	; debug.Trace(targetFaction.GetReaction(OurFaction))
 EndFunction
-
 
 Function AddPlayerToOurFaction(Actor playerActor, SAB_PlayerDataHandler playerDataHandler)
 	playerActor.AddToFaction(OurFaction)
@@ -164,7 +166,9 @@ Function RunDestinationsUpdate(float curGameTime)
 
 	; A should be an attack destination!
 	if curGameTime - gameTimeOfLastDestinationChange_A > gameTimeBeforeChangeDestination || \
-		destinationScript_A == None || destinationScript_A.factionScript == self || destinationScript_A.isEnabled == false
+		destinationScript_A == None || \
+		DiplomacyDataHandler.AreFactionsInGoodStanding(self, destinationScript_A.factionScript) || \
+		destinationScript_A.isEnabled == false
 
 		targetLocIndex = jArray.getInt(jAttackTargetsArray, Utility.RandomInt(0, jArray.count(jAttackTargetsArray) - 1), -1)
 
@@ -186,7 +190,7 @@ Function RunDestinationsUpdate(float curGameTime)
 	; B can be an attack or defend destination. If no "good" targets are available, fall back to a random loc, like A
 	if curGameTime - gameTimeOfLastDestinationChange_B > gameTimeBeforeChangeDestination || \
 		 destinationScript_B == None || destinationScript_B == destinationScript_A || \
-		 (destinationScript_B.factionScript == self && !destinationScript_B.IsBeingContested()) || \
+		 !destinationScript_B.IsBeingContested() || \
 		 destinationScript_B.isEnabled == false
 
 		targetLocIndex = jArray.getInt(jDefenseTargetsArray, Utility.RandomInt(0, jArray.count(jDefenseTargetsArray) - 1), -1)
@@ -213,7 +217,7 @@ Function RunDestinationsUpdate(float curGameTime)
 	; C is like B, but flipped: attack if any target is available, defend if not
 	if curGameTime - gameTimeOfLastDestinationChange_C > gameTimeBeforeChangeDestination || \
 		destinationScript_C == None || destinationScript_C.isEnabled == false || \
-		(destinationScript_C.factionScript == self && !destinationScript_C.IsBeingContested()) || \
+		!destinationScript_C.IsBeingContested() || \
 		destinationScript_C == destinationScript_B
 
 		targetLocIndex = jArray.getInt(jAttackTargetsArray, Utility.RandomInt(0, jArray.count(jAttackTargetsArray) - 1), -1)
@@ -275,10 +279,13 @@ int Function FindAttackTargets()
 					while j > 0
 						j -= 1
 						locIndex = jArray.getInt(jNearbyLocsArray, j, -1)
+						SAB_LocationScript nearbyLocScript = locScripts[locIndex]
 
 						if locIndex != -1
 							; if we don't own the location with index locIndex, add it as a candidate for attacking
-							if jArray.findInt(jOwnedLocationIndexesArray, locIndex) == -1
+							if jArray.findInt(jOwnedLocationIndexesArray, locIndex) == -1 && \
+								!DiplomacyDataHandler.AreFactionsInGoodStanding(self, nearbyLocScript.factionScript)
+
 								JArray.addInt(jPossibleAttackTargets, locIndex)
 							endif
 						endif
@@ -837,6 +844,10 @@ EndFunction
 string Function GetFactionName()
 	return jMap.getStr(jFactionData, "name", "Faction")
 endfunction
+
+int Function GetFactionIndex()
+	return factionIndex
+EndFunction
 
 ; returns the amount of currently "active" commanders
 ; (an active cmder may not necessarily be alive, but still hasn't had their alias cleared)

@@ -12,7 +12,7 @@ string[] relationOptions
 
 
 event OnInit()
-    RegisterModule("$sab_mcm_page_vanillafacrel", 5)
+    RegisterModule("$sab_mcm_page_vanillafacrel", 6)
 endevent
 
 Event OnPageInit()

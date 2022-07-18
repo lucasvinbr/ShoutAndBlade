@@ -172,8 +172,9 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 					; if the player is far away, do autocalc fights!
 					; if any cmder is currently interacting with the location, we fight them first
 					if TargetLocationScript.InteractingCommander != None && TargetLocationScript.InteractingCommander != self
-						if TargetLocationScript.InteractingCommander.factionScript != factionScript
+						if !factionScript.DiplomacyDataHandler.AreFactionsInGoodStanding(factionScript, TargetLocationScript.InteractingCommander.factionScript)
 							DoAutocalcBattle(TargetLocationScript.InteractingCommander)
+							
 							; if the interacting cmder has just been defeated and we're still standing,
 							; mark ourselves as the currently interacting ones
 							if totalOwnedUnitsAmount > 0 && TargetLocationScript.InteractingCommander == None
@@ -184,7 +185,10 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 					elseif TargetLocationScript.factionScript != None
 						TargetLocationScript.InteractingCommander = self
 						; do an autocalc fight against the location's units!
-						if TargetLocationScript.CanAutocalcNow()
+						if TargetLocationScript.CanAutocalcNow() && \
+						 !factionScript.DiplomacyDataHandler.AreFactionsInGoodStanding(factionScript, TargetLocationScript.factionScript)
+
+							factionScript.DiplomacyDataHandler.GlobalReactToLocationAttacked(factionScript.GetFactionIndex(), TargetLocationScript.factionScript.GetFactionIndex())
 							DoAutocalcBattle(TargetLocationScript)
 							return true
 						endif
@@ -196,7 +200,10 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 					endif
 				else
 					; if the player is nearby but the location is empty, take it
-					if TargetLocationScript.factionScript == None
+					if TargetLocationScript.factionScript == None || \
+						(!factionScript.DiplomacyDataHandler.AreFactionsInGoodStanding(factionScript, TargetLocationScript.factionScript) && \
+						TargetLocationScript.totalOwnedUnitsAmount <= 0)
+
 						TargetLocationScript.InteractingCommander = self
 						TargetLocationScript.BeTakenByFaction(factionScript, true)
 						TryTransferUnitsToAnotherContainer(TargetLocationScript)
@@ -271,7 +278,7 @@ Function UpdateConfidenceLevel()
 		return
 	endif
 
-	if totalOwnedUnitsAmount > (GetMaxOwnedUnitsAmount() / 10)
+	if totalOwnedUnitsAmount > (GetMaxOwnedUnitsAmount() / 2)
 		meActor.SetFactionRank(SAB_CmderConfidenceFaction, 1)
 	else
 		meActor.SetFactionRank(SAB_CmderConfidenceFaction, 0)
@@ -334,6 +341,7 @@ event OnDeath(Actor akKiller)
 
 	if akKiller == playerActor
 		debug.Trace("player killed a cmder!")
+		factionScript.DiplomacyDataHandler.GlobalReactToPlayerKillingCmder(factionScript.GetFactionIndex())
 	endif
 
 	if ClearAliasIfOutOfTroops()
