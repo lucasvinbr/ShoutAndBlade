@@ -129,7 +129,7 @@ bool Function AreFactionsEnemies(int factionOneIndex, int factionTwoIndex)
 
     float relValue = GetRelationBetweenFacs(factionOneIndex, factionTwoIndex)
 
-    return relValue <= JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.enemyRelationLevel", 0.0)
+    return relValue < JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.enemyRelationLevel", 0.0)
 EndFunction
 
 
@@ -149,6 +149,10 @@ EndFunction
 
 ; returns true if the standing has just changed
 bool Function AddOrSubtractPlayerRelationWithFac(int factionIndex, float valueToAdd)
+    if factionIndex < 0
+        return false
+    endif
+
     float curRelation = JIntMap.getFlt(jSABPlayerRelationsMap, factionIndex, 0.0)
     float newValue = ClampRelationValue(curRelation + valueToAdd)
     JIntMap.setFlt(jSABPlayerRelationsMap, factionIndex, newValue)
@@ -160,8 +164,12 @@ EndFunction
 
 
 bool Function AddOrSubtractRelationBetweenFacs(int factionOneIndex, int factionTwoIndex, float valueToAdd)
+    if factionOneIndex < 0 || factionTwoIndex < 0
+        return false
+    endif
+
     if factionOneIndex == factionTwoIndex
-        return 0.0
+        return false
     endif
 
     int factionWithSmallerIndex = factionOneIndex
@@ -203,7 +211,7 @@ Function GlobalReactToLocationAttacked(int attackingFacIndex, int defenderFacInd
 
         if i != defenderFacIndex
             if i == attackingFacIndex
-                AddOrSubtractRelationBetweenFacs(attackingFacIndex, defenderFacIndex, JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.relDmg_attackLocation", -0.3))
+                AddOrSubtractRelationBetweenFacs(attackingFacIndex, defenderFacIndex, JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.relDmg_attackLocation", -1.3))
             elseif AreFactionsAllied(i, defenderFacIndex)
                 AddOrSubtractRelationBetweenFacs(i, attackingFacIndex, JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.relDmg_attackAlliedLocation", -0.15))
             elseif AreFactionsEnemies(i, defenderFacIndex)
