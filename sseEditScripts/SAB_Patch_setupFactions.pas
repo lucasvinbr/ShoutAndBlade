@@ -128,8 +128,8 @@ begin
 	
 	// add the faction quest to the factions array in the main quest factionsHandler script!
 	curEditedListElement := ElementByPath(sabMainQuest, 'VMAD\Scripts');
-	// factionsHandler is index 1
-	curEditedElement := ElementByIndex(curEditedListElement, 1); 
+	// factionsHandler is index 2
+	curEditedElement := ElementByIndex(curEditedListElement, 2); 
     curEditedListElement := ElementByPath(curEditedElement, 'Properties');
 	curEditedElement := ElementByIndex(curEditedListElement, 0);
 	curEditedListElement := ElementByPath(curEditedElement, 'Value\Array of Object');
