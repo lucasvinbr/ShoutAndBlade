@@ -89,8 +89,8 @@ Function SetupPage()
     SetCursorFillMode(TOP_TO_BOTTOM)
 
     AddEmptyOption()
-    AddTextOptionST("FAC_EDIT_SAVE", "$sab_mcm_factionedit_button_save", "")
-    AddTextOptionST("FAC_EDIT_LOAD", "$sab_mcm_factionedit_button_load", "")
+    AddTextOptionST("FAC_EDIT_SAVE", "$sab_mcm_diplomacy_button_save", "")
+    AddTextOptionST("FAC_EDIT_LOAD", "$sab_mcm_diplomacy_button_load", "")
     
 EndFunction
 
@@ -128,7 +128,7 @@ state FAC_EDIT_SAVE
 
 	event OnHighlightST(string state_id)
         MainPage.ToggleQuickHotkey(true)
-		SetInfoText("$sab_mcm_factionedit_button_save_desc")
+		SetInfoText("$sab_mcm_diplomacy_button_save_desc")
 	endEvent
 endstate
 
@@ -163,7 +163,7 @@ state FAC_EDIT_LOAD
 
 	event OnHighlightST(string state_id)
         MainPage.ToggleQuickHotkey(true)
-		SetInfoText("$sab_mcm_factionedit_button_load_desc")
+		SetInfoText("$sab_mcm_diplomacy_button_load_desc")
 	endEvent
 endstate
 
