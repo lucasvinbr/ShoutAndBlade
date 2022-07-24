@@ -75,7 +75,7 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 
 	if ownerContainerLocation != None
 		; if we're guarding a location and it is under attack, keep trying to find the enemy
-		if meActor && !meActor.IsInCombat()
+		if meActor && !meActor.IsDead() && !meActor.IsInCombat()
 			SAB_CommanderScript cmderInOurLocation = ownerContainerLocation.InteractingCommander
 			if cmderInOurLocation != None && cmderInOurLocation.factionScript != ownerContainerLocation.factionScript
 				meActor.StartCombat(cmderInOurLocation.GetReference() as Actor)
