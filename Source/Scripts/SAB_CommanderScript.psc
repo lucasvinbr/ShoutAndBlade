@@ -169,12 +169,16 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 					TargetLocationScript.InteractingCommander = self
 					TryTransferUnitsToAnotherContainer(TargetLocationScript)
 				endif
-			else 
+			else
+				SAB_FactionScript locFaction = TargetLocationScript.factionScript
+				SAB_DiplomacyDataHandler diploHandler = factionScript.DiplomacyDataHandler
+				int ourFacIndex = factionScript.GetFactionIndex()
+
 				if !isNearby
 					; if the player is far away, do autocalc fights!
 					; if any cmder is currently interacting with the location, we fight them first
 					if TargetLocationScript.InteractingCommander != None && TargetLocationScript.InteractingCommander != self
-						if !factionScript.DiplomacyDataHandler.AreFactionsInGoodStanding(factionScript, TargetLocationScript.InteractingCommander.factionScript)
+						if !diploHandler.AreFactionsInGoodStanding(factionScript, TargetLocationScript.InteractingCommander.factionScript)
 							DoAutocalcBattle(TargetLocationScript.InteractingCommander)
 							
 							; if the interacting cmder has just been defeated and we're still standing,
@@ -184,13 +188,13 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 							endif
 							return true
 						endif
-					elseif TargetLocationScript.factionScript != None
+					elseif locFaction != None
 						TargetLocationScript.InteractingCommander = self
 						; do an autocalc fight against the location's units!
 						if TargetLocationScript.CanAutocalcNow() && \
-						 !factionScript.DiplomacyDataHandler.AreFactionsInGoodStanding(factionScript, TargetLocationScript.factionScript)
+						 !diploHandler.AreFactionsInGoodStanding(factionScript, locFaction)
 
-							factionScript.DiplomacyDataHandler.GlobalReactToLocationAttacked(factionScript.GetFactionIndex(), TargetLocationScript.factionScript.GetFactionIndex())
+							diploHandler.GlobalReactToLocationAttacked(factionScript.GetFactionIndex(), locFaction.GetFactionIndex())
 							DoAutocalcBattle(TargetLocationScript)
 							return true
 						endif
@@ -202,13 +206,24 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 					endif
 				else
 					; if the player is nearby but the location is empty, take it
-					if TargetLocationScript.factionScript == None || \
-						(!factionScript.DiplomacyDataHandler.AreFactionsInGoodStanding(factionScript, TargetLocationScript.factionScript) && \
+					if locFaction == None || \
+						(!diploHandler.AreFactionsInGoodStanding(factionScript, locFaction) && \
 						TargetLocationScript.totalOwnedUnitsAmount <= 0)
 
 						TargetLocationScript.InteractingCommander = self
 						TargetLocationScript.BeTakenByFaction(factionScript, true)
 						TryTransferUnitsToAnotherContainer(TargetLocationScript)
+					else
+						; if the player is nearby, the location is occupied and we are neutral to the owners... it's time to stop being neutral
+						if locFaction != None && \
+							diploHandler.AreFactionsNeutral(factionScript.GetFactionIndex(), locFaction.GetFactionIndex())
+							
+							diploHandler.GlobalReactToWarDeclaration \
+								(factionScript.GetFactionIndex(), locFaction.GetFactionIndex())
+
+							Debug.Trace(factionScript.GetFactionName() + " has declared war against the " + locFaction.GetFactionName())
+							Debug.Notification(factionScript.GetFactionName() + " has declared war against the " + locFaction.GetFactionName())
+						endif
 					endif
 				endif
 			endif
@@ -216,7 +231,20 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 	else
 		if curGameTime - gameTimeOfLastDestCheck > JDB.solveFlt(".ShoutAndBlade.cmderOptions.destCheckInterval", 0.01)
 			gameTimeOfLastDestCheck = curGameTime
-			factionScript.ValidateCmderReachedDestination(self, CmderDestinationType)
+			if !factionScript.ValidateCmderReachedDestination(self, CmderDestinationType)
+				if isNearby
+					; the cmder is near the player.
+					; we should handle the case where the cmder's faction has just changed targets, 
+					; but the cmder had arrived at the previous one
+					SAB_LocationScript nearbyLocScript = factionScript.DiplomacyDataHandler.PlayerDataHandler.NearbyLocation
+
+					if nearbyLocScript
+						if nearbyLocScript.IsReferenceCloseEnoughForAutocalc(meActor)
+							TargetLocationScript = nearbyLocScript
+						endif
+					endif
+				endif
+			endif
 		endif
 	endif
 

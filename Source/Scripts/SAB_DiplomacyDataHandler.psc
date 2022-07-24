@@ -70,9 +70,9 @@ EndFunction
 ; returns a relationValue constrained to the maximum and minimum relation value limits
 float Function ClampRelationValue(float relationValue)
     if relationValue > JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.maxRelationValue", 2.0)
-        return JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.maxRelationValue", 2.0)
+        return JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.maxRelationValue", 2.0) ; TODO make this configurable
     elseif relationValue < JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.minRelationValue", -2.0)
-        return JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.minRelationValue", -2.0)
+        return JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.minRelationValue", -2.0) ; TODO make this configurable
     endif
 
     return relationValue
@@ -117,7 +117,7 @@ bool Function AreFactionsAllied(int factionOneIndex, int factionTwoIndex)
 
     float relValue = GetRelationBetweenFacs(factionOneIndex, factionTwoIndex)
 
-    return relValue >= JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.allyRelationLevel", 1.0)
+    return relValue >= JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.allyRelationLevel", 1.0) ; TODO make this configurable
 EndFunction
 
 ; returns true if faction one and two have a relation value below or equal to the enemy relation level threshold.
@@ -129,9 +129,22 @@ bool Function AreFactionsEnemies(int factionOneIndex, int factionTwoIndex)
 
     float relValue = GetRelationBetweenFacs(factionOneIndex, factionTwoIndex)
 
-    return relValue < JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.enemyRelationLevel", 0.0)
+    return relValue < JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.enemyRelationLevel", 0.0) ; TODO make this configurable
 EndFunction
 
+; returns true if faction one and two have a relation value above or equal to the enemy relation level threshold,
+; and below the ally relation level threshold.
+; also returns false if faction one and two are the same
+bool Function AreFactionsNeutral(int factionOneIndex, int factionTwoIndex)
+    if factionOneIndex == factionTwoIndex
+        return false
+    endif
+
+    float relValue = GetRelationBetweenFacs(factionOneIndex, factionTwoIndex)
+
+    return (relValue >= JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.enemyRelationLevel", 0.0) && \
+        relValue < JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.allyRelationLevel", 1.0)) 
+EndFunction
 
 ; uses actual faction standings to check if factions are allied or at least friendly.
 ; also returns true if faction one and two are the same, false if one or both the factions are None
@@ -201,6 +214,36 @@ EndFunction
 
 ; defender and allies of the defender get angry at attackers.
 ; enemies of the defender become closer to attackers
+Function GlobalReactToWarDeclaration(int attackingFacIndex, int defenderFacIndex)
+    SAB_FactionScript[] facQuests = FactionDataHandler.SAB_FactionQuests
+
+    int i = facQuests.Length
+
+    While i > 0
+        i -= 1
+
+        if i != defenderFacIndex
+            if i == attackingFacIndex
+                ; relation deduction must be enough to make them hate each other right away
+                float relationDeduction = GetRelationBetweenFacs(attackingFacIndex, defenderFacIndex)
+                if relationDeduction > 0
+                    relationDeduction = relationDeduction * -1
+                endif
+
+                relationDeduction += JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.relDmg_warDeclared", -1.0) ; TODO make this configurable
+
+                AddOrSubtractRelationBetweenFacs(attackingFacIndex, defenderFacIndex, relationDeduction)
+            elseif AreFactionsAllied(i, defenderFacIndex)
+                AddOrSubtractRelationBetweenFacs(i, attackingFacIndex, JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.relDmg_warDeclaredOnAlly", -0.55)) ; TODO make this configurable
+            elseif AreFactionsEnemies(i, defenderFacIndex)
+                AddOrSubtractRelationBetweenFacs(i, attackingFacIndex, JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.relAdd_warDeclaredOnEnemy", 0.4)) ; TODO make this configurable
+            endif
+        endif
+    EndWhile
+EndFunction
+
+; defender and allies of the defender get angry at attackers.
+; enemies of the defender become closer to attackers
 Function GlobalReactToLocationAttacked(int attackingFacIndex, int defenderFacIndex)
     SAB_FactionScript[] facQuests = FactionDataHandler.SAB_FactionQuests
 
@@ -211,11 +254,11 @@ Function GlobalReactToLocationAttacked(int attackingFacIndex, int defenderFacInd
 
         if i != defenderFacIndex
             if i == attackingFacIndex
-                AddOrSubtractRelationBetweenFacs(attackingFacIndex, defenderFacIndex, JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.relDmg_attackLocation", -1.3))
+                AddOrSubtractRelationBetweenFacs(attackingFacIndex, defenderFacIndex, JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.relDmg_attackLocation", -1.3)) ; TODO make this configurable
             elseif AreFactionsAllied(i, defenderFacIndex)
-                AddOrSubtractRelationBetweenFacs(i, attackingFacIndex, JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.relDmg_attackAlliedLocation", -0.15))
+                AddOrSubtractRelationBetweenFacs(i, attackingFacIndex, JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.relDmg_attackAlliedLocation", -0.15)) ; TODO make this configurable
             elseif AreFactionsEnemies(i, defenderFacIndex)
-                AddOrSubtractRelationBetweenFacs(i, attackingFacIndex, JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.relAdd_attackEnemyLocation", 0.1))
+                AddOrSubtractRelationBetweenFacs(i, attackingFacIndex, JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.relAdd_attackEnemyLocation", 0.1)) ; TODO make this configurable
             endif
         endif
     EndWhile
@@ -234,20 +277,20 @@ Function GlobalReactToPlayerKillingUnit(int killedUnitFacIndex)
         playerFacIndex = PlayerDataHandler.PlayerFaction.GetFactionIndex()
     endif
 
-    AddOrSubtractPlayerRelationWithFac(killedUnitFacIndex, JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.relDmg_playerKilledMyUnit", -0.05))
+    AddOrSubtractPlayerRelationWithFac(killedUnitFacIndex, JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.relDmg_playerKilledMyUnit", -0.05)) ; TODO make this configurable
 
     While i > 0
         i -= 1
 
         if i != killedUnitFacIndex
             if i == playerFacIndex
-                AddOrSubtractRelationBetweenFacs(playerFacIndex, killedUnitFacIndex, JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.relDmg_playerKilledMyUnit", -0.05))
+                AddOrSubtractRelationBetweenFacs(playerFacIndex, killedUnitFacIndex, JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.relDmg_playerKilledMyUnit", -0.05)) ; TODO make this configurable
             elseif AreFactionsAllied(i, killedUnitFacIndex)
-                AddOrSubtractPlayerRelationWithFac(killedUnitFacIndex, JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.relDmg_playerKilledMyAllysUnit", -0.02))
-                AddOrSubtractRelationBetweenFacs(i, playerFacIndex, JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.relDmg_playerKilledMyAllysUnit", -0.02))
+                AddOrSubtractPlayerRelationWithFac(killedUnitFacIndex, JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.relDmg_playerKilledMyAllysUnit", -0.02)) ; TODO make this configurable
+                AddOrSubtractRelationBetweenFacs(i, playerFacIndex, JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.relDmg_playerKilledMyAllysUnit", -0.02)) ; TODO make this configurable
             elseif AreFactionsEnemies(i, killedUnitFacIndex)
-                AddOrSubtractPlayerRelationWithFac(i, JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.relAdd_playerKilledMyEnemysUnit", 0.01))
-                AddOrSubtractRelationBetweenFacs(i, playerFacIndex, JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.relAdd_playerKilledMyEnemysUnit", 0.01))
+                AddOrSubtractPlayerRelationWithFac(i, JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.relAdd_playerKilledMyEnemysUnit", 0.01)) ; TODO make this configurable
+                AddOrSubtractRelationBetweenFacs(i, playerFacIndex, JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.relAdd_playerKilledMyEnemysUnit", 0.01)) ; TODO make this configurable
             endif
         endif
     EndWhile
@@ -265,20 +308,20 @@ Function GlobalReactToPlayerKillingCmder(int killedCmderFacIndex)
         playerFacIndex = PlayerDataHandler.PlayerFaction.GetFactionIndex()
     endif
 
-    AddOrSubtractPlayerRelationWithFac(killedCmderFacIndex, JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.relDmg_playerKilledMyCmder", -0.15))
+    AddOrSubtractPlayerRelationWithFac(killedCmderFacIndex, JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.relDmg_playerKilledMyCmder", -0.15)) ; TODO make this configurable
 
     While i > 0
         i -= 1
 
         if i != killedCmderFacIndex
             if i == playerFacIndex
-                AddOrSubtractRelationBetweenFacs(playerFacIndex, killedCmderFacIndex, JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.relDmg_playerKilledMyCmder", -0.15))
+                AddOrSubtractRelationBetweenFacs(playerFacIndex, killedCmderFacIndex, JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.relDmg_playerKilledMyCmder", -0.15)) ; TODO make this configurable
             elseif AreFactionsAllied(i, killedCmderFacIndex)
-                AddOrSubtractPlayerRelationWithFac(killedCmderFacIndex, JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.relDmg_playerKilledMyAllysCmder", -0.06))
-                AddOrSubtractRelationBetweenFacs(i, playerFacIndex, JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.relDmg_playerKilledMyAllysCmder", -0.06))
+                AddOrSubtractPlayerRelationWithFac(killedCmderFacIndex, JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.relDmg_playerKilledMyAllysCmder", -0.06)) ; TODO make this configurable
+                AddOrSubtractRelationBetweenFacs(i, playerFacIndex, JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.relDmg_playerKilledMyAllysCmder", -0.06)) ; TODO make this configurable
             elseif AreFactionsEnemies(i, killedCmderFacIndex)
-                AddOrSubtractPlayerRelationWithFac(i, JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.relAdd_playerKilledMyEnemysCmder", 0.05))
-                AddOrSubtractRelationBetweenFacs(i, playerFacIndex, JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.relAdd_playerKilledMyEnemysCmder", 0.05))
+                AddOrSubtractPlayerRelationWithFac(i, JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.relAdd_playerKilledMyEnemysCmder", 0.05)) ; TODO make this configurable
+                AddOrSubtractRelationBetweenFacs(i, playerFacIndex, JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.relAdd_playerKilledMyEnemysCmder", 0.05)) ; TODO make this configurable
             endif
         endif
     EndWhile
@@ -288,9 +331,9 @@ EndFunction
 
 ; converts a relation value to one of the numbers used by the faction script to define ingame standings
 int Function RelationValueToFactionStanding(float relValue)
-    if relValue >= JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.allyRelationLevel", 1.0)
+    if relValue >= JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.allyRelationLevel", 1.0) ; TODO make this configurable
 		return 2 ; ally
-	elseif relValue < JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.enemyRelationLevel", 0.0)
+	elseif relValue < JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.enemyRelationLevel", 0.0) ; TODO make this configurable
 		return 1 ; enemy
 	else
 		return 0 ; neutral

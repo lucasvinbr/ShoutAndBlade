@@ -311,7 +311,7 @@ EndFunction
 
 ObjectReference Function GetSpawnLocationForUnit()
 	if playerIsInside
-		debug.Trace("player is inside " + ThisLocation.GetName())
+		; debug.Trace("player is inside " + ThisLocation.GetName())
 		if InternalSpawnPoints.Length > 0
 			return InternalSpawnPoints[Utility.RandomInt(0, InternalSpawnPoints.Length - 1)]
 		else

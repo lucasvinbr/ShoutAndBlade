@@ -12,6 +12,9 @@ SAB_SpawnerScript Property SpawnerScript Auto
 Message Property HowManyUnitsMsg Auto
 Form Property Gold001 Auto
 
+; TODO set this var whenever player gets close to a loc
+SAB_LocationScript Property NearbyLocation Auto Hidden
+
 int lastCheckedUnitAliasIndex = -1
 
 Function Initialize()

@@ -356,8 +356,10 @@ EndFunction
 
 
 ; destination code can be A, B or C.
-; we should check if the cmder really is close to the respective xmarker, and, if it really is the case, do stuff
-Function ValidateCmderReachedDestination(SAB_CommanderScript commander, string cmderDestType = "a")
+; we should check if the cmder really is close to the respective xmarker, and,
+; if it really is the case, assign them to the loc script!
+; returns true if the cmder was assigned the loc script
+bool Function ValidateCmderReachedDestination(SAB_CommanderScript commander, string cmderDestType = "a")
 	ObjectReference cmderDest = CmderDestination_A.GetReference()
 	ObjectReference cmderRef = commander.GetReference()
 	SAB_LocationScript targetLocScript = destinationScript_A
@@ -371,7 +373,7 @@ Function ValidateCmderReachedDestination(SAB_CommanderScript commander, string c
 	endif
 
 	if targetLocScript == None
-		return
+		return false
 	endif
 	
 	if targetLocScript.IsReferenceCloseEnoughForAutocalc(cmderRef)
@@ -379,8 +381,10 @@ Function ValidateCmderReachedDestination(SAB_CommanderScript commander, string c
 		; assign the location to the cmder, and then they'll figure out what to do when updating
 		; Debug.Trace("commander has arrived and has been assigned the loc script!")
 		commander.TargetLocationScript = targetLocScript
+		return true
 	endif
 
+	return false
 EndFunction
 
 
