@@ -60,9 +60,8 @@ Function DisableLocation()
 	ToggleNearbyUpdates(false)
 	AliasUpdater.UnregisterAliasFromUpdates(indexInUpdater)
 
-	if DefaultLocationsContentParent != None
-		DefaultLocationsContentParent.Enable()
-	endif
+	ToggleLocationDefaultContent(true)
+	
 	
 EndFunction
 
@@ -114,6 +113,17 @@ Function BecomeNeutral(bool notify = true)
 
 		i += 1
 	endwhile
+EndFunction
+
+; enables/disables the default content parent
+Function ToggleLocationDefaultContent(bool enableContent)
+	if DefaultLocationsContentParent != None
+		if enableContent && DefaultLocationsContentParent.IsDisabled()
+			DefaultLocationsContentParent.Enable()
+		elseif DefaultLocationsContentParent.IsEnabled()
+			DefaultLocationsContentParent.Disable()
+		endif
+	endif
 EndFunction
 
 ; sets isNearby and enables or disables closeBy updates
@@ -204,13 +214,7 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 
 		; if a faction controls this location, disable default content if it's still enabled.
 		; if it's neutral, enable it back!
-		if DefaultLocationsContentParent != None
-			if factionScript != None && !DefaultLocationsContentParent.IsDisabled()
-				DefaultLocationsContentParent.Disable()
-			elseif factionScript == None && DefaultLocationsContentParent.IsDisabled()
-				DefaultLocationsContentParent.Enable()
-			endif
-		endif
+		ToggleLocationDefaultContent(factionScript != None)
 			
 	endif
 
