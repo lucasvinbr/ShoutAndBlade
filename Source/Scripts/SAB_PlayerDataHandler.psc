@@ -78,6 +78,12 @@ Function OpenPurchaseUnitsMenu(int unitIndex = -1)
 	
 endFunction
 
+; makes the player stop deploying units, and hides all deployed ones
+Function DespawnAllPlayerUnits()
+	PlayerCommanderScript.ToggleNearbyUpdates(false)
+
+	PlayerCommanderScript.DespawnAllUnits()
+EndFunction
 
 
 ReferenceAlias Function SpawnPlayerUnit(int unitIndex, ObjectReference spawnLocation, float containerSetupTime)

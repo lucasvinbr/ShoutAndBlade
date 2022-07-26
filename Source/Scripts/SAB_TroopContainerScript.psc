@@ -29,6 +29,7 @@ Actor property playerActor auto Hidden
 ; experience points the cmder can use to upgrade their units
 float property availableExpPoints auto Hidden
 
+; a container considered to be nearby should be spawning their units
 bool property isNearby = false auto Hidden
 
 ; measured in days (1.0 is a day)

@@ -144,6 +144,35 @@ Event OnCombatStateChanged(Actor akTarget, int aeCombatState)
 	; endif
 EndEvent
 
+; all units currently deployed should disappear, going back to "storage"
+Function DespawnAllUnits()
+
+	; keep despawning the first entry of the spawneds map, until there are no more entries in it... 
+	; or until we change our mind about despawning
+	int spawnedUnitTypesCount = jIntMap.count(jSpawnedUnitsMap)
+	int unitTypeIndexToDespawn = -1
+
+	while spawnedUnitTypesCount > 0 && !isNearby
+		unitTypeIndexToDespawn = JIntMap.nextKey(jSpawnedUnitsMap, -1, -1)
+		
+		int spawnedsCount = JIntMap.getInt(jSpawnedUnitsMap, unitTypeIndexToDespawn)
+
+		; search for them in the spawned units list and despawn them
+		while spawnedsCount > 0
+			SAB_UnitScript unitToRemove = PlayerDataHandler.GetSpawnedUnitOfType(unitTypeIndexToDespawn)
+
+			if unitToRemove != None
+				unitToRemove.Despawn()
+			endif
+
+			spawnedsCount -= 1 ; assume we removed successfully, or else we may keep checking forever
+		endwhile
+
+		spawnedUnitTypesCount -= 1 ; we're assuming all units of this type have been removed, just to not check too much
+	endwhile
+
+EndFunction
+
 ; tries to remove units from this container, even if they are currently spawned
 Function RemoveUnitsOfType(int unitTypeIndex, int amountToRemove)
 	if amountToRemove <= 0
