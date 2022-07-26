@@ -95,14 +95,18 @@ Function SetRelationsWithFaction(Faction targetFaction, int relationType)
 	; debug.Trace(targetFaction.GetReaction(OurFaction))
 EndFunction
 
+; also runs global diplomatic reaction
 Function AddPlayerToOurFaction(Actor playerActor, SAB_PlayerDataHandler playerDataHandler)
 	playerActor.AddToFaction(OurFaction)
+	DiplomacyDataHandler.GlobalReactToPlayerJoiningFaction(GetFactionIndex())
 	playerHandler = playerDataHandler
 	ToggleObjectiveMarkersDisplay(true)
 EndFunction
 
+; also runs global diplomatic reaction
 Function RemovePlayerFromOurFaction(Actor playerActor)
 	playerActor.RemoveFromFaction(OurFaction)
+	DiplomacyDataHandler.GlobalReactToPlayerLeavingFaction(GetFactionIndex())
 	ToggleObjectiveMarkersDisplay(false)
 	playerHandler = None
 EndFunction

@@ -328,6 +328,61 @@ Function GlobalReactToPlayerKillingCmder(int killedCmderFacIndex)
 EndFunction
 
 
+; joined faction likes it,
+; allies of joined faction like it
+; enemies of joined faction dislike it,
+Function GlobalReactToPlayerJoiningFaction(int joinedFacIndex)
+    if joinedFacIndex < 0
+        return
+    endif
+
+    SAB_FactionScript[] facQuests = FactionDataHandler.SAB_FactionQuests
+
+    int i = facQuests.Length
+
+    AddOrSubtractPlayerRelationWithFac(joinedFacIndex, JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.relAdd_playerJoinedMe", 0.45)) ; TODO make this configurable
+
+    While i > 0
+        i -= 1
+
+        if i != joinedFacIndex
+            if AreFactionsAllied(i, joinedFacIndex)
+                AddOrSubtractPlayerRelationWithFac(i, JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.relAdd_playerJoinedAlly", 0.26)) ; TODO make this configurable
+            elseif AreFactionsEnemies(i, joinedFacIndex)
+                AddOrSubtractPlayerRelationWithFac(i, JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.relDmg_playerJoinedEnemy", -0.35)) ; TODO make this configurable
+            endif
+        endif
+    EndWhile
+EndFunction
+
+
+; left faction dislikes it,
+; allies of left faction dislike it,
+; enemies of left faction like it
+Function GlobalReactToPlayerLeavingFaction(int leftFacIndex)
+    if leftFacIndex < 0
+        return
+    endif
+
+    SAB_FactionScript[] facQuests = FactionDataHandler.SAB_FactionQuests
+
+    int i = facQuests.Length
+
+    AddOrSubtractPlayerRelationWithFac(leftFacIndex, JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.relDmg_playerLeftMe", -0.55)) ; TODO make this configurable
+
+    While i > 0
+        i -= 1
+
+        if i != leftFacIndex
+            if AreFactionsAllied(i, leftFacIndex)
+                AddOrSubtractPlayerRelationWithFac(i, JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.relDmg_playerLeftAlly", -0.26)) ; TODO make this configurable
+            elseif AreFactionsEnemies(i, leftFacIndex)
+                AddOrSubtractPlayerRelationWithFac(i, JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.relAdd_playerLeftEnemy", 0.1)) ; TODO make this configurable
+            endif
+        endif
+    EndWhile
+EndFunction
+
 
 ; converts a relation value to one of the numbers used by the faction script to define ingame standings
 int Function RelationValueToFactionStanding(float relValue)
