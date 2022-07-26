@@ -52,11 +52,11 @@ Function SetupStringArrayWithFactionIdentifiers(string[] stringArray)
 EndFunction
 
 ; fills a 41-sized string array with faction ownership options (one option for each of the 40 factions, plus a "neutral/no faction" option)
-Function SetupStringArrayWithOwnershipIdentifiers(string[] stringArray)
+Function SetupStringArrayWithOwnershipIdentifiers(string[] stringArray, string firstOptionText)
 
-    int endingIndex = 41
+    int endingIndex = stringArray.Length
 
-    stringArray[0] = "$sab_mcm_locationedit_ownership_option_neutral"
+    stringArray[0] = firstOptionText
 
     int i = 1
 

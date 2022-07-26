@@ -4,7 +4,7 @@ SAB_MCM Property MainPage Auto
 
 
 string[] editedFactionIdentifiersArray
-int editedFactionIndex = 0
+int editedFactionIndex = -1
 int jEditedFactionData = 0
 
 event OnInit()
@@ -13,7 +13,7 @@ endevent
 
 Event OnPageInit()
 
-    editedFactionIdentifiersArray = new string[40]
+    editedFactionIdentifiersArray = new string[41]
 
 EndEvent
 
@@ -43,21 +43,29 @@ Function SetupPage()
 
     int jFactionDatasArray = MainPage.MainQuest.FactionDataHandler.jSABFactionDatasArray
 
-    jEditedFactionData = jArray.getObj(jFactionDatasArray, editedFactionIndex)
-    ; set up fac if it doesn't exist
-    if jEditedFactionData == 0
-        jEditedFactionData = jMap.object()
-        JArray.setObj(jFactionDatasArray, editedFactionIndex, jEditedFactionData)
+    if editedFactionIndex >= 0
+        jEditedFactionData = jArray.getObj(jFactionDatasArray, editedFactionIndex)
+        ; set up fac if it doesn't exist
+        if jEditedFactionData == 0
+            jEditedFactionData = jMap.object()
+            JArray.setObj(jFactionDatasArray, editedFactionIndex, jEditedFactionData)
+        endif
+
+        AddMenuOptionST("FAC_EDIT_CUR_FAC", "$sab_mcm_vanillafacrel_menu_selectedfac", \
+            (MainPage.GetMCMFactionDisplayByFactionIndex(editedFactionIndex, jEditedFactionData)))
+    else
+        AddMenuOptionST("FAC_EDIT_CUR_FAC", "$sab_mcm_vanillafacrel_menu_selectedfac", \
+            "$sab_mcm_diplomacy_menu_entry_option_player")
     endif
 
-    AddMenuOptionST("FAC_EDIT_CUR_FAC", "$sab_mcm_vanillafacrel_menu_selectedfac", \
-        (MainPage.GetMCMFactionDisplayByFactionIndex(editedFactionIndex, jEditedFactionData)))
 
     AddEmptyOption()
 
     SAB_DiplomacyDataHandler DiplomacyHandler = MainPage.MainQuest.DiplomacyHandler
 
-    AddTextOptionST("RELPLAYER_DISPLAY", "$sab_mcm_diplomacy_player_entry", DiplomacyHandler.GetPlayerRelationWithFac(editedFactionIndex))
+    if editedFactionIndex >= 0
+        AddTextOptionST("RELPLAYER_DISPLAY", "$sab_mcm_diplomacy_player_entry", DiplomacyHandler.GetPlayerRelationWithFac(editedFactionIndex))
+    endif
 
     AddEmptyOption()
 
@@ -66,7 +74,6 @@ Function SetupPage()
     int i = JArray.count(jFactionDatasArray)
     int validFacsCount = 0
 
-
     while i > 0
         i -= 1
 
@@ -74,7 +81,14 @@ Function SetupPage()
 
         if jFacDataMap != 0 && jMap.hasKey(jFacDataMap, "enabled")
             string facName = jMap.getStr(jFacDataMap, "name", "Faction")
-            float relationValue = DiplomacyHandler.GetRelationBetweenFacs(editedFactionIndex, i)
+
+            float relationValue = 0.0
+
+            if editedFactionIndex >= 0
+                relationValue = DiplomacyHandler.GetRelationBetweenFacs(editedFactionIndex, i)
+            else
+                relationValue = DiplomacyHandler.GetPlayerRelationWithFac(i)
+            endif
     
             AddTextOptionST("REL_DISPLAY___" + facName, facName, relationValue)
             validFacsCount += 1
@@ -171,21 +185,30 @@ endstate
 state FAC_EDIT_CUR_FAC
 
 	event OnMenuOpenST(string state_id)
-		SetMenuDialogStartIndex(editedFactionIndex)
+		SetMenuDialogStartIndex(editedFactionIndex + 1)
 		SetMenuDialogDefaultIndex(0)
-        MainPage.MainQuest.FactionDataHandler.SetupStringArrayWithFactionIdentifiers(editedFactionIdentifiersArray)
+        MainPage.MainQuest.FactionDataHandler.SetupStringArrayWithOwnershipIdentifiers(editedFactionIdentifiersArray, "$sab_mcm_diplomacy_menu_entry_option_player")
 		SetMenuDialogOptions(editedFactionIdentifiersArray)
 	endEvent
 
 	event OnMenuAcceptST(string state_id, int index)
-		editedFactionIndex = index
-		SetMenuOptionValueST(index)
+		editedFactionIndex = index - 1
+        if editedFactionIndex == -1
+            SetMenuOptionValueST("$sab_mcm_diplomacy_menu_entry_option_player")
+        else
+            SetMenuOptionValueST(MainPage.GetMCMFactionDisplayByFactionIndex(editedFactionIndex))
+        endif
         ForcePageReset()
 	endEvent
 
 	event OnDefaultST(string state_id)
-		editedFactionIndex = 0
-		SetMenuOptionValueST(MainPage.GetMCMFactionDisplayByFactionIndex(editedFactionIndex))
+		editedFactionIndex = -1
+        if editedFactionIndex == -1
+            SetMenuOptionValueST("$sab_mcm_diplomacy_menu_entry_option_player")
+        else
+            SetMenuOptionValueST(MainPage.GetMCMFactionDisplayByFactionIndex(editedFactionIndex))
+        endif
+		
         ForcePageReset()
 	endEvent
 

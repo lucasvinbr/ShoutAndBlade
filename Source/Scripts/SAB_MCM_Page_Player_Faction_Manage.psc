@@ -130,7 +130,7 @@ state PLYR_CUR_FAC
 	event OnMenuOpenST(string state_id)
 		SetMenuDialogStartIndex(playerFactionIndex + 1)
 		SetMenuDialogDefaultIndex(0)
-        MainPage.MainQuest.FactionDataHandler.SetupStringArrayWithOwnershipIdentifiers(editedFactionIdentifiersArray)
+        MainPage.MainQuest.FactionDataHandler.SetupStringArrayWithOwnershipIdentifiers(editedFactionIdentifiersArray, "$sab_mcm_locationedit_ownership_option_neutral")
 		SetMenuDialogOptions(editedFactionIdentifiersArray)
 	endEvent
 
