@@ -168,13 +168,20 @@ Function RunDestinationsUpdate(float curGameTime)
 	int targetLocIndex = -1
 	float gameTimeBeforeChangeDestination = JDB.solveFlt(".ShoutAndBlade.factionOptions.destChangeInterval", 1.05)
 
+	int attackTargetsCount = jArray.count(jAttackTargetsArray)
+
+	; if there are no more good attack targets, we should break some alliances to keep the wars going
+	if attackTargetsCount == 0
+		DiplomacyDataHandler.GlobalAllianceDecayWithFac(GetFactionIndex())
+	endif
+
 	; A should be an attack destination!
 	if curGameTime - gameTimeOfLastDestinationChange_A > gameTimeBeforeChangeDestination || \
 		destinationScript_A == None || \
 		DiplomacyDataHandler.AreFactionsInGoodStanding(self, destinationScript_A.factionScript) || \
 		destinationScript_A.isEnabled == false
 
-		targetLocIndex = jArray.getInt(jAttackTargetsArray, Utility.RandomInt(0, jArray.count(jAttackTargetsArray) - 1), -1)
+		targetLocIndex = jArray.getInt(jAttackTargetsArray, Utility.RandomInt(0, attackTargetsCount - 1), -1)
 
 		if targetLocIndex == -1
 			destinationScript_A = LocationDataHandler.GetRandomLocation()
@@ -200,7 +207,7 @@ Function RunDestinationsUpdate(float curGameTime)
 		targetLocIndex = jArray.getInt(jDefenseTargetsArray, Utility.RandomInt(0, jArray.count(jDefenseTargetsArray) - 1), -1)
 
 		if targetLocIndex == -1
-			targetLocIndex = jArray.getInt(jAttackTargetsArray, Utility.RandomInt(0, jArray.count(jAttackTargetsArray) - 1), -1)
+			targetLocIndex = jArray.getInt(jAttackTargetsArray, Utility.RandomInt(0, attackTargetsCount - 1), -1)
 		endif
 
 		if targetLocIndex == -1
@@ -224,7 +231,7 @@ Function RunDestinationsUpdate(float curGameTime)
 		!destinationScript_C.IsBeingContested() || \
 		destinationScript_C == destinationScript_B
 
-		targetLocIndex = jArray.getInt(jAttackTargetsArray, Utility.RandomInt(0, jArray.count(jAttackTargetsArray) - 1), -1)
+		targetLocIndex = jArray.getInt(jAttackTargetsArray, Utility.RandomInt(0, attackTargetsCount - 1), -1)
 		
 		if targetLocIndex == -1
 			targetLocIndex = jArray.getInt(jDefenseTargetsArray, Utility.RandomInt(0, jArray.count(jDefenseTargetsArray) - 1), -1)

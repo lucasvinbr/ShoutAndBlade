@@ -242,6 +242,29 @@ Function GlobalReactToWarDeclaration(int attackingFacIndex, int defenderFacIndex
     EndWhile
 EndFunction
 
+; reduce relations with all allies of fac,
+; to make them eventually fight each other if no other enemies are left
+Function GlobalAllianceDecayWithFac(int dacayingFacIndex)
+    if dacayingFacIndex < 0
+        return
+    endif
+
+    SAB_FactionScript[] facQuests = FactionDataHandler.SAB_FactionQuests
+
+    int i = facQuests.Length
+
+    While i > 0
+        i -= 1
+
+        if i != dacayingFacIndex
+            if AreFactionsAllied(i, dacayingFacIndex)
+                AddOrSubtractRelationBetweenFacs(i, dacayingFacIndex, JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.relDmg_allianceDecay", -0.1)) ; TODO make this configurable
+            endif
+        endif
+    EndWhile
+EndFunction
+
+
 ; defender and allies of the defender get angry at attackers.
 ; enemies of the defender become closer to attackers
 Function GlobalReactToLocationAttacked(int attackingFacIndex, int defenderFacIndex)
