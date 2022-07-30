@@ -62,13 +62,13 @@ bool function RunCloseByUpdate()
 
 	; some cmders seem to slip by our nearby checks, so here's another one
 	if !isNearby
-		debug.Trace("nearby updating a cmder with isNearby set to false!")
-		if meActor
-			float playerDistance = playerActor.GetDistance(meActor)
-			if playerDistance && playerDistance > 10000
-				debug.Trace("nearby updating a cmder with isNearby set to false AND that is far away!")
-			endif
-		endif
+		;debug.Trace("nearby updating a cmder with isNearby set to false!")
+		; if meActor
+		; 	float playerDistance = playerActor.GetDistance(meActor)
+		; 	if playerDistance && playerDistance > 10000
+		; 		debug.Trace("nearby updating a cmder with isNearby set to false AND that is far away!")
+		; 	endif
+		; endif
 		ToggleNearbyUpdates(false)
 	endif
 	return true	
