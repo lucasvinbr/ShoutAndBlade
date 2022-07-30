@@ -229,7 +229,8 @@ Function RemoveUnitsOfType(int unitTypeIndex, int amountToRemove)
 EndFunction
 
 int Function GetMaxOwnedUnitsAmount()
-	return JDB.solveInt(".ShoutAndBlade.playerOptions.maxOwnedUnits", 30)
+	return JDB.solveInt(".ShoutAndBlade.playerOptions.baseMaxOwnedUnits", 50) + \
+		JDB.solveInt(".ShoutAndBlade.playerOptions.bonusMaxOwnedUnitsPerLevel", 5) * playerActor.GetLevel()
 EndFunction
 
 int Function GetMaxSpawnedUnitsAmount()

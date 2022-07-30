@@ -38,6 +38,11 @@ Function OpenPurchaseUnitsMenu(int unitIndex = -1)
 		return
 	endif
 
+	if PlayerCommanderScript.totalOwnedUnitsAmount >= PlayerCommanderScript.GetMaxOwnedUnitsAmount()
+		Debug.Notification("You have reached your unit count limit! Level up to be able to recruit more.")
+		return
+	endif
+
 	int numUnitsAvailable = utility.RandomInt(8, 25) ; TODO make this configurable (max and min units available per recruiter)
 
 	; figure out purchased unit's cost
