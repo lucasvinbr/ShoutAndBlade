@@ -175,8 +175,22 @@ bool Function AddOrSubtractPlayerRelationWithFac(int factionIndex, float valueTo
     return DoValuesIndicateDifferentStandings(curRelation, newValue)
 EndFunction
 
+; returns true if the standing has just changed
+bool Function SetPlayerRelationWithFac(int factionIndex, float newRelationValue)
+    if factionIndex < 0
+        return false
+    endif
 
-bool Function AddOrSubtractRelationBetweenFacs(int factionOneIndex, int factionTwoIndex, float valueToAdd)
+    float curRelation = JIntMap.getFlt(jSABPlayerRelationsMap, factionIndex, 0.0)
+    float newValue = ClampRelationValue(newRelationValue)
+    JIntMap.setFlt(jSABPlayerRelationsMap, factionIndex, newValue)
+
+    ApplyRelationBetweenPlayerAndFac(factionIndex, newValue)
+
+    return DoValuesIndicateDifferentStandings(curRelation, newValue)
+EndFunction
+
+bool Function AddOrSubtractRelationBetweenFacs(int factionOneIndex, int factionTwoIndex, float valueToAdd, int playerFacIndex)
     if factionOneIndex < 0 || factionTwoIndex < 0
         return false
     endif
@@ -208,7 +222,16 @@ bool Function AddOrSubtractRelationBetweenFacs(int factionOneIndex, int factionT
 
     ApplyRelationBetweenFactions(factionOneIndex, factionTwoIndex, newValue)
 
-    return DoValuesIndicateDifferentStandings(curRelation, newValue)
+    bool relationHasChanged = DoValuesIndicateDifferentStandings(curRelation, newValue)
+
+    ; if one of them is the player's faction, override the player's relation levels
+    if playerFacIndex == factionOneIndex
+        SetPlayerRelationWithFac(factionTwoIndex, newValue)
+    elseif playerFacIndex == factionTwoIndex
+        SetPlayerRelationWithFac(factionOneIndex, newValue)
+    endif
+
+    return relationHasChanged
 EndFunction
 
 
@@ -218,6 +241,11 @@ Function GlobalReactToWarDeclaration(int attackingFacIndex, int defenderFacIndex
     SAB_FactionScript[] facQuests = FactionDataHandler.SAB_FactionQuests
 
     int i = facQuests.Length
+    int playerFacIndex = -1
+
+    if PlayerDataHandler.PlayerFaction != None
+        playerFacIndex = PlayerDataHandler.PlayerFaction.GetFactionIndex()
+    endif
 
     While i > 0
         i -= 1
@@ -232,11 +260,11 @@ Function GlobalReactToWarDeclaration(int attackingFacIndex, int defenderFacIndex
 
                 relationDeduction += JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.relDmg_warDeclared", -1.0) ; TODO make this configurable
 
-                AddOrSubtractRelationBetweenFacs(attackingFacIndex, defenderFacIndex, relationDeduction)
+                AddOrSubtractRelationBetweenFacs(attackingFacIndex, defenderFacIndex, relationDeduction, playerFacIndex)
             elseif AreFactionsAllied(i, defenderFacIndex)
-                AddOrSubtractRelationBetweenFacs(i, attackingFacIndex, JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.relDmg_warDeclaredOnAlly", -0.55)) ; TODO make this configurable
+                AddOrSubtractRelationBetweenFacs(i, attackingFacIndex, JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.relDmg_warDeclaredOnAlly", -0.55), playerFacIndex) ; TODO make this configurable
             elseif AreFactionsEnemies(i, defenderFacIndex)
-                AddOrSubtractRelationBetweenFacs(i, attackingFacIndex, JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.relAdd_warDeclaredOnEnemy", 0.4)) ; TODO make this configurable
+                AddOrSubtractRelationBetweenFacs(i, attackingFacIndex, JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.relAdd_warDeclaredOnEnemy", 0.4), playerFacIndex) ; TODO make this configurable
             endif
         endif
     EndWhile
@@ -252,13 +280,18 @@ Function GlobalAllianceDecayWithFac(int dacayingFacIndex)
     SAB_FactionScript[] facQuests = FactionDataHandler.SAB_FactionQuests
 
     int i = facQuests.Length
+    int playerFacIndex = -1
+
+    if PlayerDataHandler.PlayerFaction != None
+        playerFacIndex = PlayerDataHandler.PlayerFaction.GetFactionIndex()
+    endif
 
     While i > 0
         i -= 1
 
         if i != dacayingFacIndex
             if AreFactionsAllied(i, dacayingFacIndex)
-                AddOrSubtractRelationBetweenFacs(i, dacayingFacIndex, JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.relDmg_allianceDecay", -0.1)) ; TODO make this configurable
+                AddOrSubtractRelationBetweenFacs(i, dacayingFacIndex, JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.relDmg_allianceDecay", -0.1), playerFacIndex) ; TODO make this configurable
             endif
         endif
     EndWhile
@@ -271,17 +304,22 @@ Function GlobalReactToLocationAttacked(int attackingFacIndex, int defenderFacInd
     SAB_FactionScript[] facQuests = FactionDataHandler.SAB_FactionQuests
 
     int i = facQuests.Length
+    int playerFacIndex = -1
+
+    if PlayerDataHandler.PlayerFaction != None
+        playerFacIndex = PlayerDataHandler.PlayerFaction.GetFactionIndex()
+    endif
 
     While i > 0
         i -= 1
 
         if i != defenderFacIndex
             if i == attackingFacIndex
-                AddOrSubtractRelationBetweenFacs(attackingFacIndex, defenderFacIndex, JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.relDmg_attackLocation", -1.3)) ; TODO make this configurable
+                AddOrSubtractRelationBetweenFacs(attackingFacIndex, defenderFacIndex, JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.relDmg_attackLocation", -1.3), playerFacIndex) ; TODO make this configurable
             elseif AreFactionsAllied(i, defenderFacIndex)
-                AddOrSubtractRelationBetweenFacs(i, attackingFacIndex, JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.relDmg_attackAlliedLocation", -0.15)) ; TODO make this configurable
+                AddOrSubtractRelationBetweenFacs(i, attackingFacIndex, JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.relDmg_attackAlliedLocation", -0.15), playerFacIndex) ; TODO make this configurable
             elseif AreFactionsEnemies(i, defenderFacIndex)
-                AddOrSubtractRelationBetweenFacs(i, attackingFacIndex, JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.relAdd_attackEnemyLocation", 0.1)) ; TODO make this configurable
+                AddOrSubtractRelationBetweenFacs(i, attackingFacIndex, JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.relAdd_attackEnemyLocation", 0.1), playerFacIndex) ; TODO make this configurable
             endif
         endif
     EndWhile
@@ -307,13 +345,13 @@ Function GlobalReactToPlayerKillingUnit(int killedUnitFacIndex)
 
         if i != killedUnitFacIndex
             if i == playerFacIndex
-                AddOrSubtractRelationBetweenFacs(playerFacIndex, killedUnitFacIndex, JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.relDmg_playerKilledMyUnit", -0.05)) ; TODO make this configurable
+                AddOrSubtractRelationBetweenFacs(playerFacIndex, killedUnitFacIndex, JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.relDmg_playerKilledMyUnit", -0.05), playerFacIndex) ; TODO make this configurable
             elseif AreFactionsAllied(i, killedUnitFacIndex)
                 AddOrSubtractPlayerRelationWithFac(killedUnitFacIndex, JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.relDmg_playerKilledMyAllysUnit", -0.02)) ; TODO make this configurable
-                AddOrSubtractRelationBetweenFacs(i, playerFacIndex, JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.relDmg_playerKilledMyAllysUnit", -0.02)) ; TODO make this configurable
+                AddOrSubtractRelationBetweenFacs(i, playerFacIndex, JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.relDmg_playerKilledMyAllysUnit", -0.02), playerFacIndex) ; TODO make this configurable
             elseif AreFactionsEnemies(i, killedUnitFacIndex)
                 AddOrSubtractPlayerRelationWithFac(i, JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.relAdd_playerKilledMyEnemysUnit", 0.01)) ; TODO make this configurable
-                AddOrSubtractRelationBetweenFacs(i, playerFacIndex, JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.relAdd_playerKilledMyEnemysUnit", 0.01)) ; TODO make this configurable
+                AddOrSubtractRelationBetweenFacs(i, playerFacIndex, JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.relAdd_playerKilledMyEnemysUnit", 0.01), playerFacIndex) ; TODO make this configurable
             endif
         endif
     EndWhile
@@ -338,13 +376,13 @@ Function GlobalReactToPlayerKillingCmder(int killedCmderFacIndex)
 
         if i != killedCmderFacIndex
             if i == playerFacIndex
-                AddOrSubtractRelationBetweenFacs(playerFacIndex, killedCmderFacIndex, JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.relDmg_playerKilledMyCmder", -0.15)) ; TODO make this configurable
+                AddOrSubtractRelationBetweenFacs(playerFacIndex, killedCmderFacIndex, JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.relDmg_playerKilledMyCmder", -0.15), playerFacIndex) ; TODO make this configurable
             elseif AreFactionsAllied(i, killedCmderFacIndex)
                 AddOrSubtractPlayerRelationWithFac(killedCmderFacIndex, JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.relDmg_playerKilledMyAllysCmder", -0.06)) ; TODO make this configurable
-                AddOrSubtractRelationBetweenFacs(i, playerFacIndex, JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.relDmg_playerKilledMyAllysCmder", -0.06)) ; TODO make this configurable
+                AddOrSubtractRelationBetweenFacs(i, playerFacIndex, JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.relDmg_playerKilledMyAllysCmder", -0.06), playerFacIndex) ; TODO make this configurable
             elseif AreFactionsEnemies(i, killedCmderFacIndex)
                 AddOrSubtractPlayerRelationWithFac(i, JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.relAdd_playerKilledMyEnemysCmder", 0.05)) ; TODO make this configurable
-                AddOrSubtractRelationBetweenFacs(i, playerFacIndex, JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.relAdd_playerKilledMyEnemysCmder", 0.05)) ; TODO make this configurable
+                AddOrSubtractRelationBetweenFacs(i, playerFacIndex, JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.relAdd_playerKilledMyEnemysCmder", 0.05), playerFacIndex) ; TODO make this configurable
             endif
         endif
     EndWhile
