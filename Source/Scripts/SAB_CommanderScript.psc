@@ -120,7 +120,7 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 		; some cmders seem to slip by our attach/detach checks, so here's another one
 		if isNearby
 			float playerDistance = playerActor.GetDistance(meActor)
-			if playerDistance && playerDistance > 10000
+			if playerDistance && playerDistance > GetIsNearbyDistance()
 				debug.Trace("cmder was considered to be nearby but was actually far away")
 				ToggleNearbyUpdates(false)
 			endif
@@ -194,7 +194,7 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 						if TargetLocationScript.CanAutocalcNow() && \
 						 !diploHandler.AreFactionsInGoodStanding(factionScript, locFaction)
 
-							diploHandler.GlobalReactToLocationAttacked(factionScript.GetFactionIndex(), locFaction.GetFactionIndex())
+							diploHandler.GlobalReactToLocationAttacked(ourFacIndex, locFaction.GetFactionIndex())
 							DoAutocalcBattle(TargetLocationScript)
 							return true
 						endif
@@ -216,10 +216,10 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 					else
 						; if the player is nearby, the location is occupied and we are neutral to the owners... it's time to stop being neutral
 						if locFaction != None && \
-							diploHandler.AreFactionsNeutral(factionScript.GetFactionIndex(), locFaction.GetFactionIndex())
+							diploHandler.AreFactionsNeutral(ourFacIndex, locFaction.GetFactionIndex())
 							
 							diploHandler.GlobalReactToWarDeclaration \
-								(factionScript.GetFactionIndex(), locFaction.GetFactionIndex())
+								(ourFacIndex, locFaction.GetFactionIndex())
 
 							Debug.Trace(factionScript.GetFactionName() + " has declared war against the " + locFaction.GetFactionName())
 							Debug.Notification(factionScript.GetFactionName() + " has declared war against the " + locFaction.GetFactionName())
