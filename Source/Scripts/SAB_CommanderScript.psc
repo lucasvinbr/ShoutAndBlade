@@ -178,7 +178,11 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 					; if the player is far away, do autocalc fights!
 					; if any cmder is currently interacting with the location, we fight them first
 					if TargetLocationScript.InteractingCommander != None && TargetLocationScript.InteractingCommander != self
-						if !diploHandler.AreFactionsInGoodStanding(factionScript, TargetLocationScript.InteractingCommander.factionScript)
+						if !TargetLocationScript.InteractingCommander.IsValid()
+							; the loc had a bad link to a no longer existing cmder.
+							; let's just take their place
+							TargetLocationScript.InteractingCommander = self
+						elseif !diploHandler.AreFactionsInGoodStanding(factionScript, TargetLocationScript.InteractingCommander.factionScript)
 							DoAutocalcBattle(TargetLocationScript.InteractingCommander)
 							
 							; if the interacting cmder has just been defeated and we're still standing,
@@ -408,6 +412,15 @@ Function HandleAutocalcDefeat()
 	meActor.Disable()
 	meActor.Delete()
 	meActor = None
+EndFunction
+
+; returns true if this cmder has a valid actor reference
+bool Function IsValid()
+	if meActor
+		return true
+	endif
+
+	return false
 EndFunction
 
 ; clears the alias and stops updates
