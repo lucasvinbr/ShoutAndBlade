@@ -75,31 +75,63 @@ Function SetupPage()
 
         ; faction's locations
         AddTextOptionST("PLYR_CUR_FAC_NUM_LOCS", "$sab_mcm_myfaction_numlocs", jArray.count(facScript.jOwnedLocationIndexesArray))
+        
 
-        ; attack targets (debug)
-        ; int jAttackTargetsArray = facScript.FindAttackTargets()
+        ; defense targets
+        AddHeaderOption("$sab_mcm_myfaction_defensetargets")
+        int jDefenseTargetsArray = facScript.FindDefenseTargets()
 
-        ; int i = jArray.count(jAttackTargetsArray)
-        ; SAB_LocationDataHandler locHandler = facScript.LocationDataHandler
+        int i = jArray.count(jDefenseTargetsArray)
+        SAB_LocationDataHandler locHandler = facScript.LocationDataHandler
 
-        ; While i > 0
-        ;     i -= 1
+        While i > 0
+            i -= 1
 
-        ;     int locIndex = jArray.getInt(jAttackTargetsArray, i, -1)
+            int locIndex = jArray.getInt(jDefenseTargetsArray, i, -1)
             
-        ;     if locIndex >= 0
-        ;         string locName = locHandler.Locations[locIndex].ThisLocation.GetName()
-        ;         AddTextOptionST("PLYR_CUR_FAC_NUM_LOCS" + locName, "$sab_mcm_myfaction_numlocs", locName)
-        ;     endif
-            
-        ; EndWhile
+            if locIndex >= 0
+                string locName = locHandler.Locations[locIndex].ThisLocation.GetName()
+                string reason = "$sab_mcm_myfaction_defend_smallgarrison"
+                if locHandler.Locations[locIndex].IsBeingContested()
+                    reason = "$sab_mcm_myfaction_defend_underattack"
+                endif
 
-        ; jValue.release(jAttackTargetsArray)
+                AddTextOptionST("PLYR_CUR_FAC_DEFTARGET___" + locName, locName, reason)
+            endif
+            
+        EndWhile
+
+        jValue.release(jDefenseTargetsArray)
+
+
+        AddEmptyOption()
+        ; attack targets
+        AddHeaderOption("$sab_mcm_myfaction_attacktargets")
+        int jAttackTargetsArray = facScript.FindAttackTargets()
+
+        i = jArray.count(jAttackTargetsArray)
+
+        While i > 0
+            i -= 1
+
+            int locIndex = jArray.getInt(jAttackTargetsArray, i, -1)
+            
+            if locIndex >= 0
+                string locName = locHandler.Locations[locIndex].ThisLocation.GetName()
+                AddTextOptionST("PLYR_CUR_FAC_ATKTARGET___" + locName, locName, "")
+            endif
+            
+        EndWhile
+
+        jValue.release(jAttackTargetsArray)
     endif
 
-    
 EndFunction
 
+event OnHighlightST(string state_id)
+    MainPage.ToggleQuickHotkey(true)
+    SetInfoText("$sab_mcm_mytroops_menu_ourdest_undefined")
+endEvent
 
 string Function GetLocationNameForOurDests(SAB_LocationScript locScript)
     if locScript != None
@@ -124,6 +156,19 @@ state PLYR_CUR_FAC_NUM_LOCS
 	endEvent
 endstate
 
+state PLYR_CUR_FAC_ATKTARGET
+	event OnHighlightST(string state_id)
+        MainPage.ToggleQuickHotkey(true)
+		SetInfoText("$sab_mcm_myfaction_attacktargets_desc")
+	endEvent
+endstate
+
+state PLYR_CUR_FAC_DEFTARGET
+	event OnHighlightST(string state_id)
+        MainPage.ToggleQuickHotkey(true)
+		SetInfoText("$sab_mcm_myfaction_defensetargets_desc")
+	endEvent
+endstate
 
 state PLYR_CUR_FAC
 
