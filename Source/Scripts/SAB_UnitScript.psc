@@ -78,7 +78,10 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 		if meActor && !meActor.IsDead() && !meActor.IsInCombat()
 			SAB_CommanderScript cmderInOurLocation = ownerContainerLocation.InteractingCommander
 			if cmderInOurLocation != None && cmderInOurLocation.factionScript != ownerContainerLocation.factionScript
-				meActor.StartCombat(cmderInOurLocation.GetReference() as Actor)
+				Actor attackingCmderActor = cmderInOurLocation.GetReference() as Actor
+				if attackingCmderActor && !attackingCmderActor.IsDead()
+					meActor.StartCombat(cmderInOurLocation.GetReference() as Actor)
+				endif
 			endif
 		endif
 	endif
