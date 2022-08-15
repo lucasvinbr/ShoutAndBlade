@@ -210,7 +210,11 @@ Function SetupDebugStatistics()
 
     AddTextOptionST("STATS_DISPLAY___NEARBYCMDERS", "$sab_mcm_stats_menu_statspage_debug_nearbycmders", crowdReducer.NumNearbyCmders)
     AddTextOptionST("STATS_DISPLAY___NEARBYLOCS_ALIAS", "$sab_mcm_stats_menu_statspage_debug_nearbylocs_aliases", MainPage.MainQuest.SpawnersUpdater.LocationUpdater.numActives)
+    AddTextOptionST("STATS_DISPLAY___NEARBYLOCS_ALIAS_TOPFILLEDINDEX", "$sab_mcm_stats_menu_statspage_debug_nearbylocs_topfilledindex", MainPage.MainQuest.SpawnersUpdater.LocationUpdater.GetTopIndex())
     AddTextOptionST("STATS_DISPLAY___NEARBYCMDERS_ALIAS", "$sab_mcm_stats_menu_statspage_debug_nearbycmders_aliases", MainPage.MainQuest.SpawnersUpdater.CmderUpdater.numActives)
+
+    int nearbyCmdersTopFilledIndex = MainPage.MainQuest.SpawnersUpdater.CmderUpdater.GetTopIndex()
+    AddTextOptionST("STATS_DISPLAY___NEARBYCMDERS_ALIAS_TOPFILLEDINDEX", "$sab_mcm_stats_menu_statspage_debug_nearbycmders_topfilledindex", nearbyCmdersTopFilledIndex)
 
     FormList cmdersList = crowdReducer.NearbyCmdersList
     Actor plyrRef = game.GetPlayer()
@@ -221,6 +225,31 @@ Function SetupDebugStatistics()
         ObjectReference cmderRef = cmdersList.GetAt(i) as ObjectReference
         AddTextOptionST("STATS_DISPLAY___NEARBYCMDERS" + i, cmderRef.GetFormID(), plyrRef.GetDistance(cmderRef))
     EndWhile
+
+    i = AddEmptyOption()
+
+    if i % 2 == 0
+        AddEmptyOption()
+    endif
+
+    ; show all cmders in nearbies alias list (we expect - and hope! - it's less than 128)
+    i = nearbyCmdersTopFilledIndex
+    SAB_UpdatedReferenceAlias[] nearbyCmderAliases = MainPage.MainQuest.SpawnersUpdater.CmderUpdater.GetAliasesArray(0)
+    While i > 0
+        i -= 1
+        SAB_UpdatedReferenceAlias cmderAlias = nearbyCmderAliases[i]
+        SAB_CommanderScript cmderRef = cmderAlias as SAB_CommanderScript
+        if cmderRef && cmderRef.IsValid()
+            AddTextOptionST("STATS_DISPLAY___NEARBYCMDER_ALIAS" + i, cmderRef, i + " - dist: " + plyrRef.GetDistance(cmderRef.GetReference()))
+        elseif cmderAlias
+            AddTextOptionST("STATS_DISPLAY___NEARBYCMDER_ALIAS" + i, cmderAlias, i + " - valid alias")
+        else
+            AddTextOptionST("STATS_DISPLAY___NEARBYCMDER_ALIAS" + i, cmderAlias, i + " - none?")
+        endif
+        
+    EndWhile
+
+    MainPage.MainQuest.SpawnersUpdater.CmderUpdater.DebugPrintVacantSlotsInfo()
     
 EndFunction
 

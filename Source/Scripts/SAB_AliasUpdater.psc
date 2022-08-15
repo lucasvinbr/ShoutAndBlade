@@ -15,6 +15,10 @@ int jKnownVacantSlots
 
 bool hasUpdatedAnElement = false
 
+; we shouldn't register new aliases while this is true, 
+; to prevent an index from being registered outside the ones we'll be looping through after the cleanup
+bool cleaningIndexes = false
+
 int Property numActives = 0 Auto Hidden
 
 function Initialize()
@@ -67,13 +71,18 @@ int Function RegisterAliasForUpdates(SAB_UpdatedReferenceAlias updatedScript, in
 		return -1
 	endif
 
+	while cleaningIndexes
+		debug.Trace("hold on, " + GetName() + " is cleaning indexes")
+		Utility.Wait(0.05)
+	endwhile
+
 	int vacantIndex = topFilledIndex + 1
 
 	if !jValue.empty(jKnownVacantSlots)
 		; we know of a hole in the array, let's fill it
 		vacantIndex = jArray.getInt(jKnownVacantSlots, 0)
 		; debug.Trace("got vacant alias index from hole: " + vacantIndex)
-		jArray.eraseIndex(jKnownVacantSlots, 0)
+		jArray.eraseInteger(jKnownVacantSlots, vacantIndex)
 	else 
 		if vacantIndex >= 256
 			; there are no holes and all entries are filled!
@@ -117,22 +126,71 @@ Function UnregisterAliasFromUpdates(int aliasIndex)
 	; handle this new "hole" in the filled array:
 	; if it's a hole in the top, we can just decrement the top
 	if aliasIndex == topFilledIndex
-		topFilledIndex -= 1
+		if !cleaningIndexes
+			topFilledIndex -= 1
+		endif
 	else
 		JArray.addInt(jKnownVacantSlots, aliasIndex)
 
-		; try and decrement topFilledIndex by finding holes at the top
-		int topHoleIndex = JArray.findInt(jKnownVacantSlots, topFilledIndex)
-		
-		While topHoleIndex != -1
-			debug.Trace("found hole at the top of an aliasupdater! decrementing topFilledIndex")
-			topFilledIndex -= 1
-			jArray.eraseIndex(jKnownVacantSlots, topHoleIndex)
+		if !cleaningIndexes && topFilledIndex > -1
 
-			topHoleIndex = JArray.findInt(jKnownVacantSlots, topFilledIndex)
-		EndWhile
+			cleaningIndexes = true
+			; try and decrement topFilledIndex by finding holes at the top
+			int topHoleIndex = JArray.findInt(jKnownVacantSlots, topFilledIndex)
+
+			SAB_UpdatedReferenceAlias topRef
+			int topFilledInArray = topFilledIndex % 128
+
+			if topFilledIndex > 127
+				topRef = SAB_ActiveElementsOne[topFilledInArray]
+			else
+				topRef = SAB_ActiveElementsTwo[topFilledInArray]
+			endif
+
+			While topHoleIndex != -1 || (topFilledIndex >= 0 && !topRef)
+				debug.Trace("found hole at the top of an aliasupdater! decrementing topFilledIndex")
+				jArray.eraseInteger(jKnownVacantSlots, topFilledIndex)
+				topFilledIndex -= 1
+
+				topHoleIndex = JArray.findInt(jKnownVacantSlots, topFilledIndex)
+
+				topFilledInArray = topFilledIndex % 128
+
+				if topFilledIndex > 127
+					topRef = SAB_ActiveElementsOne[topFilledInArray]
+				elseif topFilledIndex > -1
+					topRef = SAB_ActiveElementsTwo[topFilledInArray]
+				endif
+			EndWhile
+
+			if topFilledIndex == -1 && jArray.count(jKnownVacantSlots) > 0
+				; there's an invalid hole in the vacant slots array! It should be empty if topFilled is -1
+				jArray.clear(jKnownVacantSlots)
+			endif
+
+			cleaningIndexes = false
+		endif
 	endif
 	
 
 	numActives -= 1
+EndFunction
+
+int Function GetTopIndex()
+	return topFilledIndex
+EndFunction
+
+; gets the first or second array of aliases. 0 or anything else for elements two, 1 for elements one (only 2 available currently)
+SAB_UpdatedReferenceAlias[] Function GetAliasesArray(int arrayNumber)
+	if arrayNumber == 1
+		return SAB_ActiveElementsOne
+	else
+		return SAB_ActiveElementsTwo
+	endif
+EndFunction
+
+Function DebugPrintVacantSlotsInfo()
+	Debug.Trace("vacant slots count: " + JArray.count(jKnownVacantSlots))
+	
+	Debug.Trace("vacant slots: " + JArray.asIntArray(jKnownVacantSlots))
 EndFunction
