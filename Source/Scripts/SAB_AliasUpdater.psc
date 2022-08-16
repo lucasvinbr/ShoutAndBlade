@@ -15,9 +15,9 @@ int jKnownVacantSlots
 
 bool hasUpdatedAnElement = false
 
-; we shouldn't register new aliases while this is true, 
+; we shouldn't register/remove aliases while this is true, 
 ; to prevent an index from being registered outside the ones we'll be looping through after the cleanup
-bool cleaningIndexes = false
+bool editingIndexes = false
 
 int Property numActives = 0 Auto Hidden
 
@@ -71,22 +71,35 @@ int Function RegisterAliasForUpdates(SAB_UpdatedReferenceAlias updatedScript, in
 		return -1
 	endif
 
-	while cleaningIndexes
-		debug.Trace("hold on, " + GetName() + " is cleaning indexes")
+	while editingIndexes
+		debug.Trace("hold on, " + GetName() + " is editing indexes")
 		Utility.Wait(0.05)
 	endwhile
 
+	editingIndexes = true
 	int vacantIndex = topFilledIndex + 1
 
 	if !jValue.empty(jKnownVacantSlots)
-		; we know of a hole in the array, let's fill it
-		vacantIndex = jArray.getInt(jKnownVacantSlots, 0)
-		; debug.Trace("got vacant alias index from hole: " + vacantIndex)
-		jArray.eraseInteger(jKnownVacantSlots, vacantIndex)
+		if vacantIndex == 0
+			; topFilledIndex is -1!
+			; in this case, we aren't expecting any vacant slots,
+			; so we empty the vacants list
+			debug.Trace("alias updater " + GetName() + " is clearing invalid vacant slots")
+			jArray.clear(jKnownVacantSlots)
+			numActives = 0
+			topFilledIndex = vacantIndex
+		else
+			; we know of a hole in the array, let's fill it
+			vacantIndex = jArray.getInt(jKnownVacantSlots, 0)
+			; debug.Trace("got vacant alias index from hole: " + vacantIndex)
+			jArray.eraseInteger(jKnownVacantSlots, vacantIndex)
+		endif
 	else 
 		if vacantIndex >= 256
 			; there are no holes and all entries are filled!
 			; abort
+			debug.Trace("alias updater " + GetName() + " is full!")
+			editingIndexes = false
 			return -1
 		endif
 		; increment top index since there are no holes in the array
@@ -104,6 +117,7 @@ int Function RegisterAliasForUpdates(SAB_UpdatedReferenceAlias updatedScript, in
 
 	numActives += 1
 
+	editingIndexes = false
 	return vacantIndex
 EndFunction
 
@@ -114,6 +128,13 @@ Function UnregisterAliasFromUpdates(int aliasIndex)
 	if aliasIndex < 0
 		return
 	endif
+
+	while editingIndexes
+		debug.Trace("hold on, " + GetName() + " is editing indexes")
+		Utility.Wait(0.05)
+	endwhile
+
+	editingIndexes = true
 
 	int indexInArray = aliasIndex % 128
 
@@ -126,15 +147,11 @@ Function UnregisterAliasFromUpdates(int aliasIndex)
 	; handle this new "hole" in the filled array:
 	; if it's a hole in the top, we can just decrement the top
 	if aliasIndex == topFilledIndex
-		if !cleaningIndexes
-			topFilledIndex -= 1
-		endif
+		topFilledIndex -= 1
 	else
 		JArray.addInt(jKnownVacantSlots, aliasIndex)
 
-		if !cleaningIndexes && topFilledIndex > -1
-
-			cleaningIndexes = true
+		if topFilledIndex > -1
 			; try and decrement topFilledIndex by finding holes at the top
 			int topHoleIndex = JArray.findInt(jKnownVacantSlots, topFilledIndex)
 
@@ -168,11 +185,11 @@ Function UnregisterAliasFromUpdates(int aliasIndex)
 				jArray.clear(jKnownVacantSlots)
 			endif
 
-			cleaningIndexes = false
+			
 		endif
 	endif
 	
-
+	editingIndexes = false
 	numActives -= 1
 EndFunction
 
