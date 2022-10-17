@@ -11,6 +11,10 @@ int Property jSABFactionRelationsMap Auto Hidden
 ; an intMap representing each faction's relation with the player
 int Property jSABPlayerRelationsMap Auto Hidden
 
+; a jArray representing a queue of faction indexes of which the player has killed a unit.
+; this is used to avoid updating them all at the same time, decreasing the chance of stack dumps
+int jPendingUnitKillRelUpdates = -1
+
 Function InitializeJData()
     jSABFactionRelationsMap = JIntMap.object()
     JValue.retain(jSABFactionRelationsMap, "ShoutAndBlade")
@@ -18,6 +22,25 @@ Function InitializeJData()
     jSABPlayerRelationsMap = JIntMap.object()
     JValue.retain(jSABPlayerRelationsMap, "ShoutAndBlade")
 EndFunction
+
+
+Event OnUpdate()
+	
+    if jArray.count(jPendingUnitKillRelUpdates) > 0
+        ; run fac relations updates due to player killing units, one at a time
+        int attackedFacIndex = jArray.getInt(jPendingUnitKillRelUpdates, 0, -1)
+
+        if attackedFacIndex != -1
+            GlobalReactToPlayerKillingUnit(attackedFacIndex)
+        endif
+
+        JArray.eraseIndex(jPendingUnitKillRelUpdates, 0)
+    endif
+    
+
+	RegisterForSingleUpdate(0.5)
+EndEvent
+
 
 ; for each faction, attempts to set up their quest using the data stored in jSABFactionRelationsMap
 Function UpdateAllRelationsAccordingToJMaps()
@@ -327,8 +350,29 @@ EndFunction
 
 
 ; killed and allies of the killed get angry at player.
+; enemies of the killed become closer to player.
+; this queues the reaction, to avoid stack dumps due to too many units being killed
+Function QueueGlobalReactToPlayerKillingUnit(int killedUnitFacIndex)
+    if jPendingUnitKillRelUpdates == -1
+        debug.Trace("initial set up for relation kills queue")
+        ; the queue array hasn't been set up yet!
+        ; set it up and start the updates
+        jPendingUnitKillRelUpdates = jArray.object()
+        JValue.retain(jPendingUnitKillRelUpdates, "ShoutAndBlade")
+        RegisterForSingleUpdate(1.0)
+    endif
+
+    debug.Trace("enqueued to relation kills queue")
+    jArray.addInt(jPendingUnitKillRelUpdates, killedUnitFacIndex)
+
+EndFunction
+
+; killed and allies of the killed get angry at player.
 ; enemies of the killed become closer to player
 Function GlobalReactToPlayerKillingUnit(int killedUnitFacIndex)
+
+    debug.Trace("global react to unit kill start!")
+
     SAB_FactionScript[] facQuests = FactionDataHandler.SAB_FactionQuests
 
     int i = facQuests.Length
