@@ -81,7 +81,8 @@ Function BeTakenByFaction(SAB_FactionScript factionScriptRef, bool notify = true
 	int i = 0
 	while i < InteriorCells.Length
 		InteriorCells[i].SetFactionOwner(factionScriptRef.OurFaction)
-		InteriorCells[i].SetPublic(false)
+		; make neutral/hostile locations private, to make the units attack the player if they don't leave
+		InteriorCells[i].SetPublic(!factionScriptRef.DiplomacyDataHandler.IsFactionEnemyOfPlayer(factionScriptRef.GetFactionIndex()))
 
 		i += 1
 	endwhile

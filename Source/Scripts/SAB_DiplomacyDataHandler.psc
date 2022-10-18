@@ -183,6 +183,13 @@ bool Function AreFactionsInGoodStanding(SAB_FactionScript factionOne, SAB_Factio
     return factionOne.OurFaction.GetReaction(factionTwo.OurFaction) >= 2 ; ally or friend
 EndFunction
 
+; true if the faction's relation towards the player is below the enemy threshold. False if neutral or better
+bool Function IsFactionEnemyOfPlayer(int factionIndex)
+
+    return GetPlayerRelationWithFac(factionIndex) < JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.enemyRelationLevel", 0.0) ; TODO make this configurable
+
+EndFunction
+
 ; returns true if the standing has just changed
 bool Function AddOrSubtractPlayerRelationWithFac(int factionIndex, float valueToAdd)
     if factionIndex < 0
