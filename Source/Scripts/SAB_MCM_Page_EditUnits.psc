@@ -568,7 +568,7 @@ Function SetupEditedUnitBaseAVSliderOnOpen(string jUnitMapKey)
     ; float curValue = JMap.getFlt(SAB_MCM.SAB_Main.UnitDataHandler.jTestGuyData, jUnitMapKey, currentSliderDefaultValue)
     SetSliderDialogStartValue(curValue)
     SetSliderDialogDefaultValue(currentSliderDefaultValue)
-    SetSliderDialogRange(10.0, 1000.0)
+    SetSliderDialogRange(10.0, 2000.0)
     SetSliderDialogInterval(5)
 EndFunction
 
@@ -580,7 +580,7 @@ Function SetupEditedUnitSkillSliderOnOpen(string jUnitMapKey)
     ; float curValue = JMap.getFlt(SAB_MCM.SAB_Main.UnitDataHandler.jTestGuyData, jUnitMapKey, currentSliderDefaultValue)
     SetSliderDialogStartValue(curValue)
     SetSliderDialogDefaultValue(currentSliderDefaultValue)
-    SetSliderDialogRange(10.0, 100.0)
+    SetSliderDialogRange(1.0, 300.0)
     SetSliderDialogInterval(1)
 EndFunction
 
