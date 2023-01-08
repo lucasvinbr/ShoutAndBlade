@@ -105,18 +105,21 @@ Function CustomizeActorAccordingToData(Actor targetActor, int jUnitData)
 
 	targetActor.SetDisplayName(JMap.getStr(jUnitData, "Name", "Recruit"))
 
-	targetActor.SetActorValue("Health", JMap.getFlt(jUnitData, "Health", 50.0))
-	targetActor.SetActorValue("Magicka", JMap.getFlt(jUnitData, "Magicka", 50.0))
-	targetActor.SetActorValue("Stamina", JMap.getFlt(jUnitData, "Stamina", 50.0))
+	float healthMagickaMult = JDB.solveFlt(".ShoutAndBlade.generalOptions.healthMagickaMultiplier", 1.0)
+	float skillMult = JDB.solveFlt(".ShoutAndBlade.generalOptions.skillsMultiplier", 1.0)
+
+	targetActor.SetActorValue("Health", JMap.getFlt(jUnitData, "Health", 50.0) * healthMagickaMult)
+	targetActor.SetActorValue("Magicka", JMap.getFlt(jUnitData, "Magicka", 50.0) * healthMagickaMult)
+	targetActor.SetActorValue("Stamina", JMap.getFlt(jUnitData, "Stamina", 50.0) * healthMagickaMult)
 
 	; Utility.Wait(0.01)
 
-	targetActor.SetActorValue("LightArmor", JMap.getFlt(jUnitData, "SkillLightArmor", 15.0))
-	targetActor.SetActorValue("HeavyArmor", JMap.getFlt(jUnitData, "SkillHeavyArmor", 15.0))
-	targetActor.SetActorValue("Block", JMap.getFlt(jUnitData, "SkillBlock", 15.0))
-	targetActor.SetActorValue("OneHanded", JMap.getFlt(jUnitData, "SkillOneHanded", 15.0))
-	targetActor.SetActorValue("TwoHanded", JMap.getFlt(jUnitData, "SkillTwoHanded", 15.0))
-	targetActor.SetActorValue("Marksman", JMap.getFlt(jUnitData, "SkillMarksman", 15.0))
+	targetActor.SetActorValue("LightArmor", JMap.getFlt(jUnitData, "SkillLightArmor", 15.0) * skillMult)
+	targetActor.SetActorValue("HeavyArmor", JMap.getFlt(jUnitData, "SkillHeavyArmor", 15.0) * skillMult)
+	targetActor.SetActorValue("Block", JMap.getFlt(jUnitData, "SkillBlock", 15.0) * skillMult)
+	targetActor.SetActorValue("OneHanded", JMap.getFlt(jUnitData, "SkillOneHanded", 15.0) * skillMult)
+	targetActor.SetActorValue("TwoHanded", JMap.getFlt(jUnitData, "SkillTwoHanded", 15.0) * skillMult)
+	targetActor.SetActorValue("Marksman", JMap.getFlt(jUnitData, "SkillMarksman", 15.0) * skillMult)
 
 	if jMap.getInt(jUnitData, "IsRanged", 0) != 0
 		targetActor.AddToFaction(SAB_RangedUnitsFaction)
@@ -129,16 +132,19 @@ Function CustomizeActorAccordingToDataWithNameSuffix(Actor targetActor, int jUni
 
 	targetActor.SetDisplayName(JMap.getStr(jUnitData, "Name", "Recruit") + nameSuffix)
 
-	targetActor.SetActorValue("Health", JMap.getFlt(jUnitData, "Health", 50.0))
-	targetActor.SetActorValue("Magicka", JMap.getFlt(jUnitData, "Magicka", 50.0))
-	targetActor.SetActorValue("Stamina", JMap.getFlt(jUnitData, "Stamina", 50.0))
+	float healthMagickaMult = JDB.solveFlt(".ShoutAndBlade.generalOptions.healthMagickaMultiplier", 1.0)
+	float skillMult = JDB.solveFlt(".ShoutAndBlade.generalOptions.skillsMultiplier", 1.0)
 
-	targetActor.SetActorValue("LightArmor", JMap.getFlt(jUnitData, "SkillLightArmor", 15.0))
-	targetActor.SetActorValue("HeavyArmor", JMap.getFlt(jUnitData, "SkillHeavyArmor", 15.0))
-	targetActor.SetActorValue("Block", JMap.getFlt(jUnitData, "SkillBlock", 15.0))
-	targetActor.SetActorValue("OneHanded", JMap.getFlt(jUnitData, "SkillOneHanded", 15.0))
-	targetActor.SetActorValue("TwoHanded", JMap.getFlt(jUnitData, "SkillTwoHanded", 15.0))
-	targetActor.SetActorValue("Marksman", JMap.getFlt(jUnitData, "SkillMarksman", 15.0))
+	targetActor.SetActorValue("Health", JMap.getFlt(jUnitData, "Health", 50.0) * healthMagickaMult)
+	targetActor.SetActorValue("Magicka", JMap.getFlt(jUnitData, "Magicka", 50.0) * healthMagickaMult)
+	targetActor.SetActorValue("Stamina", JMap.getFlt(jUnitData, "Stamina", 50.0) * healthMagickaMult)
+
+	targetActor.SetActorValue("LightArmor", JMap.getFlt(jUnitData, "SkillLightArmor", 15.0) * skillMult)
+	targetActor.SetActorValue("HeavyArmor", JMap.getFlt(jUnitData, "SkillHeavyArmor", 15.0) * skillMult)
+	targetActor.SetActorValue("Block", JMap.getFlt(jUnitData, "SkillBlock", 15.0) * skillMult)
+	targetActor.SetActorValue("OneHanded", JMap.getFlt(jUnitData, "SkillOneHanded", 15.0) * skillMult)
+	targetActor.SetActorValue("TwoHanded", JMap.getFlt(jUnitData, "SkillTwoHanded", 15.0) * skillMult)
+	targetActor.SetActorValue("Marksman", JMap.getFlt(jUnitData, "SkillMarksman", 15.0) * skillMult)
 
 	if jMap.getInt(jUnitData, "IsRanged", 0) != 0
 		targetActor.AddToFaction(SAB_RangedUnitsFaction)

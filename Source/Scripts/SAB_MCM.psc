@@ -125,7 +125,8 @@ event OnPageDraw()
     AddEmptyOption()
 
     AddSliderOptionST("OPTIONS_UNITS___maxDeadBodies", "$sab_mcm_options_slider_unit_maxdeadbodies", JDB.solveInt(".ShoutAndBlade.generalOptions.maxDeadBodies", 12))
-    
+    AddSliderOptionST("OPTIONS_MULTIPLIER___healthMagickaMultiplier", "$sab_mcm_options_slider_unit_healthmagickamultiplier", JDB.solveFlt(".ShoutAndBlade.generalOptions.healthMagickaMultiplier", 1.0))
+    AddSliderOptionST("OPTIONS_MULTIPLIER___skillsMultiplier", "$sab_mcm_options_slider_unit_skillsmultiplier", JDB.solveFlt(".ShoutAndBlade.generalOptions.skillsMultiplier", 1.0))
 
     
 endevent
@@ -444,6 +445,39 @@ state OPTIONS_UNITS
 
 endstate
 
+
+state OPTIONS_MULTIPLIER
+
+    event OnSliderOpenST(string state_id)
+        float defaultValue = GetDefaultFltValueForOption("multiplier", state_id)
+		SetSliderDialogStartValue(JDB.solveFlt(".ShoutAndBlade.generalOptions." + state_id, defaultValue))
+        SetSliderDialogRange(0, 30.0)
+	    SetSliderDialogInterval(0.1)
+		SetSliderDialogDefaultValue(defaultValue)
+	endEvent
+
+	event OnSliderAcceptST(string state_id, float value)
+        JDB.solveFltSetter(".ShoutAndBlade.generalOptions." + state_id, value, true)
+		SetSliderOptionValueST(value)
+	endEvent
+
+	event OnDefaultST(string state_id)
+        float value = GetDefaultFltValueForOption("multiplier", state_id)
+        JDB.solveFltSetter(".ShoutAndBlade.generalOptions." + state_id, value, true)
+		SetSliderOptionValueST(value)
+	endEvent
+
+	event OnHighlightST(string state_id)
+        ToggleQuickHotkey(true)
+
+        if state_id == "healthMagickaMultiplier"
+            SetInfoText("$sab_mcm_options_slider_unit_healthmagickamultiplier_desc")
+        elseif state_id == "skillsMultiplier"
+            SetInfoText("$sab_mcm_options_slider_unit_skillsmultiplier_desc")
+        endif
+	endEvent
+
+endstate
 
 
 state OPTIONS_CMDER_EXP
@@ -819,6 +853,8 @@ float Function GetDefaultFltValueForOption(string category, string entryName)
         elseif entryName == "nearbyDistanceDividend"
             return 16384.0
         endif
+    elseif category == "multiplier"
+        return 1.0
     endif
 EndFunction
 
