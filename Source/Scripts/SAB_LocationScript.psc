@@ -121,7 +121,7 @@ Function ToggleLocationDefaultContent(bool enableContent)
 	if DefaultLocationsContentParent != None
 		if enableContent && DefaultLocationsContentParent.IsDisabled()
 			DefaultLocationsContentParent.Enable()
-		elseif DefaultLocationsContentParent.IsEnabled()
+		elseif !enableContent && DefaultLocationsContentParent.IsEnabled()
 			DefaultLocationsContentParent.Disable()
 		endif
 	endif
