@@ -147,6 +147,14 @@ Function ToggleNearbyUpdates(bool updatesEnabled)
 		endif
 	endif
 
+	if factionScript
+		if isNearby
+			factionScript.DiplomacyDataHandler.PlayerDataHandler.NearbyLocation = self
+		elseif factionScript.DiplomacyDataHandler.PlayerDataHandler.NearbyLocation == self
+			factionScript.DiplomacyDataHandler.PlayerDataHandler.NearbyLocation = None
+		endif
+	endif
+
 EndFunction
 
 bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
@@ -215,7 +223,8 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 
 		; if a faction controls this location, disable default content if it's still enabled.
 		; if it's neutral, enable it back!
-		ToggleLocationDefaultContent(factionScript != None)
+		; do it only if the player is far away, to make it less noticeable
+		ToggleLocationDefaultContent(factionScript == None)
 			
 	endif
 
@@ -306,10 +315,14 @@ EndFunction
 ; returns one of the internal spawn points if this location has one.
 ; if it doesn't, falls back to getSpawnLocationForUnit
 ObjectReference Function GetInteriorSpawnPointIfPossible()
-	if InternalSpawnPoints.Length > 0
-		return InternalSpawnPoints[Utility.RandomInt(0, InternalSpawnPoints.Length - 1)]
-	else 
-		return GetSpawnLocationForUnit()
+	if playerIsInside || isNearby
+		if InternalSpawnPoints.Length > 0
+			return InternalSpawnPoints[Utility.RandomInt(0, InternalSpawnPoints.Length - 1)]
+		else 
+			return GetSpawnLocationForUnit()
+		endif
+	else
+		return MoveDestination
 	endif
 EndFunction
 

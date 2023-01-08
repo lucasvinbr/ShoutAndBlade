@@ -239,7 +239,7 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 				if isNearby
 					; the cmder is near the player.
 					; we should handle the case where the cmder's faction has just changed targets, 
-					; but the cmder had arrived at the previous one
+					; but the cmder had visibly arrived at the previous one
 					SAB_LocationScript nearbyLocScript = factionScript.DiplomacyDataHandler.PlayerDataHandler.NearbyLocation
 
 					if nearbyLocScript
