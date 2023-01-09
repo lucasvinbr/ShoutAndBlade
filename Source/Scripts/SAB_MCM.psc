@@ -66,6 +66,7 @@ event OnPageDraw()
     AddTextOptionST("OPTIONS_SAVE", "$sab_mcm_options_button_save", "")
     AddTextOptionST("OPTIONS_LOAD", "$sab_mcm_options_button_load", "")
 
+
     AddEmptyOption()
     AddEmptyOption()
 
@@ -83,6 +84,16 @@ event OnPageDraw()
     AddSliderOptionST("OPTIONS_FAC_POWER___safeLocationPower", "$sab_mcm_options_slider_fac_safelocationpower", JDB.solveFlt(".ShoutAndBlade.factionOptions.safeLocationPower", 32.0), "{1}")
 
     AddEmptyOption()
+    AddEmptyOption()
+    AddEmptyOption()
+
+    AddHeaderOption("$sab_mcm_options_header_playeroptions")
+    AddEmptyOption()
+    AddSliderOptionST("OPTIONS_PLAYER_INTERVAL___expAwardInterval", "$sab_mcm_options_slider_player_expAwardInterval", JDB.solveFlt(".ShoutAndBlade.playerOptions.expAwardInterval", 0.08), "{3}")
+    AddSliderOptionST("OPTIONS_PLAYER_EXP___expAwardPerPlayerLevel", "$sab_mcm_options_slider_player_expawardperplayerlevel", JDB.solveFlt(".ShoutAndBlade.playerOptions.expAwardPerPlayerLevel", 25.0), "{1}")
+    AddSliderOptionST("OPTIONS_PLAYER_UNITS___baseMaxOwnedUnits", "$sab_mcm_options_slider_player_maxownedunits_base", JDB.solveInt(".ShoutAndBlade.playerOptions.baseMaxOwnedUnits", 30))
+    AddSliderOptionST("OPTIONS_PLAYER_UNITFRACTION___bonusMaxOwnedUnitsPerLevel", "$sab_mcm_options_slider_player_maxownedunits_perlevel", JDB.solveFlt(".ShoutAndBlade.playerOptions.bonusMaxOwnedUnitsPerLevel", 0.5), "{1}")
+
     AddEmptyOption()
     AddEmptyOption()
 
@@ -124,9 +135,9 @@ event OnPageDraw()
     AddHeaderOption("$sab_mcm_options_header_bodycleaneroptions")
     AddEmptyOption()
 
+    AddSliderOptionST("OPTIONS_MULTIPLIER___healthMagickaMultiplier", "$sab_mcm_options_slider_unit_healthmagickamultiplier", JDB.solveFlt(".ShoutAndBlade.generalOptions.healthMagickaMultiplier", 1.0), "{1}")
+    AddSliderOptionST("OPTIONS_MULTIPLIER___skillsMultiplier", "$sab_mcm_options_slider_unit_skillsmultiplier", JDB.solveFlt(".ShoutAndBlade.generalOptions.skillsMultiplier", 1.0), "{1}")
     AddSliderOptionST("OPTIONS_UNITS___maxDeadBodies", "$sab_mcm_options_slider_unit_maxdeadbodies", JDB.solveInt(".ShoutAndBlade.generalOptions.maxDeadBodies", 12))
-    AddSliderOptionST("OPTIONS_MULTIPLIER___healthMagickaMultiplier", "$sab_mcm_options_slider_unit_healthmagickamultiplier", JDB.solveFlt(".ShoutAndBlade.generalOptions.healthMagickaMultiplier", 1.0))
-    AddSliderOptionST("OPTIONS_MULTIPLIER___skillsMultiplier", "$sab_mcm_options_slider_unit_skillsmultiplier", JDB.solveFlt(".ShoutAndBlade.generalOptions.skillsMultiplier", 1.0))
 
     
 endevent
@@ -458,13 +469,13 @@ state OPTIONS_MULTIPLIER
 
 	event OnSliderAcceptST(string state_id, float value)
         JDB.solveFltSetter(".ShoutAndBlade.generalOptions." + state_id, value, true)
-		SetSliderOptionValueST(value)
+		SetSliderOptionValueST(value, "{1}")
 	endEvent
 
 	event OnDefaultST(string state_id)
         float value = GetDefaultFltValueForOption("multiplier", state_id)
         JDB.solveFltSetter(".ShoutAndBlade.generalOptions." + state_id, value, true)
-		SetSliderOptionValueST(value)
+		SetSliderOptionValueST(value, "{1}")
 	endEvent
 
 	event OnHighlightST(string state_id)
@@ -480,34 +491,128 @@ state OPTIONS_MULTIPLIER
 endstate
 
 
-state OPTIONS_CMDER_EXP
+
+
+state OPTIONS_PLAYER_EXP
 
     event OnSliderOpenST(string state_id)
-        float defaultValue = GetDefaultFltValueForOption("cmderExp", state_id)
-		SetSliderDialogStartValue(JDB.solveFlt(".ShoutAndBlade.cmderOptions." + state_id, defaultValue))
+        float defaultValue = GetDefaultFltValueForOption("player", state_id)
+		SetSliderDialogStartValue(JDB.solveFlt(".ShoutAndBlade.playerOptions." + state_id, defaultValue))
         SetSliderDialogRange(0.0, 2000.0)
-	    SetSliderDialogInterval(1)
+	    SetSliderDialogInterval(0.5)
 		SetSliderDialogDefaultValue(defaultValue)
 	endEvent
 
 	event OnSliderAcceptST(string state_id, float value)
-        JDB.solveFltSetter(".ShoutAndBlade.cmderOptions." + state_id, value, true)
-		SetSliderOptionValueST(value)
+        JDB.solveFltSetter(".ShoutAndBlade.playerOptions." + state_id, value, true)
+		SetSliderOptionValueST(value, "{1}")
 	endEvent
 
 	event OnDefaultST(string state_id)
-        float value = GetDefaultFltValueForOption("cmderExp", state_id)
-        JDB.solveFltSetter(".ShoutAndBlade.cmderOptions." + state_id, value, true)
-		SetSliderOptionValueST(value)
+        float value = GetDefaultFltValueForOption("player", state_id)
+        JDB.solveFltSetter(".ShoutAndBlade.playerOptions." + state_id, value, true)
+		SetSliderOptionValueST(value, "{1}")
 	endEvent
 
 	event OnHighlightST(string state_id)
         ToggleQuickHotkey(true)
 
-        if state_id == "initialExpPoints"
-            SetInfoText("$sab_mcm_options_slider_cmder_initialxp_desc")
-        elseif state_id == "awardedXpPerInterval"
-            SetInfoText("$sab_mcm_options_slider_cmder_awardedxp_desc")
+        if state_id == "expAwardPerPlayerLevel"
+            SetInfoText("$sab_mcm_options_slider_player_expawardperplayerlevel_desc")
+        endif
+	endEvent
+
+endstate
+
+state OPTIONS_PLAYER_INTERVAL
+
+    event OnSliderOpenST(string state_id)
+        float defaultValue = GetDefaultFltValueForOption("player", state_id)
+		SetSliderDialogStartValue(JDB.solveFlt(".ShoutAndBlade.playerOptions." + state_id, defaultValue))
+        SetSliderDialogRange(0.0, 7.0)
+	    SetSliderDialogInterval(0.005)
+		SetSliderDialogDefaultValue(defaultValue)
+	endEvent
+
+	event OnSliderAcceptST(string state_id, float value)
+        JDB.solveFltSetter(".ShoutAndBlade.playerOptions." + state_id, value, true)
+		SetSliderOptionValueST(value, "{3}")
+	endEvent
+
+	event OnDefaultST(string state_id)
+        float value = GetDefaultFltValueForOption("player", state_id)
+        JDB.solveFltSetter(".ShoutAndBlade.playerOptions." + state_id, value, true)
+		SetSliderOptionValueST(value, "{3}")
+	endEvent
+
+	event OnHighlightST(string state_id)
+        ToggleQuickHotkey(true)
+
+        if state_id == "expAwardInterval"
+            SetInfoText("$sab_mcm_options_slider_player_expAwardInterval_desc")
+        endif
+	endEvent
+
+endstate
+
+state OPTIONS_PLAYER_UNITS
+
+    event OnSliderOpenST(string state_id)
+        int defaultValue = GetDefaultIntValueForOption("player", state_id)
+		SetSliderDialogStartValue(JDB.solveInt(".ShoutAndBlade.playerOptions." + state_id, defaultValue))
+        SetSliderDialogRange(0, 120)
+	    SetSliderDialogInterval(1)
+		SetSliderDialogDefaultValue(defaultValue)
+	endEvent
+
+	event OnSliderAcceptST(string state_id, float value)
+        int valueInt = value as int
+        JDB.solveIntSetter(".ShoutAndBlade.playerOptions." + state_id, valueInt, true)
+		SetSliderOptionValueST(valueInt)
+	endEvent
+
+	event OnDefaultST(string state_id)
+        int valueInt = GetDefaultIntValueForOption("player", state_id)
+        JDB.solveIntSetter(".ShoutAndBlade.playerOptions." + state_id, valueInt, true)
+		SetSliderOptionValueST(valueInt)
+	endEvent
+
+	event OnHighlightST(string state_id)
+        ToggleQuickHotkey(true)
+
+        if state_id == "baseMaxOwnedUnits"
+            SetInfoText("$sab_mcm_options_slider_player_maxownedunits_base_desc")
+        endif
+	endEvent
+
+endstate
+
+state OPTIONS_PLAYER_UNITFRACTION
+
+    event OnSliderOpenST(string state_id)
+        float defaultValue = GetDefaultFltValueForOption("player", state_id)
+		SetSliderDialogStartValue(JDB.solveFlt(".ShoutAndBlade.playerOptions." + state_id, defaultValue))
+        SetSliderDialogRange(0.0, 20.0)
+	    SetSliderDialogInterval(0.1)
+		SetSliderDialogDefaultValue(defaultValue)
+	endEvent
+
+	event OnSliderAcceptST(string state_id, float value)
+        JDB.solveFltSetter(".ShoutAndBlade.playerOptions." + state_id, value, true)
+		SetSliderOptionValueST(value, "{1}")
+	endEvent
+
+	event OnDefaultST(string state_id)
+        float value = GetDefaultFltValueForOption("player", state_id)
+        JDB.solveFltSetter(".ShoutAndBlade.playerOptions." + state_id, value, true)
+		SetSliderOptionValueST(value, "{1}")
+	endEvent
+
+	event OnHighlightST(string state_id)
+        ToggleQuickHotkey(true)
+
+        if state_id == "bonusMaxOwnedUnitsPerLevel"
+            SetInfoText("$sab_mcm_options_slider_player_maxownedunits_perlevel_desc")
         endif
 	endEvent
 
@@ -781,6 +886,12 @@ int Function GetDefaultIntValueForOption(string category, string entryName)
         if entryName == "baseGoldAward"
             return 1500
         endif
+    elseif category == "locUnits"
+        if entryName == "maxOwnedUnits"
+            return 45
+        elseif entryName == "maxSpawnedUnits"
+            return 8
+        endif
     elseif category == "units"
         if entryName == "maxDeadBodies"
             return 12
@@ -799,11 +910,9 @@ int Function GetDefaultIntValueForOption(string category, string entryName)
         elseif entryName == "combatSpawnsDividend"
             return 20
         endif
-    elseif category == "locUnits"
+    elseif category == "player"
         if entryName == "maxOwnedUnits"
-            return 45
-        elseif entryName == "maxSpawnedUnits"
-            return 8
+            return 30
         endif
     endif
 EndFunction
@@ -823,15 +932,23 @@ float Function GetDefaultFltValueForOption(string category, string entryName)
         if entryName == "safeLocationPower"
             return 32.0
         endif
-    elseif category == "cmderExp"
-        if entryName == "initialExpPoints"
-            return 600.0
-        elseif entryName == "awardedXpPerInterval"
-            return 500.0
-        endif
     elseif category == "locExp"
         if entryName == "awardedXpPerInterval"
             return 250.0
+        endif
+    elseif category == "locInterval"
+        if entryName == "expAwardInterval"
+            return 0.08
+        elseif entryName == "unitMaintenanceInterval"
+            return 0.1
+        endif
+    elseif category == "player"
+        if entryName == "expAwardInterval"
+            return 0.08
+        elseif entryName == "expAwardPerPlayerLevel"
+            return 25.0
+        elseif entryName == "bonusMaxOwnedUnitsPerLevel"
+            return 0.5
         endif
     elseif category == "cmderInterval"
         if entryName == "expAwardInterval"
@@ -841,11 +958,11 @@ float Function GetDefaultFltValueForOption(string category, string entryName)
         elseif entryName == "destCheckInterval"
             return 0.01
         endif
-    elseif category == "locInterval"
-        if entryName == "expAwardInterval"
-            return 0.08
-        elseif entryName == "unitMaintenanceInterval"
-            return 0.1
+    elseif category == "cmderExp"
+        if entryName == "initialExpPoints"
+            return 600.0
+        elseif entryName == "awardedXpPerInterval"
+            return 500.0
         endif
     elseif category == "cmderDistance"
         if entryName == "isNearbyDistance"

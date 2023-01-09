@@ -61,9 +61,12 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 
 	;debug.Trace("game time updating commander (pre check)!")
 	float expAwardInterval = JDB.solveFlt(".ShoutAndBlade.playerOptions.expAwardInterval", 0.08)
-	if curGameTime - gameTimeOfLastExpAward >= expAwardInterval
-		int numAwardsObtained = ((curGameTime - gameTimeOfLastExpAward) / expAwardInterval) as int
-		availableExpPoints += playerActor.GetLevel() * JDB.solveFlt(".ShoutAndBlade.playerOptions.expAwardPerPlayerLevel", 25.0) * numAwardsObtained
+	if expAwardInterval > 0 && curGameTime - gameTimeOfLastExpAward >= expAwardInterval
+		; only award xp if player has at least one unit
+		if totalOwnedUnitsAmount > 0
+			int numAwardsObtained = ((curGameTime - gameTimeOfLastExpAward) / expAwardInterval) as int
+			availableExpPoints += playerActor.GetLevel() * JDB.solveFlt(".ShoutAndBlade.playerOptions.expAwardPerPlayerLevel", 25.0) * numAwardsObtained
+		endif
 		gameTimeOfLastExpAward = curGameTime
 	endif
 	
@@ -229,8 +232,8 @@ Function RemoveUnitsOfType(int unitTypeIndex, int amountToRemove)
 EndFunction
 
 int Function GetMaxOwnedUnitsAmount()
-	return JDB.solveInt(".ShoutAndBlade.playerOptions.baseMaxOwnedUnits", 50) + \
-		JDB.solveInt(".ShoutAndBlade.playerOptions.bonusMaxOwnedUnitsPerLevel", 5) * playerActor.GetLevel()
+	return Math.Floor(JDB.solveInt(".ShoutAndBlade.playerOptions.baseMaxOwnedUnits", 50) + \
+		JDB.solveFlt(".ShoutAndBlade.playerOptions.bonusMaxOwnedUnitsPerLevel", 5) * playerActor.GetLevel())
 EndFunction
 
 int Function GetMaxSpawnedUnitsAmount()
@@ -244,12 +247,6 @@ int Function GetMaxSpawnedUnitsAmount()
 EndFunction
 
 int Function GetMaxBesiegingUnitsAmount()
-	int nearbyCmders = CrowdReducer.NumNearbyCmders
-
-	if nearbyCmders >= JDB.solveInt(".ShoutAndBlade.cmderOptions.nearbyCmdersLimit", 5)
-		return JDB.solveInt(".ShoutAndBlade.cmderOptions.combatSpawnsDividend", 20) / nearbyCmders
-	endif
-
-	return JDB.solveInt(".ShoutAndBlade.cmderOptions.maxSpawnsWhenBesieging", 8)
+	return GetMaxSpawnedUnitsAmount()
 EndFunction
 
