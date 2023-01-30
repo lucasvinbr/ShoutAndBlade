@@ -133,7 +133,7 @@ state FAC_EDIT_SAVE
         JValue.writeToFile(MainPage.MainQuest.DiplomacyHandler.jSABFactionRelationsMap, filePath)
         string filePathPlayerDiplo = JContainers.userDirectory() + "SAB/diplomacyData_player.json"
         JValue.writeToFile(MainPage.MainQuest.DiplomacyHandler.jSABPlayerRelationsMap, filePathPlayerDiplo)
-        ShowMessage("Saved!", false)
+        ShowMessage("Save: " + filePath, false)
 	endEvent
 
     event OnDefaultST(string state_id)

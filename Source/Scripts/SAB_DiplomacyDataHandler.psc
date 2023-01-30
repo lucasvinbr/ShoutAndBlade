@@ -143,7 +143,7 @@ bool Function AreFactionsAllied(int factionOneIndex, int factionTwoIndex)
     return relValue >= JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.allyRelationLevel", 1.0) ; TODO make this configurable
 EndFunction
 
-; returns true if faction one and two have a relation value below or equal to the enemy relation level threshold.
+; returns true if faction one and two have a relation value below the enemy relation level threshold.
 ; also returns false if faction one and two are the same
 bool Function AreFactionsEnemies(int factionOneIndex, int factionTwoIndex)
     if factionOneIndex == factionTwoIndex
@@ -202,7 +202,16 @@ bool Function AddOrSubtractPlayerRelationWithFac(int factionIndex, float valueTo
 
     ApplyRelationBetweenPlayerAndFac(factionIndex, newValue)
 
-    return DoValuesIndicateDifferentStandings(curRelation, newValue)
+    bool standingsChanged = DoValuesIndicateDifferentStandings(curRelation, newValue)
+
+    if standingsChanged
+        SAB_FactionScript[] facQuests = FactionDataHandler.SAB_FactionQuests
+        string msg = "The "+ facQuests[factionIndex].GetFactionName() +" are now "+ GetRelationValueDescriptionWord(newValue) +" towards you."
+        Debug.Notification(msg)
+        Debug.MessageBox(msg)
+    endif
+
+    return standingsChanged
 EndFunction
 
 ; returns true if the standing has just changed
@@ -217,7 +226,9 @@ bool Function SetPlayerRelationWithFac(int factionIndex, float newRelationValue)
 
     ApplyRelationBetweenPlayerAndFac(factionIndex, newValue)
 
-    return DoValuesIndicateDifferentStandings(curRelation, newValue)
+    bool standingsChanged = DoValuesIndicateDifferentStandings(curRelation, newValue)
+
+    return standingsChanged
 EndFunction
 
 bool Function AddOrSubtractRelationBetweenFacs(int factionOneIndex, int factionTwoIndex, float valueToAdd, int playerFacIndex)
@@ -399,7 +410,7 @@ Function GlobalReactToPlayerKillingUnit(int killedUnitFacIndex)
                 AddOrSubtractRelationBetweenFacs(playerFacIndex, killedUnitFacIndex, JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.relDmg_playerKilledMyUnit", -0.05), playerFacIndex) ; TODO make this configurable
                 AddOrSubtractPlayerRelationWithFac(playerFacIndex, JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.relAdd_playerKilledMyEnemysUnit", 0.01))
             elseif AreFactionsAllied(i, killedUnitFacIndex)
-                AddOrSubtractPlayerRelationWithFac(killedUnitFacIndex, JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.relDmg_playerKilledMyAllysUnit", -0.02)) ; TODO make this configurable
+                AddOrSubtractPlayerRelationWithFac(i, JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.relDmg_playerKilledMyAllysUnit", -0.02)) ; TODO make this configurable
                 AddOrSubtractRelationBetweenFacs(i, playerFacIndex, JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.relDmg_playerKilledMyAllysUnit", -0.02), playerFacIndex) ; TODO make this configurable
             elseif AreFactionsEnemies(i, killedUnitFacIndex)
                 AddOrSubtractPlayerRelationWithFac(i, JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.relAdd_playerKilledMyEnemysUnit", 0.01)) ; TODO make this configurable
@@ -509,10 +520,29 @@ int Function RelationValueToFactionStanding(float relValue)
 	endif
 EndFunction
 
+; returns a word describing what the relation value means
+string Function GetRelationValueDescriptionWord(float relValue)
+    if relValue >= JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.allyRelationLevel", 1.0) ; TODO make this configurable
+		return "friendly" ; ally
+	elseif relValue < JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.enemyRelationLevel", 0.0) ; TODO make this configurable
+		return "hostile" ; enemy
+	else
+		return "neutral" ; neutral
+	endif
+EndFunction
+
 ; returns true if one value would mean one thing and the other one, another, in the sense of faction standings.
 ; for example, this would return true if one value indicates a neutral relation and the other one an allied relation 
 bool Function DoValuesIndicateDifferentStandings(float relValueOne, float relValueTwo)
     return RelationValueToFactionStanding(relValueOne) != RelationValueToFactionStanding(relValueTwo)
+EndFunction
+
+Function NotifyPlayerRelationChangeTowardsFac(int facIndex)
+    ; code
+EndFunction
+
+Function NotifyFactionRelationChangeTowardsFac(int facOneIndex, int facTwoIndex)
+    ; code
 EndFunction
 
 ; factionData jmap entries:
