@@ -261,7 +261,7 @@ Function RunDestinationsUpdate(float curGameTime)
 EndFunction
 
 
-; returns a jArray with zones this faction could attack
+; returns a jArray with zones this faction could attack. A location may be added more than once to the list!
 int Function FindAttackTargets()
 	int i = jArray.count(jOwnedLocationIndexesArray)
 	int j = 0

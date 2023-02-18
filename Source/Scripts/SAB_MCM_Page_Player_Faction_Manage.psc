@@ -67,9 +67,9 @@ Function SetupPage()
         ; show faction's move destinations
         SAB_FactionScript facScript = MainPage.MainQuest.FactionDataHandler.SAB_FactionQuests[playerFactionIndex]
 
-        AddTextOptionST("PLYR_CUR_FAC_DEST___A", "$sab_mcm_mytroops_menu_ourdest_a", GetLocationNameForOurDests(facScript.destinationScript_A))
-        AddTextOptionST("PLYR_CUR_FAC_DEST___B", "$sab_mcm_mytroops_menu_ourdest_b", GetLocationNameForOurDests(facScript.destinationScript_B))
-        AddTextOptionST("PLYR_CUR_FAC_DEST___C", "$sab_mcm_mytroops_menu_ourdest_c", GetLocationNameForOurDests(facScript.destinationScript_C))
+        AddTargetLocationInfo(facScript.destinationScript_A, "PLYR_CUR_FAC_DEST___A", "$sab_mcm_mytroops_menu_ourdest_a")
+        AddTargetLocationInfo(facScript.destinationScript_B, "PLYR_CUR_FAC_DEST___B", "$sab_mcm_mytroops_menu_ourdest_b")
+        AddTargetLocationInfo(facScript.destinationScript_C, "PLYR_CUR_FAC_DEST___C", "$sab_mcm_mytroops_menu_ourdest_c")
 
         SetCursorPosition(1)
 
@@ -109,6 +109,7 @@ Function SetupPage()
         AddHeaderOption("$sab_mcm_myfaction_attacktargets")
         int jAttackTargetsArray = facScript.FindAttackTargets()
 
+        int jAlreadyAddedTargetsArray = jArray.object()
         i = jArray.count(jAttackTargetsArray)
 
         While i > 0
@@ -118,14 +119,27 @@ Function SetupPage()
             
             if locIndex >= 0
                 string locName = locHandler.Locations[locIndex].ThisLocation.GetName()
-                AddTextOptionST("PLYR_CUR_FAC_ATKTARGET___" + locName, locName, "")
+                if jArray.findStr(jAlreadyAddedTargetsArray, locName) == -1
+                    AddTargetLocationInfo(locHandler.Locations[locIndex], "PLYR_CUR_FAC_ATKTARGET___" + locName, locName)
+                    jArray.addStr(jAlreadyAddedTargetsArray, locName)
+                endif
             endif
-            
         EndWhile
 
         jValue.release(jAttackTargetsArray)
+        JValue.release(jAlreadyAddedTargetsArray)
     endif
 
+EndFunction
+
+; adds MCM entries for the target location (if not null):
+; it should show the location's name, the current owner and whether it's under attack or not
+Function AddTargetLocationInfo(SAB_LocationScript locScript, string entryStateId, string baseEntryName)
+    AddTextOptionST(entryStateId, baseEntryName, GetLocationNameForOurDests(locScript))
+    if locScript != None
+        AddTextOptionST(entryStateId + "_owner", "$sab_mcm_myfaction_targetloc_owner", locScript.GetOwnerFactionName())
+        AddToggleOptionST(entryStateId + "_iscontested", "$sab_mcm_myfaction_targetloc_iscontested", locScript.IsBeingContested(), OPTION_FLAG_DISABLED)
+    endif
 EndFunction
 
 event OnHighlightST(string state_id)
