@@ -4,6 +4,7 @@ scriptname SAB_PlayerDataHandler extends Quest
 SAB_PlayerCommanderScript Property PlayerCommanderScript Auto
 
 SAB_FactionScript Property PlayerFaction Auto Hidden
+{The SAB faction the player belongs to}
 
 Faction Property VanillaPlayerFaction Auto
 
@@ -118,7 +119,7 @@ ReferenceAlias Function SpawnPlayerUnit(int unitIndex, ObjectReference spawnLoca
 		return None
 	endif
 
-	Actor spawnedUnit = SpawnerScript.SpawnUnit(spawnLocation, PlayerFaction.OurFaction, unitIndex, -1, 0)
+	Actor spawnedUnit = SpawnerScript.SpawnUnit(spawnLocation, VanillaPlayerFaction, unitIndex, -1, 0)
 
 	if spawnedUnit == None
 		debug.Trace("spawn unit for container: got none as spawnedUnit, aborting!")
