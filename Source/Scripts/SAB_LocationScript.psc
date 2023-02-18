@@ -71,6 +71,7 @@ Function BeTakenByFaction(SAB_FactionScript factionScriptRef, bool notify = true
 	jSpawnOptionsMap = jValue.releaseAndRetain(jSpawnOptionsMap, jIntMap.object(), "ShoutAndBlade")
 	availableExpPoints = 0.0
 	totalOwnedUnitsAmount = 0
+	currentAutocalcPower = 0.0
 	spawnedUnitsAmount = 0
 	factionScript = factionScriptRef
 	factionScript.AddLocationToOwnedList(self)

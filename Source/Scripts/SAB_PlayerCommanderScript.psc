@@ -202,6 +202,11 @@ Function RemoveUnitsOfType(int unitTypeIndex, int amountToRemove)
 
 		totalOwnedUnitsAmount -= reservesToRemove
 
+		int jUnitMap = jArray.getObj(factionScript.SpawnerScript.UnitDataHandler.jSABUnitDatasArray, unitTypeIndex)
+		float unitPower = jMap.getFlt(jUnitMap, "AutocalcStrength", 1.0)
+
+		currentAutocalcPower -= unitPower
+
 		int currentStoredAmount = jIntMap.getInt(jOwnedUnitsMap, unitTypeIndex)
 		jIntMap.setInt(jOwnedUnitsMap, unitTypeIndex, currentStoredAmount - reservesToRemove)
 

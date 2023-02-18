@@ -16,6 +16,9 @@ int property spawnedUnitsAmount = 0 auto Hidden
 ; a simple counter for total owned living units, just to not have to iterate through the jMaps
 int property totalOwnedUnitsAmount = 0 auto Hidden
 
+; a cached calculation of this container's troops' combined autocalc power
+float property currentAutocalcPower = 0.0 auto Hidden
+
 ; a reference to the SAB faction script of the ones controlling this container. Can be None if this is something that can become "neutral"
 SAB_FactionScript property factionScript auto Hidden
 
@@ -47,6 +50,7 @@ Function Setup(SAB_FactionScript factionScriptRef, float curGameTime = 0.0)
 	jSpawnOptionsMap = jValue.releaseAndRetain(jSpawnOptionsMap, jIntMap.object(), "ShoutAndBlade")
 	availableExpPoints = 0.0
 	totalOwnedUnitsAmount = 0
+	currentAutocalcPower = 0.0
 	spawnedUnitsAmount = 0
 	factionScript = factionScriptRef
 	if indexInUpdater == -1
@@ -116,6 +120,10 @@ Function AddUnitsOfType(int unitTypeIndex, int amount)
 	int currentSpawnableAmount = jIntMap.getInt(jSpawnOptionsMap, unitTypeIndex)
 	JIntMap.setInt(jSpawnOptionsMap, unitTypeIndex, currentSpawnableAmount + amount)
 
+	int jUnitMap = jArray.getObj(factionScript.SpawnerScript.UnitDataHandler.jSABUnitDatasArray, unitTypeIndex)
+	float unitPower = jMap.getFlt(jUnitMap, "AutocalcStrength", 1.0)
+
+	currentAutocalcPower += amount * unitPower
 	totalOwnedUnitsAmount += amount
 EndFunction
 
@@ -172,6 +180,12 @@ Function TryUpgradeUnits()
 			availableExpPoints = jMap.getFlt(jUpgradeResultMap, "RemainingExp")
 			int jUpgradedUnitsArray = jMap.getObj(jUpgradeResultMap, "UpgradedUnits")
 			
+			int jSABUnitDatasArray = factionScript.SpawnerScript.UnitDataHandler.jSABUnitDatasArray
+			int jOldUnitMap = jArray.getObj(jSABUnitDatasArray, unitIndexToTrain)
+			float oldUnitPower = jMap.getFlt(jOldUnitMap, "AutocalcStrength", 1.0)
+
+			float autocalcPowerChange = 0.0
+
 			; parse the upgraded units list, replacing the old units with the upgraded ones
 			if jUpgradedUnitsArray != 0
 				int i = jValue.count(jUpgradedUnitsArray)
@@ -196,7 +210,14 @@ Function TryUpgradeUnits()
 
 						spawnableUnitCount -= upgradedAmount
 						jIntMap.setInt(jSpawnOptionsMap, unitIndexToTrain, spawnableUnitCount)
+
+						autocalcPowerChange -= upgradedAmount * oldUnitPower
 						
+						int jNewUnitMap = jArray.getObj(jSABUnitDatasArray, newUnitIndex)
+						float newUnitPower = jMap.getFlt(jNewUnitMap, "AutocalcStrength", 1.0)
+
+						autocalcPowerChange += upgradedAmount * newUnitPower
+
 					endif
 					
 				endwhile
@@ -212,7 +233,11 @@ Function TryUpgradeUnits()
 
 			jValue.release(jUpgradeResultMap)
 			JValue.zeroLifetime(jUpgradeResultMap)
+
+			currentAutocalcPower += autocalcPowerChange
 		endif
+
+		
 	endif
 
 endFunction
@@ -259,7 +284,13 @@ Function TryTransferUnitsToAnotherContainer(SAB_TroopContainerScript otherContai
 			if ownedUnitCount - unitAmountToTransfer <= 0
 				jIntMap.removeKey(jOwnedUnitsMap, unitIndexToTransfer)
 			endif
+
 			totalOwnedUnitsAmount -= unitAmountToTransfer
+
+			int jUnitMap = jArray.getObj(factionScript.SpawnerScript.UnitDataHandler.jSABUnitDatasArray, unitIndexToTransfer)
+			float unitPower = jMap.getFlt(jUnitMap, "AutocalcStrength", 1.0)
+
+			currentAutocalcPower -= unitAmountToTransfer * unitPower
 
 			jIntMap.setInt(jSpawnOptionsMap, unitIndexToTransfer, spawnableUnitCount - unitAmountToTransfer)
 			if spawnableUnitCount - unitAmountToTransfer <= 0
@@ -493,6 +524,11 @@ Function OwnedUnitHasDied(int unitIndex, float timeOwnerWasSetup)
 	spawnedUnitsAmount -= 1
 	totalOwnedUnitsAmount -= 1
 
+	int jUnitMap = jArray.getObj(factionScript.SpawnerScript.UnitDataHandler.jSABUnitDatasArray, unitIndex)
+	float unitPower = jMap.getFlt(jUnitMap, "AutocalcStrength", 1.0)
+
+	currentAutocalcPower -= unitPower
+
 	int currentStoredAmount = jIntMap.getInt(jOwnedUnitsMap, unitIndex)
 	jIntMap.setInt(jOwnedUnitsMap, unitIndex, currentStoredAmount - 1)
 
@@ -516,8 +552,11 @@ Function DoAutocalcBattle(SAB_TroopContainerScript enemyContainer)
 	SAB_UnitDataHandler unitDataHandler = factionScript.SpawnerScript.UnitDataHandler
 
 	; we want there to be a high chance of the fight not being instantly resolved
-	float ourPower = unitDataHandler.GetTotalAutocalcPowerFromArmy(jOwnedUnitsMap) * Utility.RandomFloat(0.125, 0.5)
-	float theirPower = unitDataHandler.GetTotalAutocalcPowerFromArmy(enemyContainer.jOwnedUnitsMap) * Utility.RandomFloat(0.125, 0.5)
+	; float ourPower = unitDataHandler.GetTotalAutocalcPowerFromArmy(jOwnedUnitsMap) * Utility.RandomFloat(0.125, 0.5)
+	; float theirPower = unitDataHandler.GetTotalAutocalcPowerFromArmy(enemyContainer.jOwnedUnitsMap) * Utility.RandomFloat(0.125, 0.5)
+
+	float ourPower = currentAutocalcPower * Utility.RandomFloat(0.125, 0.5)
+	float theirPower = enemyContainer.currentAutocalcPower * Utility.RandomFloat(0.125, 0.5)
 
 	TakeAutocalcDamage(theirPower)
 	enemyContainer.TakeAutocalcDamage(ourPower)
@@ -569,6 +608,7 @@ Function TakeAutocalcDamage(float enemyPower, int jSABUnitDatasArrayCached = -1)
 			jIntMap.removeKey(jSpawnOptionsMap, unitIndex)
 		endif
 
+		currentAutocalcPower -= unitsLost * unitPower
 		totalOwnedUnitsAmount -= unitsLost
 
 		enemyPower -= (unitsLost * unitPower)

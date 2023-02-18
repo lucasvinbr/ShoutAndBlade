@@ -348,7 +348,8 @@ int Function FindDefenseTargets()
 				if locScript.IsBeingContested()
 					JArray.addInt(jPossibleDefenseTargets, locIndex)
 				else
-					float locationPower = SpawnerScript.UnitDataHandler.GetTotalAutocalcPowerFromArmy(locScript.jOwnedUnitsMap)
+					;float locationPower = SpawnerScript.UnitDataHandler.GetTotalAutocalcPowerFromArmy(locScript.jOwnedUnitsMap)
+					float locationPower = locScript.currentAutocalcPower
 
 					if locationPower < JDB.solveFlt(".ShoutAndBlade.factionOptions.safeLocationPower", 32.0)
 						JArray.addInt(jPossibleDefenseTargets, locIndex)
@@ -919,7 +920,8 @@ float Function GetTotalActiveCommandersAutocalcPower()
 		
 		if(cmderAlias.GetReference())
 			SAB_CommanderScript cmderScript = cmderAlias as SAB_CommanderScript
-			totalPower += unitDataHandler.GetTotalAutocalcPowerFromArmy(cmderScript.jOwnedUnitsMap)
+			totalPower += cmderScript.currentAutocalcPower
+			;totalPower += unitDataHandler.GetTotalAutocalcPowerFromArmy(cmderScript.jOwnedUnitsMap)
 		endif
 
 	EndWhile

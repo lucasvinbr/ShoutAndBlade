@@ -109,7 +109,7 @@ Function SetupLocationStatistics()
                 endif
                 JMap.setStr(jNewEntryMap, "ownerFacName", ownerFacName)
                 JMap.setInt(jNewEntryMap, "unitCount", locScript.totalOwnedUnitsAmount)
-                JMap.setStr(jNewEntryMap, "garrisonPower", unitDataHandler.GetTotalAutocalcPowerFromArmy(locScript.jOwnedUnitsMap))
+                JMap.setStr(jNewEntryMap, "garrisonPower", locScript.currentAutocalcPower)
                 JMap.setStr(jNewEntryMap, "isContested", locScript.IsBeingContested())
             endif
         endwhile

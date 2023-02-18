@@ -336,7 +336,8 @@ Function UpdateConfidenceLevel()
 		return
 	endif
 
-	if totalOwnedUnitsAmount > (GetMaxOwnedUnitsAmount() / 2)
+	
+	if currentAutocalcPower > JDB.solveFlt(".ShoutAndBlade.cmderOptions.confidentPower", 45.0)
 		meActor.SetFactionRank(SAB_CmderConfidenceFaction, 1)
 	else
 		meActor.SetFactionRank(SAB_CmderConfidenceFaction, 0)

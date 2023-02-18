@@ -112,8 +112,8 @@ event OnPageDraw()
     AddSliderOptionST("OPTIONS_CMDER_UNITS___nearbyCmdersLimit", "$sab_mcm_options_slider_cmder_nearbycmderslimit", JDB.solveInt(".ShoutAndBlade.cmderOptions.nearbyCmdersLimit", 5))
     AddSliderOptionST("OPTIONS_CMDER_DISTANCE___nearbyDistanceDividend", "$sab_mcm_options_slider_cmder_nearbydistancedividend", JDB.solveFlt(".ShoutAndBlade.cmderOptions.nearbyDistanceDividend", 16384.0))
     AddSliderOptionST("OPTIONS_CMDER_UNITS___combatSpawnsDividend", "$sab_mcm_options_slider_cmder_combatspawnsdividend", JDB.solveInt(".ShoutAndBlade.cmderOptions.combatSpawnsDividend", 20))
+    AddSliderOptionST("OPTIONS_CMDER_POWER___confidentPower", "$sab_mcm_options_slider_cmder_confidentpower", JDB.solveFlt(".ShoutAndBlade.cmderOptions.confidentPower", 45.0), "{1}")
 
-    AddEmptyOption()
     AddEmptyOption()
     AddEmptyOption()
 
@@ -690,6 +690,37 @@ state OPTIONS_CMDER_DISTANCE
 
 endstate
 
+state OPTIONS_CMDER_POWER
+
+    event OnSliderOpenST(string state_id)
+        float defaultValue = GetDefaultFltValueForOption("cmderPower", state_id)
+		SetSliderDialogStartValue(JDB.solveFlt(".ShoutAndBlade.cmderOptions." + state_id, defaultValue))
+        SetSliderDialogRange(0.0, 100.0)
+	    SetSliderDialogInterval(0.5)
+		SetSliderDialogDefaultValue(defaultValue)
+	endEvent
+
+	event OnSliderAcceptST(string state_id, float value)
+        JDB.solveFltSetter(".ShoutAndBlade.cmderOptions." + state_id, value, true)
+		SetSliderOptionValueST(value, "{1}")
+	endEvent
+
+	event OnDefaultST(string state_id)
+        float value = GetDefaultFltValueForOption("cmderDistance", state_id)
+        JDB.solveFltSetter(".ShoutAndBlade.cmderOptions." + state_id, value, true)
+		SetSliderOptionValueST(value, "{1}")
+	endEvent
+
+	event OnHighlightST(string state_id)
+        ToggleQuickHotkey(true)
+
+        if state_id == "confidentPower"
+            SetInfoText("$sab_mcm_options_slider_cmder_confidentpower_desc")
+        endif
+	endEvent
+
+endstate
+
 
 
 state OPTIONS_CMDER_UNITS
@@ -963,6 +994,10 @@ float Function GetDefaultFltValueForOption(string category, string entryName)
             return 600.0
         elseif entryName == "awardedXpPerInterval"
             return 500.0
+        endif
+    elseif category == "cmderPower"
+        if entryName == "confidentPower"
+            return 45.0
         endif
     elseif category == "cmderDistance"
         if entryName == "isNearbyDistance"
