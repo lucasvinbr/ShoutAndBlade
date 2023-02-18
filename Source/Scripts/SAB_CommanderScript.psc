@@ -308,7 +308,7 @@ EndFunction
 
 ; like SpawnUnitBatchAtLocation, but spawns are limited by the max besieging units instead
 Function SpawnBesiegingUnitBatchAtLocation(ObjectReference spawnLocation)
-	int maxBatchSize = 99
+	int maxBatchSize = 8
 	int spawnedCount = 0
 
 	int spawnedsLimit = GetMaxBesiegingUnitsAmount()
