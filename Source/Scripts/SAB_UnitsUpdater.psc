@@ -22,6 +22,6 @@ Event OnUpdate()
 
 		;debug.Trace("unit updater loop end")
 	; endwhile
-	RegisterForSingleUpdate(0.15)
+	RegisterForSingleUpdate(0.05)
 
 EndEvent

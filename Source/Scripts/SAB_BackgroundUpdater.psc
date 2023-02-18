@@ -41,16 +41,16 @@ Event OnUpdate()
 			updatedFactionIndex = SAB_FactionScripts.Length - 1
 		endif
 		
-		Utility.Wait(0.08)
+		Utility.Wait(0.01)
 
 		BackgroundCmderUpdater.RunUpdate(daysPassed, 0)
 
-		Utility.Wait(0.08)
+		Utility.Wait(0.01)
 
 		BackgroundLocationUpdater.RunUpdate(daysPassed, 0)
 
 		; debug.Trace("background updater loop end")
 	; endwhile
 
-	RegisterForSingleUpdate(0.1)
+	RegisterForSingleUpdate(0.01)
 EndEvent
