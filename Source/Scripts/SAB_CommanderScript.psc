@@ -306,6 +306,30 @@ Function SpawnBesiegingUnitAtPos(ObjectReference targetLocation)
 
 EndFunction
 
+; like SpawnUnitBatchAtLocation, but spawns are limited by the max besieging units instead
+Function SpawnBesiegingUnitBatchAtLocation(ObjectReference spawnLocation)
+	int maxBatchSize = 99
+	int spawnedCount = 0
+
+	int spawnedsLimit = GetMaxBesiegingUnitsAmount()
+
+	while spawnedCount < maxBatchSize && spawnedUnitsAmount < spawnedsLimit 
+		int unitIndexToSpawn = GetUnitIndexToSpawn()
+
+		if unitIndexToSpawn >= 0
+			SpawnUnitAtLocation(unitIndexToSpawn, spawnLocation)
+			spawnedCount += 1
+		else 
+			; stop spawning, we're out of spawnable units
+			spawnedCount = maxBatchSize 
+		endif
+
+		; update the max spawneds amount, in case it has changed due to stuff like cmders entering combat
+		spawnedsLimit = GetMaxBesiegingUnitsAmount()
+		
+	endwhile
+EndFunction
+
 ; sets the "confidence faction" rank for this cmder. The higher the more confidence
 Function UpdateConfidenceLevel()
 	if !meActor
