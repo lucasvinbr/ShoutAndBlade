@@ -100,6 +100,16 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 		return true
 	endif
 
+	float playerDistance = playerActor.GetDistance(meActor)
+
+	if playerDistance
+		if playerDistance > GetIsNearbyDistance()
+			ToggleNearbyUpdates(false)
+		else
+			ToggleNearbyUpdates(true)
+		endif
+	endif
+
 	if !meActor.IsDead()
 		if !meActor.IsInCombat()
 			;debug.Trace("game time updating commander!")
@@ -116,15 +126,6 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 			endif
 			
 		endif
-
-		; some cmders seem to slip by our attach/detach checks, so here's another one
-		if isNearby
-			float playerDistance = playerActor.GetDistance(meActor)
-			if playerDistance && playerDistance > GetIsNearbyDistance()
-				debug.Trace("cmder was considered to be nearby but was actually far away")
-				ToggleNearbyUpdates(false)
-			endif
-		endif
 	else 
 		if ClearAliasIfOutOfTroops()
 			CrowdReducer.AddDeadBody(meActor)
@@ -133,7 +134,6 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 		else
 			; we check against the current "nearby" distance here,
 			; to be able to despawn less relevant dead cmders
-			float playerDistance = playerActor.GetDistance(meActor)
 			if playerDistance && playerDistance > GetIsNearbyDistance()
 				; we're dead and despawning but still had troops!
 				; give the faction some gold to compensate a little
@@ -386,11 +386,9 @@ Event OnCombatStateChanged(Actor akTarget, int aeCombatState)
 			unitSpawn.MoveTo(meActor)
 		endif
 
-		if !isNearby
-			float playerDistance = playerActor.GetDistance(meActor)
-			if playerDistance && playerDistance <= GetIsNearbyDistance()
-				ToggleNearbyUpdates(true)
-			endif
+		float playerDistance = playerActor.GetDistance(meActor)
+		if playerDistance && playerDistance <= GetIsNearbyDistance()
+			ToggleNearbyUpdates(true)
 		endif
 	endif
 EndEvent
