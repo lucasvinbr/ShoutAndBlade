@@ -136,14 +136,16 @@ Function ToggleNearbyUpdates(bool updatesEnabled)
 	if updatesEnabled && isEnabled
 		isNearby = true
 		if indexInCloseByUpdater == -1
+			indexInCloseByUpdater = -2
 			indexInCloseByUpdater = CloseByUpdater.LocationUpdater.RegisterAliasForUpdates(self, indexInCloseByUpdater)
 			; debug.Trace("location: began closebyupdating!")
 		endif
 	elseif !updatesEnabled
 		isNearby = false
-		if indexInCloseByUpdater != -1
-			CloseByUpdater.LocationUpdater.UnregisterAliasFromUpdates(indexInCloseByUpdater)
+		if indexInCloseByUpdater > -1
+			int indexToUnregister = indexInCloseByUpdater
 			indexInCloseByUpdater = -1
+			CloseByUpdater.CmderUpdater.UnregisterAliasFromUpdates(indexToUnregister)
 			; debug.Trace("location: stopped closebyupdating!")
 		endif
 	endif

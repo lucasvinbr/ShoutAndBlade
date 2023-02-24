@@ -47,9 +47,9 @@ function RunUpdate(float curGameTime = 0.0, int updateIndexToUse = 0)
 			endif
 		endif
 
-		if hasUpdatedAnElement
-			; debug.Trace("updated alias with index " + updatedAliasIndex)
-		endif
+		; if hasUpdatedAnElement
+		; 	; debug.Trace("updated alias with index " + updatedAliasIndex)
+		; endif
 
 		updatedAliasIndex -= 1
 	endwhile
@@ -66,13 +66,13 @@ endFunction
 ; returns the alias's index in the active aliases array, or -1 if we failed to find a vacant index
 int Function RegisterAliasForUpdates(SAB_UpdatedReferenceAlias updatedScript, int currentIndex = -1)
 
-	if currentIndex != -1
+	if currentIndex > -1
 		debug.Trace(GetName() + " wanted to register " + updatedScript + ", but it already had an index")
 		return -1
 	endif
 
 	while editingIndexes
-		debug.Trace("hold on, " + GetName() + " is editing indexes")
+		debug.Trace("(register) hold on, " + GetName() + " is editing indexes")
 		Utility.Wait(0.05)
 	endwhile
 
@@ -130,7 +130,7 @@ Function UnregisterAliasFromUpdates(int aliasIndex)
 	endif
 
 	while editingIndexes
-		debug.Trace("hold on, " + GetName() + " is editing indexes")
+		debug.Trace("(unregister) hold on, " + GetName() + " is editing indexes")
 		Utility.Wait(0.05)
 	endwhile
 

@@ -29,8 +29,9 @@ Function ToggleNearbyUpdates(bool updatesEnabled)
 	if updatesEnabled
 		isNearby = true
 		if indexInCloseByUpdater == -1
+			indexInCloseByUpdater = -2 ; an attempt to prevent this from running more than once
 			indexInCloseByUpdater = CloseByUpdater.CmderUpdater.RegisterAliasForUpdates(self, indexInCloseByUpdater)
-			if indexInCloseByUpdater != -1
+			if indexInCloseByUpdater > -1
 				CrowdReducer.NearbyCmdersList.AddForm(GetReference())
 				debug.Trace("player: began closebyupdating!")
 				debug.Trace("player: nearby cmders: " + CrowdReducer.NumNearbyCmders)
@@ -38,9 +39,10 @@ Function ToggleNearbyUpdates(bool updatesEnabled)
 		endif
 	elseif !updatesEnabled
 		isNearby = false
-		if indexInCloseByUpdater != -1
-			CloseByUpdater.CmderUpdater.UnregisterAliasFromUpdates(indexInCloseByUpdater)
+		if indexInCloseByUpdater > -1
+			int indexToUnregister = indexInCloseByUpdater
 			indexInCloseByUpdater = -1
+			CloseByUpdater.CmderUpdater.UnregisterAliasFromUpdates(indexToUnregister)
 			CrowdReducer.RemoveCmderFromNearbyList(GetReference(), playerActor)
 			debug.Trace("player: stopped closebyupdating!")
 		endif
