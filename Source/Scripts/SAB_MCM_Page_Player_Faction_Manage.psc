@@ -73,16 +73,29 @@ Function SetupPage()
 
         SetCursorPosition(1)
 
+        SAB_LocationDataHandler locHandler = facScript.LocationDataHandler
+
         ; faction's locations
-        AddTextOptionST("PLYR_CUR_FAC_NUM_LOCS", "$sab_mcm_myfaction_numlocs", jArray.count(facScript.jOwnedLocationIndexesArray))
-        
+        int i = jArray.count(facScript.jOwnedLocationIndexesArray)
+        AddTextOptionST("PLYR_CUR_FAC_NUM_LOCS", "$sab_mcm_myfaction_numlocs", i)
+        While i > 0
+            i -= 1
+
+            int locIndex = jArray.getInt(facScript.jOwnedLocationIndexesArray, i, -1)
+            
+            if locIndex >= 0
+                string locName = locHandler.Locations[locIndex].ThisLocation.GetName()
+
+                AddTextOptionST("PLYR_CUR_FAC_OWNEDLIST___" + locName, locName, "")
+            endif
+            
+        EndWhile
 
         ; defense targets
         AddHeaderOption("$sab_mcm_myfaction_defensetargets")
         int jDefenseTargetsArray = facScript.FindDefenseTargets()
 
-        int i = jArray.count(jDefenseTargetsArray)
-        SAB_LocationDataHandler locHandler = facScript.LocationDataHandler
+        i = jArray.count(jDefenseTargetsArray)
 
         While i > 0
             i -= 1
