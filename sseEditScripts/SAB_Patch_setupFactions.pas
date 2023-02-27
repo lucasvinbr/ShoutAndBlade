@@ -15,6 +15,7 @@ uses SkyrimUtils, xEditAPI;
 var
   sabFile: IwbFile;
   factionsList, factionQuestsList: TList;
+  numFactionsToCreate: integer;
 
 
 // Called before processing
@@ -30,6 +31,8 @@ var
   i, j, nextAliasId: integer;
 
 begin
+  numFactionsToCreate := 100;
+
   // 5 is SAB's index if no other scripts are loaded before it
   sabFile := FileByLoadOrder(5);
   baseFactionQuest := getRecordByFormID('0506B3F4');
@@ -100,7 +103,7 @@ begin
 	SetEditValue(ElementByPath(curEditedQuest, 'ANAM'), nextAliasId);
 
   // create factions!
-  for i := 1 to 40 do
+  for i := 1 to numFactionsToCreate do
   begin
 
     factionIndex := i;
@@ -202,7 +205,7 @@ begin
 	
 	
 
-    log('created fac ' + factionIndex);
+    AddMessage('created fac ' + factionIndex);
   end;
   
   
@@ -211,7 +214,7 @@ begin
   // since factions are copied from faction00, which already has an "ally" relation to itself (faction00),
   // we can just edit the first entry of the list
   // and add the rest
-  for i := 0 to 40 do
+  for i := 0 to numFactionsToCreate do
   begin
   
 	factionIndex := i;
@@ -232,7 +235,7 @@ begin
 	end;
 	
 	// add relation entries for each faction
-	for j := 1 to 40 do
+	for j := 1 to numFactionsToCreate do
 	begin
 		curEditedElement := ElementAssign(curEditedListElement, HighInteger, nil, false);
 		SetNativeValue(ElementByPath(curEditedElement, 'Faction'), FormID(ObjectToElement(factionsList[j])));
@@ -243,7 +246,7 @@ begin
 		end;
 	end;
 	
-	log('set up relations for fac ' + factionIndex);
+	AddMessage('set up relations for fac ' + factionIndex);
 	
 	
 	
@@ -473,7 +476,7 @@ begin
 	// finally, set the next available aliasID in the faction quest
 	SetEditValue(ElementByPath(curEditedQuest, 'ANAM'), nextAliasId);
 	
-	log('set up units and cmders for fac ' + factionIndex);
+	AddMessage('set up units and cmders for fac ' + factionIndex);
   
   end;
   

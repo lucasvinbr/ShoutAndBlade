@@ -58,7 +58,7 @@ begin
   allUnitsList := getRecordByFormID('050240DF');
 
   //update entries!
-  for i := 1 to 255 do begin
+  for i := 1 to 512 do begin
 
 	unitIndex := i;
 
@@ -66,6 +66,9 @@ begin
 
 	//copy AI data from unit00
 	UpdateUnitElement('AIDT', baseNpc, curEditedUnit);
+
+	//copy configuration data from unit00
+	UpdateUnitElement('ACBS', baseNpc, curEditedUnit);
 
 	//copy combat style from unit00
 	UpdateUnitElement('ZNAM', baseNpc, curEditedUnit);

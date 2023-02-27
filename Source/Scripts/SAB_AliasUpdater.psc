@@ -2,8 +2,11 @@ scriptname SAB_AliasUpdater extends Quest
 { updater for aliases the player can see, like nearby commanders }
 
 ; we need two arrays because of the 128 elements limit
+; ...ok, we've expanded to 512
 SAB_UpdatedReferenceAlias[] SAB_ActiveElementsOne
 SAB_UpdatedReferenceAlias[] SAB_ActiveElementsTwo
+SAB_UpdatedReferenceAlias[] SAB_ActiveElementsThree
+SAB_UpdatedReferenceAlias[] SAB_ActiveElementsFour
 
 int updatedAliasIndex = -1
 
@@ -25,9 +28,12 @@ function Initialize()
 	debug.Trace("alias updater: initialize!")
 	SAB_ActiveElementsOne = new SAB_UpdatedReferenceAlias[128]
 	SAB_ActiveElementsTwo = new SAB_UpdatedReferenceAlias[128]
+	SAB_ActiveElementsThree = new SAB_UpdatedReferenceAlias[128]
+	SAB_ActiveElementsFour = new SAB_UpdatedReferenceAlias[128]
 	jKnownVacantSlots = jArray.object()
 	JValue.retain(jKnownVacantSlots, "ShoutAndBlade")
 endfunction
+
 
 
 function RunUpdate(float curGameTime = 0.0, int updateIndexToUse = 0)
@@ -36,19 +42,13 @@ function RunUpdate(float curGameTime = 0.0, int updateIndexToUse = 0)
 	hasUpdatedAnElement = false
 
 	while !hasUpdatedAnElement && updatedAliasIndex >= 0
-		int indexInArray = updatedAliasIndex % 128
-		if updatedAliasIndex > 127
-			if SAB_ActiveElementsOne[indexInArray] != None
-				hasUpdatedAnElement = SAB_ActiveElementsOne[indexInArray].RunUpdate(curGameTime, updateIndexToUse)
-			endif
-		else
-			if SAB_ActiveElementsTwo[indexInArray] != None
-				hasUpdatedAnElement = SAB_ActiveElementsTwo[indexInArray].RunUpdate(curGameTime, updateIndexToUse)
-			endif
-		endif
 
+		SAB_UpdatedReferenceAlias aliasToUpdate = GetUpdatedAliasAtIndex(updatedAliasIndex)
+		if aliasToUpdate != None
+			hasUpdatedAnElement = aliasToUpdate.RunUpdate(curGameTime, updateIndexToUse)
+		endif
 		; if hasUpdatedAnElement
-		; 	; debug.Trace("updated alias with index " + updatedAliasIndex)
+		; 	debug.Trace(GetName() + " - updated alias with index " + updatedAliasIndex)
 		; endif
 
 		updatedAliasIndex -= 1
@@ -95,7 +95,7 @@ int Function RegisterAliasForUpdates(SAB_UpdatedReferenceAlias updatedScript, in
 			jArray.eraseInteger(jKnownVacantSlots, vacantIndex)
 		endif
 	else 
-		if vacantIndex >= 256
+		if vacantIndex >= 512
 			; there are no holes and all entries are filled!
 			; abort
 			debug.Trace("alias updater " + GetName() + " is full!")
@@ -109,11 +109,8 @@ int Function RegisterAliasForUpdates(SAB_UpdatedReferenceAlias updatedScript, in
 
 	int indexInArray = vacantIndex % 128
 
-	if vacantIndex > 127
-		SAB_ActiveElementsOne[indexInArray] = updatedScript
-	else
-		SAB_ActiveElementsTwo[indexInArray] = updatedScript
-	endif
+	SAB_UpdatedReferenceAlias[] aliasArray = GetUpdatedAliasArrayAtIndex(vacantIndex)
+	aliasArray[indexInArray] = updatedScript
 
 	numActives += 1
 
@@ -138,11 +135,8 @@ Function UnregisterAliasFromUpdates(int aliasIndex)
 
 	int indexInArray = aliasIndex % 128
 
-	if aliasIndex > 127
-		SAB_ActiveElementsOne[indexInArray] = None
-	else
-		SAB_ActiveElementsTwo[indexInArray] = None
-	endif
+	SAB_UpdatedReferenceAlias[] aliasArray = GetUpdatedAliasArrayAtIndex(aliasIndex)
+	aliasArray[indexInArray] = None
 
 	; handle this new "hole" in the filled array:
 	; if it's a hole in the top, we can just decrement the top
@@ -155,14 +149,7 @@ Function UnregisterAliasFromUpdates(int aliasIndex)
 			; try and decrement topFilledIndex by finding holes at the top
 			int topHoleIndex = JArray.findInt(jKnownVacantSlots, topFilledIndex)
 
-			SAB_UpdatedReferenceAlias topRef
-			int topFilledInArray = topFilledIndex % 128
-
-			if topFilledIndex > 127
-				topRef = SAB_ActiveElementsOne[topFilledInArray]
-			else
-				topRef = SAB_ActiveElementsTwo[topFilledInArray]
-			endif
+			SAB_UpdatedReferenceAlias topRef = GetUpdatedAliasAtIndex(topFilledIndex)
 
 			While topHoleIndex != -1 || (topFilledIndex >= 0 && !topRef)
 				debug.Trace("found hole at the top of an aliasupdater! decrementing topFilledIndex")
@@ -171,13 +158,7 @@ Function UnregisterAliasFromUpdates(int aliasIndex)
 
 				topHoleIndex = JArray.findInt(jKnownVacantSlots, topFilledIndex)
 
-				topFilledInArray = topFilledIndex % 128
-
-				if topFilledIndex > 127
-					topRef = SAB_ActiveElementsOne[topFilledInArray]
-				elseif topFilledIndex > -1
-					topRef = SAB_ActiveElementsTwo[topFilledInArray]
-				endif
+				topRef = GetUpdatedAliasAtIndex(topFilledIndex)
 			EndWhile
 
 			if topFilledIndex == -1 && jArray.count(jKnownVacantSlots) > 0
@@ -197,12 +178,43 @@ int Function GetTopIndex()
 	return topFilledIndex
 EndFunction
 
-; gets the first or second array of aliases. 0 or anything else for elements two, 1 for elements one (only 2 available currently)
+; gets one of the arrays of aliases. 0 for elements one, 1 for elements two... 3 or anything else for elements four
 SAB_UpdatedReferenceAlias[] Function GetAliasesArray(int arrayNumber)
-	if arrayNumber == 1
+	if arrayNumber == 0
 		return SAB_ActiveElementsOne
-	else
+	elseif arrayNumber == 1
 		return SAB_ActiveElementsTwo
+	elseif arrayNumber == 2
+		return SAB_ActiveElementsThree
+	else
+		return SAB_ActiveElementsFour
+	endif
+EndFunction
+
+; picks the right alias and array to look at, considering the 128 element limit per array
+SAB_UpdatedReferenceAlias Function GetUpdatedAliasAtIndex(int index)
+	int indexInArray = index % 128
+	if index <= 127
+		return SAB_ActiveElementsOne[indexInArray]
+	elseif index <= 255
+		return SAB_ActiveElementsTwo[indexInArray]
+	elseif index <= 383
+		return SAB_ActiveElementsThree[indexInArray]
+	else
+		return SAB_ActiveElementsFour[indexInArray]
+	endif
+EndFunction
+
+; picks the right array to look at, considering the 128 element limit per array
+SAB_UpdatedReferenceAlias[] Function GetUpdatedAliasArrayAtIndex(int index)
+	if index <= 127
+		return SAB_ActiveElementsOne
+	elseif index <= 255
+		return SAB_ActiveElementsTwo
+	elseif index <= 383
+		return SAB_ActiveElementsThree
+	else
+		return SAB_ActiveElementsFour
 	endif
 EndFunction
 

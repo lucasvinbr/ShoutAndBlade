@@ -20,7 +20,7 @@ endevent
 
 Event OnPageInit()
 
-    editedFactionIdentifiersArray = new string[40]
+    editedFactionIdentifiersArray = new string[100]
     editedUnitIdentifiersArray = new string[128]
 
 EndEvent
@@ -157,7 +157,7 @@ state FAC_EDIT_UNIT_MENU_PAGE
 	event OnSliderOpenST(string state_id)
 		SetSliderDialogStartValue(editedUnitsMenuPage + 1)
 		SetSliderDialogDefaultValue(1)
-		SetSliderDialogRange(1, 2)
+		SetSliderDialogRange(1, 4) ; 512 units
 		SetSliderDialogInterval(1)
 	endEvent
 

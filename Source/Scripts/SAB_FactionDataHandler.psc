@@ -14,29 +14,29 @@ string[] Property VanillaFactionDisplayNames Auto
 int Property jSABFactionDatasArray Auto Hidden
 
 Function InitializeJData()
-    jSABFactionDatasArray = JArray.objectWithSize(40)
+    jSABFactionDatasArray = JArray.objectWithSize(100)
     JValue.retain(jSABFactionDatasArray, "ShoutAndBlade")
 EndFunction
 
-; makes sure the factionDatasArray has 40 elements
+; makes sure the factionDatasArray has 100 elements
 Function EnsureArrayCounts()
     int count = jArray.count(jSABFactionDatasArray)
 
-    if count < 40
-        int remainingCount = 40 - count
+    if count < 100
+        int remainingCount = 100 - count
         int padArray = jArray.objectWithSize(remainingCount)
 
         JArray.addFromArray(jSABFactionDatasArray, padArray)
-    elseif count > 40
+    elseif count > 100
         ; if there are too many records in the array, keep the first ones only
         jSABFactionDatasArray = jValue.releaseAndRetain(jSABFactionDatasArray, jArray.subArray(jSABFactionDatasArray, 0, 39), "ShoutAndBlade")
     endif
 EndFunction
 
-; fills a 40-sized string array with faction IDs accompanied by their names
+; fills a 100-sized string array with faction IDs accompanied by their names
 Function SetupStringArrayWithFactionIdentifiers(string[] stringArray)
 
-    int endingIndex = 40
+    int endingIndex = 100
 
     int i = 0
 
@@ -51,7 +51,7 @@ Function SetupStringArrayWithFactionIdentifiers(string[] stringArray)
     endwhile
 EndFunction
 
-; fills a 41-sized string array with faction ownership options (one option for each of the 40 factions, plus a "neutral/no faction" option)
+; fills a 101-sized string array with faction ownership options (one option for each of the 100 factions, plus a "neutral/no faction" option)
 Function SetupStringArrayWithOwnershipIdentifiers(string[] stringArray, string firstOptionText)
 
     int endingIndex = stringArray.Length

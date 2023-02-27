@@ -33,7 +33,7 @@ begin
   allDupsList := getRecordByFormID('0505BFF4');
 
   //create new entries!
-  for i := 1 to 255 do begin
+  for i := 256 to 512 do begin
 
     unitIndex := i;
     //pad index with zeroes

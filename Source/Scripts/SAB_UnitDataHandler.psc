@@ -47,25 +47,25 @@ LeveledItem Property SAB_UnitGear_TestGuy Auto
 LeveledItem Property SAB_UnitDuplicateItems_TestGuy Auto
 
 Function InitializeJData()
-    jSABUnitDatasArray = JArray.objectWithSize(256)
+    jSABUnitDatasArray = JArray.objectWithSize(512)
     JValue.retain(jSABUnitDatasArray, "ShoutAndBlade")
 
     jTestGuyData = JMap.object()
     JValue.retain(jTestGuyData, "ShoutAndBlade")
 EndFunction
 
-; makes sure the unitDatasArray has 256 elements
+; makes sure the unitDatasArray has 512 elements
 Function EnsureUnitDataArrayCount()
     int count = jArray.count(jSABUnitDatasArray)
 
-    if count < 256
-        int remainingCount = 256 - count
+    if count < 512
+        int remainingCount = 512 - count
         int padArray = jArray.objectWithSize(remainingCount)
 
         JArray.addFromArray(jSABUnitDatasArray, padArray)
-    elseif count > 256
-        ; if there are too many records in the array, keep the first 256 only
-        jSABUnitDatasArray = jValue.releaseAndRetain(jSABUnitDatasArray, jArray.subArray(jSABUnitDatasArray, 0, 255), "ShoutAndBlade")
+    elseif count > 512
+        ; if there are too many records in the array, keep the first 512 only
+        jSABUnitDatasArray = jValue.releaseAndRetain(jSABUnitDatasArray, jArray.subArray(jSABUnitDatasArray, 0, 511), "ShoutAndBlade")
     endif
 EndFunction
 
