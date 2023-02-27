@@ -89,11 +89,13 @@ event OnPageDraw()
 
     AddHeaderOption("$sab_mcm_options_header_playeroptions")
     AddEmptyOption()
+    AddSliderOptionST("OPTIONS_PLAYER_INTERVAL___recruiterInterval", "$sab_mcm_options_slider_player_recruiterInterval", JDB.solveFlt(".ShoutAndBlade.playerOptions.recruiterInterval", 0.25), "{3}")
     AddSliderOptionST("OPTIONS_PLAYER_INTERVAL___expAwardInterval", "$sab_mcm_options_slider_player_expAwardInterval", JDB.solveFlt(".ShoutAndBlade.playerOptions.expAwardInterval", 0.08), "{3}")
     AddSliderOptionST("OPTIONS_PLAYER_EXP___expAwardPerPlayerLevel", "$sab_mcm_options_slider_player_expawardperplayerlevel", JDB.solveFlt(".ShoutAndBlade.playerOptions.expAwardPerPlayerLevel", 25.0), "{1}")
     AddSliderOptionST("OPTIONS_PLAYER_UNITS___baseMaxOwnedUnits", "$sab_mcm_options_slider_player_maxownedunits_base", JDB.solveInt(".ShoutAndBlade.playerOptions.baseMaxOwnedUnits", 30))
     AddSliderOptionST("OPTIONS_PLAYER_UNITFRACTION___bonusMaxOwnedUnitsPerLevel", "$sab_mcm_options_slider_player_maxownedunits_perlevel", JDB.solveFlt(".ShoutAndBlade.playerOptions.bonusMaxOwnedUnitsPerLevel", 0.5), "{1}")
 
+    AddEmptyOption()
     AddEmptyOption()
     AddEmptyOption()
 
@@ -550,6 +552,8 @@ state OPTIONS_PLAYER_INTERVAL
 
         if state_id == "expAwardInterval"
             SetInfoText("$sab_mcm_options_slider_player_expAwardInterval_desc")
+        elseif state_id == "recruiterInterval"
+            SetInfoText("$sab_mcm_options_slider_player_recruiterInterval_desc")
         endif
 	endEvent
 
@@ -976,6 +980,8 @@ float Function GetDefaultFltValueForOption(string category, string entryName)
     elseif category == "player"
         if entryName == "expAwardInterval"
             return 0.08
+        elseif entryName == "recruiterInterval"
+            return 0.25
         elseif entryName == "expAwardPerPlayerLevel"
             return 25.0
         elseif entryName == "bonusMaxOwnedUnitsPerLevel"

@@ -10,6 +10,8 @@ SAB_CrowdReducer Property CrowdReducer Auto
 
 ObjectReference Property TroopSpawnPoint Auto
 
+float Property gameTimeOfLastRecruiterRefresh Auto Hidden
+
 Function Setup(SAB_FactionScript factionScriptRef, float curGameTime = 0.0)
 	TargetLocationScript = None
 	if jOwnedUnitsMap == 0
@@ -18,7 +20,7 @@ Function Setup(SAB_FactionScript factionScriptRef, float curGameTime = 0.0)
 		; just update player's faction if this script was already set up before
 		factionScript = factionScriptRef
 	endif
-	
+	gameTimeOfLastRecruiterRefresh = 0.0
 EndFunction
 
 ; sets isNearby and enables or disables closeBy updates
@@ -59,6 +61,19 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 	if curGameTime != 0.0 && gameTimeOfLastExpAward == 0.0
 		; set initial values for "gameTime" variables, to avoid them from getting huge accumulated awards
 		gameTimeOfLastExpAward = curGameTime
+	endif
+
+	float recruiterInterval = JDB.solveFlt(".ShoutAndBlade.playerOptions.recruiterInterval", 0.25)
+
+	if recruiterInterval > 0 && curGameTime - gameTimeOfLastRecruiterRefresh >= recruiterInterval
+		int numRefreshes = ((curGameTime - gameTimeOfLastRecruiterRefresh) / recruiterInterval) as int
+
+		while numRefreshes > 0
+			numRefreshes -= 1
+			PlayerDataHandler.RemoveOldestRecruiterFromRecentList()
+		endwhile
+
+		gameTimeOfLastRecruiterRefresh = curGameTime
 	endif
 
 	;debug.Trace("game time updating commander (pre check)!")

@@ -17,11 +17,18 @@ SAB_LocationScript Property NearbyLocation Auto Hidden
 
 int lastCheckedUnitAliasIndex = -1
 
+; a jArray of forms, containing known recruiters from which we recruited recently
+int jRecentRecruitersArray
+
+Faction Property SAB_RecentRecruitersFaction Auto
+
 Function Initialize()
 	PlayerCommanderScript.Setup(None)
+	jRecentRecruitersArray = jArray.object()
+	JValue.retain(jRecentRecruitersArray, "ShoutAndBlade")
 EndFunction
 
-Function OpenPurchaseFactionRecruitsMenu()
+Function OpenPurchaseFactionRecruitsMenu(Actor recruiter)
 	; cancel procedure if we're not in any faction
 	if PlayerFaction == None
 		return
@@ -29,21 +36,28 @@ Function OpenPurchaseFactionRecruitsMenu()
 
 	int recruitIndex = jMap.getInt(PlayerFaction.jFactionData, "RecruitUnitIndex")
 
-	OpenPurchaseUnitsMenu(recruitIndex)
+	OpenPurchaseUnitsMenu(recruitIndex, recruiter)
 EndFunction
 
-Function OpenPurchaseUnitsMenu(int unitIndex = -1)
+Function OpenPurchaseUnitsMenu(int unitIndex = -1, Actor recruiter)
 
 	if unitIndex == -1
 		return
 	endif
 
-	if PlayerCommanderScript.totalOwnedUnitsAmount >= PlayerCommanderScript.GetMaxOwnedUnitsAmount()
+	int freeUnitSlots = PlayerCommanderScript.GetMaxOwnedUnitsAmount() - PlayerCommanderScript.totalOwnedUnitsAmount
+
+	if freeUnitSlots <= 0
 		Debug.Notification("You have reached your unit count limit! Level up to be able to recruit more.")
 		return
 	endif
 
 	int numUnitsAvailable = utility.RandomInt(8, 25) ; TODO make this configurable (max and min units available per recruiter)
+
+	; limit num units available according to number of free unit slots the player has
+	if numUnitsAvailable > freeUnitSlots
+		numUnitsAvailable = freeUnitSlots
+	endif
 
 	; figure out purchased unit's cost
 	int jRecruitObj = jArray.getObj(SpawnerScript.UnitDataHandler.jSABUnitDatasArray, unitIndex)
@@ -66,22 +80,42 @@ Function OpenPurchaseUnitsMenu(int unitIndex = -1)
 		numberOfUnitsToPurchase = numUnitsAvailable
 	endif
 	
+	if numberOfUnitsToPurchase > 0
+		Actor player = Game.GetPlayer()
+		int playerGold = player.GetItemCount(Gold001)
 	
-	Actor player = Game.GetPlayer()
-	int playerGold = player.GetItemCount(Gold001)
+		; clamp number of recruited units based on player's gold
+		int maxUnitsPlayerCanAfford = Math.Floor(playerGold / goldCostPerRec)
+	
+		if numberOfUnitsToPurchase > maxUnitsPlayerCanAfford
+			numberOfUnitsToPurchase = maxUnitsPlayerCanAfford
+		endif
+	
+		; add units and deduct gold from player
+		player.RemoveItem(Gold001, goldCostPerRec * numberOfUnitsToPurchase)
+		PlayerCommanderScript.AddUnitsOfType(unitIndex, numberOfUnitsToPurchase)
 
-	; clamp number of recruited units based on player's gold
-	int maxUnitsPlayerCanAfford = Math.Floor(playerGold / goldCostPerRec)
-
-	if numberOfUnitsToPurchase > maxUnitsPlayerCanAfford
-		numberOfUnitsToPurchase = maxUnitsPlayerCanAfford
+		if recruiter != None
+			; add recruiter to "recently recruited from" list, to prevent the player from just spam recruiting from one person
+			recruiter.AddToFaction(SAB_RecentRecruitersFaction)
+			jArray.addForm(jRecentRecruitersArray, recruiter)
+		endif
 	endif
-
-	; add units and deduct gold from player
-	player.RemoveItem(Gold001, goldCostPerRec * numberOfUnitsToPurchase)
-	PlayerCommanderScript.AddUnitsOfType(unitIndex, numberOfUnitsToPurchase)
 	
 endFunction
+
+Function RemoveOldestRecruiterFromRecentList()
+	Form oldRecruiter = jArray.getForm(jRecentRecruitersArray, 0)
+	if oldRecruiter
+		Actor oldRecruiterActor = oldRecruiter as Actor
+
+		if oldRecruiterActor
+			oldRecruiterActor.RemoveFromFaction(SAB_RecentRecruitersFaction)
+		endif
+	endif
+
+	jArray.eraseIndex(jRecentRecruitersArray, 0)
+EndFunction
 
 ; makes the player stop deploying units, and hides all deployed ones
 Function DespawnAllPlayerUnits()
