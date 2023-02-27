@@ -210,7 +210,26 @@ Function SetupDebugStatistics()
 
     AddTextOptionST("STATS_DISPLAY___NEARBYCMDERS", "$sab_mcm_stats_menu_statspage_debug_nearbycmders", crowdReducer.NumNearbyCmders)
     AddTextOptionST("STATS_DISPLAY___NEARBYLOCS_ALIAS", "$sab_mcm_stats_menu_statspage_debug_nearbylocs_aliases", MainPage.MainQuest.SpawnersUpdater.LocationUpdater.numActives)
-    AddTextOptionST("STATS_DISPLAY___NEARBYLOCS_ALIAS_TOPFILLEDINDEX", "$sab_mcm_stats_menu_statspage_debug_nearbylocs_topfilledindex", MainPage.MainQuest.SpawnersUpdater.LocationUpdater.GetTopIndex())
+    int nearbyLocsTopFilledIndex = MainPage.MainQuest.SpawnersUpdater.LocationUpdater.GetTopIndex()
+    AddTextOptionST("STATS_DISPLAY___NEARBYLOCS_ALIAS_TOPFILLEDINDEX", "$sab_mcm_stats_menu_statspage_debug_nearbylocs_topfilledindex", nearbyLocsTopFilledIndex)
+
+    ; show all locs in nearbies alias list (we expect - and hope! - it's less than 128)
+    i = nearbyLocsTopFilledIndex
+    SAB_UpdatedReferenceAlias[] nearbyLocAliases = MainPage.MainQuest.SpawnersUpdater.LocationUpdater.GetAliasesArray(0)
+    While i > 0
+        i -= 1
+        SAB_UpdatedReferenceAlias locAlias = nearbyLocAliases[i]
+        SAB_LocationScript locref = locAlias as SAB_LocationScript
+        if locref
+            AddTextOptionST("STATS_DISPLAY___NEARBYLOC_ALIAS" + i, locref.ThisLocation.GetName(), i + " - dist: " + plyrRef.GetDistance(locref.GetReference()))
+        elseif locAlias
+            AddTextOptionST("STATS_DISPLAY___NEARBYLOC_ALIAS" + i, locAlias, i + " - valid alias")
+        else
+            AddTextOptionST("STATS_DISPLAY___NEARBYLOC_ALIAS" + i, locAlias, i + " - none?")
+        endif
+        
+    EndWhile
+
     AddTextOptionST("STATS_DISPLAY___NEARBYCMDERS_ALIAS", "$sab_mcm_stats_menu_statspage_debug_nearbycmders_aliases", MainPage.MainQuest.SpawnersUpdater.CmderUpdater.numActives)
 
     int nearbyCmdersTopFilledIndex = MainPage.MainQuest.SpawnersUpdater.CmderUpdater.GetTopIndex()
