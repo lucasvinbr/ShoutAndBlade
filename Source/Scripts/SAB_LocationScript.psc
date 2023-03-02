@@ -32,6 +32,9 @@ float Property GoldRewardMultiplier = 1.0 Auto Hidden
 float Property GarrisonSizeMultiplier = 1.0 Auto Hidden
 { a multiplier applied on this location's maximum stored troop amount. Can make locations more or less difficult to defend }
 
+ObjectReference Property DistCalculationReference Auto
+{ (Optional) if not None, this object will be used as reference when calculating distances between locations. if not set, the base alias reference will be used }
+
 bool Property isEnabled = true Auto Hidden
 
 bool playerIsInside = false
@@ -347,6 +350,14 @@ ObjectReference Function GetSpawnLocationForUnit()
 	endif
 EndFunction
 
+; returns DistCalculationReference if it's set, GetReference() otherwise
+ObjectReference Function GetDistanceCheckReference()
+	if DistCalculationReference
+		return DistCalculationReference
+	else
+		return GetReference()
+	endif
+EndFunction
 
 
 ; returns true if out of troops and "neutralized"

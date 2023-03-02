@@ -186,6 +186,8 @@ Function CalculateLocationDistances()
             debug.Trace(baseRef)
         endwhile
         
+        baseRef = EnabledLocations[i].GetDistanceCheckReference()
+
         int jDistMapsFromI = jIntMap.object()
         JIntMap.setObj(jlocationDistancesMap, i, jDistMapsFromI)
 
@@ -208,7 +210,7 @@ Function CalculateLocationDistances()
                 endif
 
                 if distance == 0.0
-                    distance = baseRef.GetDistance(EnabledLocations[j].GetReference())
+                    distance = baseRef.GetDistance(EnabledLocations[j].GetDistanceCheckReference())
                 endif
 
                 ; add distance and loc index to the sorted distances arrays

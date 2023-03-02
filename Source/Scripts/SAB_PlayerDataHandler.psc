@@ -153,7 +153,7 @@ ReferenceAlias Function SpawnPlayerUnit(int unitIndex, ObjectReference spawnLoca
 		return None
 	endif
 
-	Actor spawnedUnit = SpawnerScript.SpawnUnit(spawnLocation, VanillaPlayerFaction, unitIndex, -1, 0)
+	Actor spawnedUnit = SpawnerScript.SpawnUnit(spawnLocation, None, unitIndex, -1, 0)
 
 	if spawnedUnit == None
 		debug.Trace("spawn unit for container: got none as spawnedUnit, aborting!")

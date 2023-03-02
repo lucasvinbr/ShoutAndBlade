@@ -649,7 +649,7 @@ ReferenceAlias Function TrySpawnCommander(float curGameTime, bool onlySpawnIfHas
 		return None
 	endif
 
-	Actor cmderUnit = SpawnerScript.SpawnUnit(cmderSpawn, OurFaction, cmderUnitTypeIndex)
+	Actor cmderUnit = SpawnerScript.SpawnUnit(cmderSpawn, None, cmderUnitTypeIndex)
 
 	if cmderUnit == None
 		return None
@@ -697,7 +697,7 @@ ReferenceAlias Function SpawnUnitForTroopContainer(SAB_TroopContainerScript troo
 		return None
 	endif
 
-	Actor spawnedUnit = SpawnerScript.SpawnUnit(spawnLocation, OurFaction, unitIndex, -1, cmderFollowRank)
+	Actor spawnedUnit = SpawnerScript.SpawnUnit(spawnLocation, None, unitIndex, -1, cmderFollowRank)
 
 	if spawnedUnit == None
 		debug.Trace("spawn unit for container: got none as spawnedUnit, aborting!")

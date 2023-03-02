@@ -279,16 +279,23 @@ begin
 		SetEditValue(ElementByPath(followCmderPkg, 'EDID'), 'SAB_FactionPackage_' + factionIndex + '_FollowCmder_1'); //set editor ID
 		SetNativeValue(ElementByPath(followCmderPkg, 'QNAM'), FormID(curEditedQuest));
 		
-		// set existing unit and cmder to use the new packages
+		// set existing unit and cmder to use the new packages and correct faction
 		curEditedListElement := ElementByPath(curEditedQuest, 'Aliases');
-		curEditedElement := ElementByIndex(curEditedListElement, 0); //commander1
-		curEditedElement := ElementByPath(curEditedElement, 'Alias Package Data');
+		curEditedElementTwo := ElementByIndex(curEditedListElement, 0); //commander1
+		curEditedElement := ElementByPath(curEditedElementTwo, 'Alias Package Data');
 		SetNativeValue(ElementByIndex(curEditedElement, 1), FormID(cmderDestAPkg)); // it's the second package in the cmder stack
+
+		curEditedElement := ElementByPath(curEditedElementTwo, 'Alias Factions');
+		SetNativeValue(ElementByIndex(curEditedElement, 0), FormID(ObjectToElement(factionsList[i])));
 		
-		curEditedElement := ElementByIndex(curEditedListElement, 1); //unit1
-		curEditedElement := ElementByPath(curEditedElement, 'Alias Package Data');
+
+		curEditedElementTwo := ElementByIndex(curEditedListElement, 1); //unit1
+		curEditedElement := ElementByPath(curEditedElementTwo, 'Alias Package Data');
 		SetNativeValue(ElementByIndex(curEditedElement, 0), FormID(followCmderPkg));
 		
+		curEditedElement := ElementByPath(curEditedElementTwo, 'Alias Factions');
+		SetNativeValue(ElementByIndex(curEditedElement, 0), FormID(ObjectToElement(factionsList[i])));
+
 	end;
 	
 	curEditedListElement := ElementByPath(curEditedQuest, 'Aliases');
