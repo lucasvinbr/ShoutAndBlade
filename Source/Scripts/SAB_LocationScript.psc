@@ -148,7 +148,7 @@ Function ToggleNearbyUpdates(bool updatesEnabled)
 		if indexInCloseByUpdater > -1
 			int indexToUnregister = indexInCloseByUpdater
 			indexInCloseByUpdater = -1
-			CloseByUpdater.CmderUpdater.UnregisterAliasFromUpdates(indexToUnregister)
+			CloseByUpdater.LocationUpdater.UnregisterAliasFromUpdates(indexToUnregister)
 			; debug.Trace("location: stopped closebyupdating!")
 		endif
 	endif
