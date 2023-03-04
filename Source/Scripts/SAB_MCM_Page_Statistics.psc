@@ -213,6 +213,8 @@ Function SetupDebugStatistics()
     int nearbyLocsTopFilledIndex = MainPage.MainQuest.SpawnersUpdater.LocationUpdater.GetTopIndex()
     AddTextOptionST("STATS_DISPLAY___NEARBYLOCS_ALIAS_TOPFILLEDINDEX", "$sab_mcm_stats_menu_statspage_debug_nearbylocs_topfilledindex", nearbyLocsTopFilledIndex)
 
+    Actor plyrRef = game.GetPlayer()
+
     ; show all locs in nearbies alias list (we expect - and hope! - it's less than 128)
     i = nearbyLocsTopFilledIndex
     SAB_UpdatedReferenceAlias[] nearbyLocAliases = MainPage.MainQuest.SpawnersUpdater.LocationUpdater.GetAliasesArray(0)
@@ -236,7 +238,6 @@ Function SetupDebugStatistics()
     AddTextOptionST("STATS_DISPLAY___NEARBYCMDERS_ALIAS_TOPFILLEDINDEX", "$sab_mcm_stats_menu_statspage_debug_nearbycmders_topfilledindex", nearbyCmdersTopFilledIndex)
 
     FormList cmdersList = crowdReducer.NearbyCmdersList
-    Actor plyrRef = game.GetPlayer()
     int i = crowdReducer.NumNearbyCmders
     ; show all cmders in list
     While i > 0
