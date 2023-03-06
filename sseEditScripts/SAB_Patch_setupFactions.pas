@@ -227,24 +227,30 @@ begin
 	curEditedFaction := ObjectToElement(factionsList[i]);
 	curEditedListElement := ElementByPath(curEditedFaction, 'Relations');
 	
-	if i > 0 then begin
-		//set relations with faction00
-		//get relation entry...
-		curEditedElement := ElementByIndex(curEditedListElement, 0);
-		SetEditValue(ElementByPath(curEditedElement, 'Group Combat Reaction'), 'Enemy');
-	end;
+	// if i > 0 then begin
+	// 	//set relations with faction00
+	// 	//get relation entry...
+	// 	curEditedElement := ElementByIndex(curEditedListElement, 0);
+	// 	SetEditValue(ElementByPath(curEditedElement, 'Group Combat Reaction'), 'Enemy');
+	// end;
 	
 	// add relation entries for each faction
-	for j := 1 to numFactionsToCreate do
-	begin
-		curEditedElement := ElementAssign(curEditedListElement, HighInteger, nil, false);
-		SetNativeValue(ElementByPath(curEditedElement, 'Faction'), FormID(ObjectToElement(factionsList[j])));
-		if i = j then begin
-			SetEditValue(ElementByPath(curEditedElement, 'Group Combat Reaction'), 'Ally');
-		end else begin
-			SetEditValue(ElementByPath(curEditedElement, 'Group Combat Reaction'), 'Enemy');
-		end;
-	end;
+	// for j := 1 to numFactionsToCreate do
+	// begin
+	// 	curEditedElement := ElementAssign(curEditedListElement, HighInteger, nil, false);
+	// 	SetNativeValue(ElementByPath(curEditedElement, 'Faction'), FormID(ObjectToElement(factionsList[j])));
+	// 	if i = j then begin
+	// 		SetEditValue(ElementByPath(curEditedElement, 'Group Combat Reaction'), 'Ally');
+	// 	end else begin
+	// 		SetEditValue(ElementByPath(curEditedElement, 'Group Combat Reaction'), 'Enemy');
+	// 	end;
+	// end;
+
+	// faction diplomacy should take care of setting inter-faction reactions!
+	// We've just got to make sure the faction is allied to itself, like faction00 is
+	curEditedElement := ElementByIndex(curEditedListElement, 0);
+	SetNativeValue(ElementByPath(curEditedElement, 'Faction'), FormID(ObjectToElement(factionsList[i])));
+
 	
 	AddMessage('set up relations for fac ' + factionIndex);
 	
