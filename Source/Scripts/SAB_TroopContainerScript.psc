@@ -557,6 +557,10 @@ Function DoAutocalcBattle(SAB_TroopContainerScript enemyContainer)
 	; float ourPower = unitDataHandler.GetTotalAutocalcPowerFromArmy(jOwnedUnitsMap) * Utility.RandomFloat(0.125, 0.5)
 	; float theirPower = unitDataHandler.GetTotalAutocalcPowerFromArmy(enemyContainer.jOwnedUnitsMap) * Utility.RandomFloat(0.125, 0.5)
 
+	if enemyContainer.factionScript
+		factionScript.DiplomacyDataHandler.GlobalReactToAutocalcBattle(factionScript.GetFactionIndex(), enemyContainer.factionScript.GetFactionIndex())
+	endif
+
 	float ourPower = currentAutocalcPower * Utility.RandomFloat(0.125, 0.5)
 	float theirPower = enemyContainer.currentAutocalcPower * Utility.RandomFloat(0.125, 0.5)
 
@@ -571,7 +575,7 @@ Function DoAutocalcBattle(SAB_TroopContainerScript enemyContainer)
 		HandleAutocalcDefeat()
 	endif
 	; debug.Trace("autocalc fight end!")
-	
+
 EndFunction
 
 

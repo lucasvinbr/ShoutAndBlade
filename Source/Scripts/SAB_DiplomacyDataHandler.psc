@@ -356,11 +356,38 @@ Function GlobalReactToLocationAttacked(int attackingFacIndex, int defenderFacInd
 
         if i != defenderFacIndex
             if i == attackingFacIndex
-                AddOrSubtractRelationBetweenFacs(attackingFacIndex, defenderFacIndex, JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.relDmg_attackLocation", -1.3), playerFacIndex) ; TODO make this configurable
+                AddOrSubtractRelationBetweenFacs(attackingFacIndex, defenderFacIndex, JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.relDmg_attackLocation", -0.8), playerFacIndex) ; TODO make this configurable
             elseif AreFactionsAllied(i, defenderFacIndex)
-                AddOrSubtractRelationBetweenFacs(i, attackingFacIndex, JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.relDmg_attackAlliedLocation", -0.15), playerFacIndex) ; TODO make this configurable
+                AddOrSubtractRelationBetweenFacs(i, attackingFacIndex, JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.relDmg_attackAlliedLocation", -0.2), playerFacIndex) ; TODO make this configurable
             elseif AreFactionsEnemies(i, defenderFacIndex)
                 AddOrSubtractRelationBetweenFacs(i, attackingFacIndex, JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.relAdd_attackEnemyLocation", 0.1), playerFacIndex) ; TODO make this configurable
+            endif
+        endif
+    EndWhile
+EndFunction
+
+; defender and allies of the defender get angry at attackers.
+; enemies of the defender become closer to attackers
+Function GlobalReactToAutocalcBattle(int attackingFacIndex, int defenderFacIndex)
+    SAB_FactionScript[] facQuests = FactionDataHandler.SAB_FactionQuests
+
+    int i = facQuests.Length
+    int playerFacIndex = -1
+
+    if PlayerDataHandler.PlayerFaction != None
+        playerFacIndex = PlayerDataHandler.PlayerFaction.GetFactionIndex()
+    endif
+
+    While i > 0
+        i -= 1
+
+        if i != defenderFacIndex
+            if i == attackingFacIndex
+                AddOrSubtractRelationBetweenFacs(attackingFacIndex, defenderFacIndex, JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.relDmg_attacked_autocalc", -0.5), playerFacIndex) ; TODO make this configurable
+            elseif AreFactionsAllied(i, defenderFacIndex)
+                AddOrSubtractRelationBetweenFacs(i, attackingFacIndex, JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.relDmg_attacked_ally_autocalc", -0.1), playerFacIndex) ; TODO make this configurable
+            elseif AreFactionsEnemies(i, defenderFacIndex)
+                AddOrSubtractRelationBetweenFacs(i, attackingFacIndex, JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.relAdd_attacked_enemy_autocalc", 0.1), playerFacIndex) ; TODO make this configurable
             endif
         endif
     EndWhile
