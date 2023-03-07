@@ -385,7 +385,7 @@ Function GlobalReactToAutocalcBattle(int attackingFacIndex, int defenderFacIndex
             if i == attackingFacIndex
                 AddOrSubtractRelationBetweenFacs(attackingFacIndex, defenderFacIndex, JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.relDmg_attacked_autocalc", -0.5), playerFacIndex) ; TODO make this configurable
             elseif AreFactionsAllied(i, defenderFacIndex)
-                AddOrSubtractRelationBetweenFacs(i, attackingFacIndex, JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.relDmg_attacked_ally_autocalc", -0.1), playerFacIndex) ; TODO make this configurable
+                AddOrSubtractRelationBetweenFacs(i, attackingFacIndex, JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.relDmg_attacked_ally_autocalc", -0.2), playerFacIndex) ; TODO make this configurable
             elseif AreFactionsEnemies(i, defenderFacIndex)
                 AddOrSubtractRelationBetweenFacs(i, attackingFacIndex, JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.relAdd_attacked_enemy_autocalc", 0.1), playerFacIndex) ; TODO make this configurable
             endif
