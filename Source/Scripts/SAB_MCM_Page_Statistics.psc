@@ -208,7 +208,10 @@ Function SetupDebugStatistics()
 
     SAB_CrowdReducer crowdReducer = MainPage.MainQuest.CrowdReducer
 
-    AddTextOptionST("STATS_DISPLAY___NEARBYCMDERS", "$sab_mcm_stats_menu_statspage_debug_nearbycmders", crowdReducer.NumNearbyCmders)
+    AddTextOptionST("STATS_DISPLAY___NEARBYUNITS_ALIAS", "$sab_mcm_stats_menu_statspage_debug_nearbyunits_aliases", MainPage.MainQuest.UnitsUpdater.UnitUpdater.numActives)
+    int nearbyUnitsTopFilledIndex = MainPage.MainQuest.UnitsUpdater.UnitUpdater.GetTopIndex()
+    AddTextOptionST("STATS_DISPLAY___NEARBYUNITS_ALIAS_TOPFILLEDINDEX", "$sab_mcm_stats_menu_statspage_debug_nearbyunits_topfilledindex", nearbyUnitsTopFilledIndex)
+
     AddTextOptionST("STATS_DISPLAY___NEARBYLOCS_ALIAS", "$sab_mcm_stats_menu_statspage_debug_nearbylocs_aliases", MainPage.MainQuest.SpawnersUpdater.LocationUpdater.numActives)
     int nearbyLocsTopFilledIndex = MainPage.MainQuest.SpawnersUpdater.LocationUpdater.GetTopIndex()
     AddTextOptionST("STATS_DISPLAY___NEARBYLOCS_ALIAS_TOPFILLEDINDEX", "$sab_mcm_stats_menu_statspage_debug_nearbylocs_topfilledindex", nearbyLocsTopFilledIndex)
@@ -232,6 +235,7 @@ Function SetupDebugStatistics()
         
     EndWhile
 
+    AddTextOptionST("STATS_DISPLAY___NEARBYCMDERS", "$sab_mcm_stats_menu_statspage_debug_nearbycmders", crowdReducer.NumNearbyCmders)
     AddTextOptionST("STATS_DISPLAY___NEARBYCMDERS_ALIAS", "$sab_mcm_stats_menu_statspage_debug_nearbycmders_aliases", MainPage.MainQuest.SpawnersUpdater.CmderUpdater.numActives)
 
     int nearbyCmdersTopFilledIndex = MainPage.MainQuest.SpawnersUpdater.CmderUpdater.GetTopIndex()
