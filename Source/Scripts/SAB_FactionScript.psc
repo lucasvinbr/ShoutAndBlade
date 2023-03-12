@@ -292,7 +292,7 @@ int Function FindAttackTargets()
 						locIndex = jArray.getInt(jNearbyLocsArray, j, -1)
 						SAB_LocationScript nearbyLocScript = locScripts[locIndex]
 
-						if locIndex != -1
+						if locIndex != -1 && nearbyLocScript.isEnabled
 							; if we don't own the location with index locIndex, add it as a candidate for attacking
 							if jArray.findInt(jOwnedLocationIndexesArray, locIndex) == -1 && \
 								!DiplomacyDataHandler.AreFactionsInGoodStanding(self, nearbyLocScript.factionScript)
@@ -341,7 +341,7 @@ int Function FindDefenseTargets()
 		if locIndex != -1
 			SAB_LocationScript locScript = LocationDataHandler.Locations[locIndex]
 			; check if this location is still owned by us
-			if locScript.factionScript != self
+			if locScript.factionScript != self || !locScript.isEnabled
 				JArray.eraseIndex(jOwnedLocationIndexesArray, i)
 			else
 
