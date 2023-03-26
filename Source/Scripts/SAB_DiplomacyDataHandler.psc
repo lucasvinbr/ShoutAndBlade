@@ -37,8 +37,6 @@ Event OnUpdate()
         JArray.eraseIndex(jPendingUnitKillRelUpdates, 0)
     endif
     
-
-	RegisterForSingleUpdate(0.5)
 EndEvent
 
 
@@ -409,6 +407,7 @@ Function QueueGlobalReactToPlayerKillingUnit(int killedUnitFacIndex)
 
     debug.Trace("enqueued to relation kills queue")
     jArray.addInt(jPendingUnitKillRelUpdates, killedUnitFacIndex)
+    RegisterForSingleUpdate(0.25)
 
 EndFunction
 
@@ -561,6 +560,10 @@ EndFunction
 ; returns true if one value would mean one thing and the other one, another, in the sense of faction standings.
 ; for example, this would return true if one value indicates a neutral relation and the other one an allied relation 
 bool Function DoValuesIndicateDifferentStandings(float relValueOne, float relValueTwo)
+    if relValueOne == relValueTwo
+        return false
+    endif
+
     return RelationValueToFactionStanding(relValueOne) != RelationValueToFactionStanding(relValueTwo)
 EndFunction
 
