@@ -158,7 +158,9 @@ Function UnregisterAliasFromUpdates(int aliasIndex)
 
 				topHoleIndex = JArray.findInt(jKnownVacantSlots, topFilledIndex)
 
-				topRef = GetUpdatedAliasAtIndex(topFilledIndex)
+				if topFilledIndex >= 0
+					topRef = GetUpdatedAliasAtIndex(topFilledIndex)
+				endif
 			EndWhile
 
 			if topFilledIndex == -1 && jArray.count(jKnownVacantSlots) > 0
