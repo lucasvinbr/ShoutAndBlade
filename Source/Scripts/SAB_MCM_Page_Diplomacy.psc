@@ -90,7 +90,7 @@ Function SetupPage()
                 relationValue = DiplomacyHandler.GetPlayerRelationWithFac(i)
             endif
     
-            AddTextOptionST("REL_DISPLAY___" + facName, facName, relationValue)
+            AddTextOptionST("REL_DISPLAY___" + i, facName, relationValue)
             validFacsCount += 1
         endif
         
@@ -110,6 +110,18 @@ EndFunction
 
 
 state REL_DISPLAY
+
+    event OnSelectST(string state_id)
+        int jFactionDatasArray = MainPage.MainQuest.FactionDataHandler.jSABFactionDatasArray
+
+        int clickedFacIndex = state_id as int
+
+        if clickedFacIndex >= 0
+            editedFactionIndex = clickedFacIndex
+            ForcePageReset()
+        endif
+        
+	endEvent
 
 	event OnHighlightST(string state_id)
         MainPage.ToggleQuickHotkey(true)
