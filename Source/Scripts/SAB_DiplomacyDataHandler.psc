@@ -188,6 +188,13 @@ bool Function IsFactionEnemyOfPlayer(int factionIndex)
 
 EndFunction
 
+; true if the faction's relation towards the player is above the ally threshold. False if neutral or worse
+bool Function IsFactionAllyOfPlayer(int factionIndex)
+
+    return GetPlayerRelationWithFac(factionIndex) >= JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.allyRelationLevel", 1.0) ; TODO make this configurable
+
+EndFunction
+
 ; returns true if the standing has just changed
 bool Function AddOrSubtractPlayerRelationWithFac(int factionIndex, float valueToAdd)
     if factionIndex < 0
