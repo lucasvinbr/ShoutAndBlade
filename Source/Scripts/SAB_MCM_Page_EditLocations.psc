@@ -74,8 +74,9 @@ Function SetupPage()
 
     editedLocationScript = locHandler.Locations[editedLocationIndex]
 
-    AddMenuOptionST("LOC_EDIT_CUR_LOC", "$sab_mcm_locationedit_menu_currentloc", editedLocationScript.ThisLocation.GetName())
+    AddMenuOptionST("LOC_EDIT_CUR_LOC", "$sab_mcm_locationedit_menu_currentloc", editedLocationScript.GetLocName())
 
+    AddInputOptionST("LOC_EDIT_LOC_DISPLAYNAME", "$sab_mcm_locationedit_input_loc_name", editedLocationScript.GetLocName())
     AddEmptyOption()
 
     string ownerFacName = "$sab_mcm_locationedit_ownership_option_neutral"
@@ -108,7 +109,7 @@ Function SetupPage()
         int locIndex = jArray.getInt(jNearbyLocsArray, i, -1)
             
         if locIndex >= 0
-            string locName = locHandler.Locations[locIndex].ThisLocation.GetName()
+            string locName = locHandler.Locations[locIndex].GetLocName()
             AddTextOptionST("LOC_NEARBY___" + locName, "$sab_mcm_locationedit_nearbyloc", locName)
         endif
     EndWhile
@@ -168,11 +169,11 @@ state LOC_EDIT_LOC_OWNER
             editedLocationScript.BeTakenByFaction(newOwner, true)
         endif
 
-        int jLocDataMap = JMap.getObj(jLocationsDataMap, editedLocationScript.ThisLocation.GetName())
+        int jLocDataMap = JMap.getObj(jLocationsDataMap, editedLocationScript.GetLocId())
 
         if jLocDataMap == 0
             jLocDataMap = jMap.object()
-            jMap.setObj(jLocationsDataMap, editedLocationScript.ThisLocation.GetName(), jLocDataMap)
+            jMap.setObj(jLocationsDataMap, editedLocationScript.GetLocId(), jLocDataMap)
         endif
 
         jMap.setInt(jLocDataMap, "OwnerFactionIndex", ownerIndex)
@@ -183,11 +184,11 @@ state LOC_EDIT_LOC_OWNER
         editedLocationScript.BecomeNeutral(true)
 
         int ownerIndex = -1
-        int jLocDataMap = JMap.getObj(jLocationsDataMap, editedLocationScript.ThisLocation.GetName())
+        int jLocDataMap = JMap.getObj(jLocationsDataMap, editedLocationScript.GetLocId())
 
         if jLocDataMap == 0
             jLocDataMap = jMap.object()
-            jMap.setObj(jLocationsDataMap, editedLocationScript.ThisLocation.GetName(), jLocDataMap)
+            jMap.setObj(jLocationsDataMap, editedLocationScript.GetLocId(), jLocDataMap)
         endif
 
         jMap.setInt(jLocDataMap, "OwnerFactionIndex", ownerIndex)
@@ -212,11 +213,11 @@ state LOC_EDIT_ENABLED
             newValueInt = 1
         endif
 
-        int jLocDataMap = JMap.getObj(jLocationsDataMap, editedLocationScript.ThisLocation.GetName())
+        int jLocDataMap = JMap.getObj(jLocationsDataMap, editedLocationScript.GetLocId())
 
         if jLocDataMap == 0
             jLocDataMap = jMap.object()
-            jMap.setObj(jLocationsDataMap, editedLocationScript.ThisLocation.GetName(), jLocDataMap)
+            jMap.setObj(jLocationsDataMap, editedLocationScript.GetLocId(), jLocDataMap)
         endif
 
         jMap.setInt(jLocDataMap, "OwnerFactionIndex", newValueInt)
@@ -229,11 +230,11 @@ state LOC_EDIT_ENABLED
 
         MainPage.MainQuest.LocationDataHandler.SetLocationEnabled(editedLocationScript, newValue)
 
-        int jLocDataMap = JMap.getObj(jLocationsDataMap, editedLocationScript.ThisLocation.GetName())
+        int jLocDataMap = JMap.getObj(jLocationsDataMap, editedLocationScript.GetLocId())
 
         if jLocDataMap == 0
             jLocDataMap = jMap.object()
-            jMap.setObj(jLocationsDataMap, editedLocationScript.ThisLocation.GetName(), jLocDataMap)
+            jMap.setObj(jLocationsDataMap, editedLocationScript.GetLocId(), jLocDataMap)
         endif
 
         jMap.setInt(jLocDataMap, "OwnerFactionIndex", newValueInt)
@@ -244,6 +245,55 @@ state LOC_EDIT_ENABLED
         MainPage.ToggleQuickHotkey(true)
 		SetInfoText("$sab_mcm_locationedit_toggle_enabled_desc")
 	endEvent
+endstate
+
+state LOC_EDIT_LOC_DISPLAYNAME
+
+	event OnInputOpenST(string state_id)
+        string locName = editedLocationScript.GetLocName()
+		SetInputDialogStartText(locName)
+	endEvent
+
+	event OnInputAcceptST(string state_id, string inputs)
+        MainPage.ToggleQuickHotkey(true)
+        int jLocDataMap = JMap.getObj(jLocationsDataMap, editedLocationScript.GetLocId())
+
+        if jLocDataMap == 0
+            jLocDataMap = jMap.object()
+            jMap.setObj(jLocationsDataMap, editedLocationScript.GetLocId(), jLocDataMap)
+        endif
+
+        editedLocationScript.OverrideDisplayName = inputs
+        JMap.setStr(jLocDataMap, "OverrideDisplayName", inputs)
+        SetInputOptionValueST(inputs)
+
+        ;force a reset to update other fields that use the name
+        ForcePageReset()
+	endEvent
+
+	event OnDefaultST(string state_id)
+
+        int jLocDataMap = JMap.getObj(jLocationsDataMap, editedLocationScript.GetLocId())
+
+        if jLocDataMap == 0
+            jLocDataMap = jMap.object()
+            jMap.setObj(jLocationsDataMap, editedLocationScript.GetLocId(), jLocDataMap)
+        endif
+
+        string inputs = editedLocationScript.ThisLocation.GetName()
+        editedLocationScript.OverrideDisplayName = inputs
+        JMap.setStr(jLocDataMap, "OverrideDisplayName", inputs)
+        SetInputOptionValueST(inputs)
+
+        ;force a reset to update other fields that use the name
+        ForcePageReset()
+	endEvent
+
+	event OnHighlightST(string state_id)
+        MainPage.ToggleQuickHotkey(false)
+		SetInfoText("$sab_mcm_locationedit_input_loc_name_desc")
+	endEvent
+    
 endstate
 
 
@@ -262,11 +312,11 @@ state LOC_EDIT_MULTIPLIER
 	endEvent
 
 	event OnSliderAcceptST(string state_id, float value)
-        int jLocDataMap = JMap.getObj(jLocationsDataMap, editedLocationScript.ThisLocation.GetName())
+        int jLocDataMap = JMap.getObj(jLocationsDataMap, editedLocationScript.GetLocId())
 
         if jLocDataMap == 0
             jLocDataMap = jMap.object()
-            jMap.setObj(jLocationsDataMap, editedLocationScript.ThisLocation.GetName(), jLocDataMap)
+            jMap.setObj(jLocationsDataMap, editedLocationScript.GetLocId(), jLocDataMap)
         endif
 
         if state_id == "GarrisonSize"
@@ -282,11 +332,11 @@ state LOC_EDIT_MULTIPLIER
 
 	event OnDefaultST(string state_id)
         float value = 1.0
-        int jLocDataMap = JMap.getObj(jLocationsDataMap, editedLocationScript.ThisLocation.GetName())
+        int jLocDataMap = JMap.getObj(jLocationsDataMap, editedLocationScript.GetLocId())
 
         if jLocDataMap == 0
             jLocDataMap = jMap.object()
-            jMap.setObj(jLocationsDataMap, editedLocationScript.ThisLocation.GetName(), jLocDataMap)
+            jMap.setObj(jLocationsDataMap, editedLocationScript.GetLocId(), jLocDataMap)
         endif
 
         if state_id == "GarrisonSize"

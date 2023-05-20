@@ -84,7 +84,7 @@ Function SetupPage()
             int locIndex = jArray.getInt(facScript.jOwnedLocationIndexesArray, i, -1)
             
             if locIndex >= 0
-                string locName = locHandler.Locations[locIndex].ThisLocation.GetName()
+                string locName = locHandler.Locations[locIndex].GetLocName()
 
                 AddTextOptionST("PLYR_CUR_FAC_OWNEDLIST___" + locName, locName, "")
             endif
@@ -103,7 +103,7 @@ Function SetupPage()
             int locIndex = jArray.getInt(jDefenseTargetsArray, i, -1)
             
             if locIndex >= 0
-                string locName = locHandler.Locations[locIndex].ThisLocation.GetName()
+                string locName = locHandler.Locations[locIndex].GetLocName()
                 string reason = "$sab_mcm_myfaction_defend_smallgarrison"
                 if locHandler.Locations[locIndex].IsBeingContested()
                     reason = "$sab_mcm_myfaction_defend_underattack"
@@ -131,7 +131,7 @@ Function SetupPage()
             int locIndex = jArray.getInt(jAttackTargetsArray, i, -1)
             
             if locIndex >= 0
-                string locName = locHandler.Locations[locIndex].ThisLocation.GetName()
+                string locName = locHandler.Locations[locIndex].GetLocName()
                 if jArray.findStr(jAlreadyAddedTargetsArray, locName) == -1
                     AddTargetLocationInfo(locHandler.Locations[locIndex], "PLYR_CUR_FAC_ATKTARGET___" + locName, locName)
                     jArray.addStr(jAlreadyAddedTargetsArray, locName)
@@ -162,7 +162,7 @@ endEvent
 
 string Function GetLocationNameForOurDests(SAB_LocationScript locScript)
     if locScript != None
-        return locScript.ThisLocation.GetName()
+        return locScript.GetLocName()
     else
         return "$sab_mcm_mytroops_menu_ourdest_undefined"
     endif

@@ -355,7 +355,7 @@ int Function FindDefenseTargets()
 						JArray.addInt(jPossibleDefenseTargets, locIndex)
 					endif
 					
-					; debug.Trace("location " + locScript.ThisLocation.GetName() + " autocalc power = " + locationPower)
+					; debug.Trace("location " + locScript.GetLocName() + " autocalc power = " + locationPower)
 				endif
 
 			endif
@@ -427,7 +427,7 @@ Function AddLocationToOwnedList(SAB_LocationScript locationScript)
 	int locIndex = LocationDataHandler.Locations.Find(locationScript)
 
 	if locIndex == -1
-		debug.Trace("AddLocationToOwnedList: invalid location! " + locationScript.ThisLocation.GetName() + " not found in locations array")
+		debug.Trace("AddLocationToOwnedList: invalid location! " + locationScript.GetLocName() + " not found in locations array")
 		return
 	endif
 
@@ -443,7 +443,7 @@ Function RemoveLocationFromOwnedList(SAB_LocationScript locationScript)
 	int locIndex = LocationDataHandler.Locations.Find(locationScript)
 
 	if locIndex == -1
-		debug.Trace("AddLocationToOwnedList: invalid location! " + locationScript.ThisLocation.GetName() + " not found in locations array")
+		debug.Trace("AddLocationToOwnedList: invalid location! " + locationScript.GetLocName() + " not found in locations array")
 		return
 	endif
 

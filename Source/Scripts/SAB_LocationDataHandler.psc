@@ -89,7 +89,7 @@ Function SetLocationEnabled(SAB_LocationScript locScript, bool enable)
 
     isBusyUpdatingLocationData = true
 
-    int jLocDataMap = jMap.getObj(jLocationsConfigMap, locScript.ThisLocation.GetName())
+    int jLocDataMap = jMap.getObj(jLocationsConfigMap, locScript.ThisLocation.GetFormID())
     int locationOwnerFacIndex = -1
 
     if jLocDataMap != 0
@@ -272,12 +272,12 @@ Function UpdateLocationsAccordingToJMap()
     While (i > 0)
         i -= 1
         
-        string locName = jMap.getNthKey(jLocationsConfigMap, i)
+        string locId = jMap.getNthKey(jLocationsConfigMap, i)
 
-        SAB_LocationScript locScript = GetLocationByName(locName)
+        SAB_LocationScript locScript = GetLocationById(locId)
 
         if locScript != None
-            int jLocDataMap = jMap.getObj(jLocationsConfigMap, locName)
+            int jLocDataMap = jMap.getObj(jLocationsConfigMap, locId)
 
             if jLocDataMap != 0
                 bool enableLoc = jMap.getInt(jLocDataMap, "IsEnabled", 1) != 0
@@ -305,6 +305,7 @@ Function UpdateLocationsAccordingToJMap()
 
                 locScript.GoldRewardMultiplier = jMap.getFlt(jLocDataMap, "GoldRewardMultiplier", 1.0)
                 locScript.GarrisonSizeMultiplier = jMap.getFlt(jLocDataMap, "GarrisonSizeMultiplier", 1.0)
+                locScript.OverrideDisplayName = jMap.getStr(jLocDataMap, "OverrideDisplayName")
 
             endif
         endif
@@ -323,11 +324,11 @@ Function WriteCurrentLocOwnershipsToJmap()
     int i = 0
 
     while i < NextLocationIndex
-        int jLocDataMap = JMap.getObj(jLocationsConfigMap, Locations[i].ThisLocation.GetName())
+        int jLocDataMap = JMap.getObj(jLocationsConfigMap, Locations[i].GetLocId())
 
         if jLocDataMap == 0
             jLocDataMap = jMap.object()
-            jMap.setObj(jLocationsConfigMap, Locations[i].ThisLocation.GetName(), jLocDataMap)
+            jMap.setObj(jLocationsConfigMap, Locations[i].GetLocId(), jLocDataMap)
         endif
 
         jMap.setInt(jLocDataMap, "OwnerFactionIndex", FactionDataHandler.GetFactionIndex(Locations[i].factionScript))
@@ -350,7 +351,7 @@ string[] Function CreateStringArrayWithLocationIdentifiers()
 
     while(i < endingIndex)
 
-        string locName = Locations[i].ThisLocation.GetName()
+        string locName = Locations[i].GetLocName()
 
         namesArray[i] = ((i + 1) as string) + " - " + locName
 
@@ -387,7 +388,20 @@ SAB_LocationScript Function GetLocationByName(string name)
     int i = 0
 
     while i < NextLocationIndex
-        if Locations[i].ThisLocation.GetName() == name
+        if Locations[i].GetLocName() == name
+            return Locations[i]
+        endif
+        i += 1
+    endwhile
+
+    return None
+EndFunction
+
+SAB_LocationScript Function GetLocationById(string Id)
+    int i = 0
+
+    while i < NextLocationIndex
+        if Locations[i].GetLocId() == Id
             return Locations[i]
         endif
         i += 1
@@ -400,6 +414,7 @@ EndFunction
 ; locationData jmap entries:
 
 ; int IsEnabled - 0 = disabled, anything else = enabled
+; string OverrideDisplayName
 ; float GarrisonSizeMultiplier
 ; float GoldRewardMultiplier
 ; int OwnerFactionIndex - -1 for neutral

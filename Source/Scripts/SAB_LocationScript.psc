@@ -6,10 +6,10 @@ Cell[] Property InteriorCells Auto
 { The cells this location contains. These cells will have their owner set to the current controlling faction }
 
 ObjectReference[] Property ExternalSpawnPoints Auto
-{ Array of objects that should be used as spawn points when outside, but close to, the location. SAB_ObjectsToUseAsSpawnsList will be used instead if not set }
+{ (Optional) Array of objects that should be used as spawn points when outside, but close to, the location. SAB_ObjectsToUseAsSpawnsList will be used instead if not set }
 
 ObjectReference[] Property InternalSpawnPoints Auto
-{ Array of objects that should be used as spawn points when inside any of the location's interiorCells. SAB_ObjectsToUseAsSpawnsList will be used instead if not set }
+{ (Optional) Array of objects that should be used as spawn points when inside any of the location's interiorCells. SAB_ObjectsToUseAsSpawnsList will be used instead if not set }
 
 FormList Property SAB_ObjectsToUseAsSpawnsList Auto
 { (Auto-fill) Formlist with objects like xmarkers, that should generally serve as "good enough" spawn points }
@@ -25,6 +25,9 @@ ObjectReference Property MoveDestination Auto
 
 Location Property ThisLocation Auto
 { this should be set to the interior location, where moveDestination is }
+
+string Property OverrideDisplayName = "" Auto
+{ overrides the name of the location when displayed in the mod's menus and notifications. This is also editable by the users via the menus }
 
 float Property GoldRewardMultiplier = 1.0 Auto Hidden
 { a multiplier applied on this location's gold award to the owner. Can make locations more or less valuable to control }
@@ -65,7 +68,6 @@ Function DisableLocation()
 
 	ToggleLocationDefaultContent(true)
 	
-	
 EndFunction
 
 Function BeTakenByFaction(SAB_FactionScript factionScriptRef, bool notify = true)
@@ -92,8 +94,8 @@ Function BeTakenByFaction(SAB_FactionScript factionScriptRef, bool notify = true
 	endwhile
 
 	if notify
-		Debug.Trace(ThisLocation.GetName() + " has been taken by the " + jMap.getStr(factionScript.jFactionData, "name", "Faction"))
-		Debug.Notification(ThisLocation.GetName() + " has been taken by the " + jMap.getStr(factionScript.jFactionData, "name", "Faction"))
+		Debug.Trace(GetLocName() + " has been taken by the " + jMap.getStr(factionScript.jFactionData, "name", "Faction"))
+		Debug.Notification(GetLocName() + " has been taken by the " + jMap.getStr(factionScript.jFactionData, "name", "Faction"))
 	endif
 EndFunction
 
@@ -104,8 +106,8 @@ Function BecomeNeutral(bool notify = true)
 		factionScript.RemoveLocationFromOwnedList(self)
 
 		if notify
-			Debug.Trace(ThisLocation.GetName() + " is no longer controlled by the " + jMap.getStr(factionScript.jFactionData, "name", "Faction"))
-			Debug.Notification(ThisLocation.GetName() + " is no longer controlled by the " + jMap.getStr(factionScript.jFactionData, "name", "Faction"))
+			Debug.Trace(GetLocName() + " is no longer controlled by the " + jMap.getStr(factionScript.jFactionData, "name", "Faction"))
+			Debug.Notification(GetLocName() + " is no longer controlled by the " + jMap.getStr(factionScript.jFactionData, "name", "Faction"))
 		endif
 		
 	endif
@@ -179,7 +181,7 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 			gameTimeOfLastExpAward = curGameTime
 			gameTimeOfLastUnitUpgrade = curGameTime
 			gameTimeOfLastSetup = curGameTime
-			; debug.Trace(ThisLocation.GetName() + " now has time of last setup: " + gameTimeOfLastSetup)
+			; debug.Trace(GetLocName() + " now has time of last setup: " + gameTimeOfLastSetup)
 		endif
 
 		; a timeOfLastUnitLoss equal to 0.0 means a unit has been lost recently
@@ -223,7 +225,7 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 	endif
 
 	ToggleNearbyUpdates(distToPlayer <= 8100.0 || playerIsInside) ; TODO make this configurable
-	; debug.Trace(ThisLocation.GetName() + ": player is inside? " + playerIsInside)
+	; debug.Trace(GetLocName() + ": player is inside? " + playerIsInside)
 
 	if !isNearby && !playerIsInside
 
@@ -335,7 +337,7 @@ EndFunction
 
 ObjectReference Function GetSpawnLocationForUnit()
 	if playerIsInside
-		; debug.Trace("player is inside " + ThisLocation.GetName())
+		; debug.Trace("player is inside " + GetLocName())
 		if InternalSpawnPoints.Length > 0
 			return InternalSpawnPoints[Utility.RandomInt(0, InternalSpawnPoints.Length - 1)]
 		else
@@ -400,4 +402,16 @@ EndFunction
 ; returns the maximum amount of units this container can have spawned in the world at the same time
 int Function GetMaxSpawnedUnitsAmount()
 	return JDB.solveInt(".ShoutAndBlade.locationOptions.maxSpawnedUnits", 8)
+EndFunction
+
+string Function GetLocId()
+	return ThisLocation.GetFormID() as string
+EndFunction
+
+string Function GetLocName()
+	if OverrideDisplayName != ""
+		return OverrideDisplayName
+	else
+		return ThisLocation.GetName()
+	endif
 EndFunction

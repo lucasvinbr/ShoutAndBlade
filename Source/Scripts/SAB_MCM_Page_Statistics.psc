@@ -102,7 +102,7 @@ Function SetupLocationStatistics()
                 int jNewEntryMap = jMap.object()
                 jArray.addObj(jdisplayedDataArray, jNewEntryMap)
 
-                JMap.setStr(jNewEntryMap, "name", locScript.ThisLocation.GetName())
+                JMap.setStr(jNewEntryMap, "name", locScript.GetLocName())
                 string ownerFacName = "$sab_mcm_locationedit_ownership_option_neutral"
                 if locScript.factionScript != None
                     ownerFacName = locScript.factionScript.GetFactionName()
@@ -226,7 +226,7 @@ Function SetupDebugStatistics()
         SAB_UpdatedReferenceAlias locAlias = nearbyLocAliases[i]
         SAB_LocationScript locref = locAlias as SAB_LocationScript
         if locref
-            AddTextOptionST("STATS_DISPLAY___NEARBYLOC_ALIAS" + i, locref.ThisLocation.GetName(), i + " - dist: " + plyrRef.GetDistance(locref.GetReference()))
+            AddTextOptionST("STATS_DISPLAY___NEARBYLOC_ALIAS" + i, locref.GetLocName(), i + " - dist: " + plyrRef.GetDistance(locref.GetReference()))
         elseif locAlias
             AddTextOptionST("STATS_DISPLAY___NEARBYLOC_ALIAS" + i, locAlias, i + " - valid alias")
         else
