@@ -73,18 +73,18 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 		return true
 	endif
 
-	if ownerContainerLocation != None
-		; if we're guarding a location and it is under attack, keep trying to find the enemy
-		if meActor && !meActor.IsDead() && !meActor.IsInCombat()
-			SAB_CommanderScript cmderInOurLocation = ownerContainerLocation.InteractingCommander
-			if cmderInOurLocation != None && cmderInOurLocation.factionScript != ownerContainerLocation.factionScript
-				Actor attackingCmderActor = cmderInOurLocation.GetReference() as Actor
-				if attackingCmderActor && !attackingCmderActor.IsDead()
-					meActor.StartCombat(cmderInOurLocation.GetReference() as Actor)
-				endif
-			endif
-		endif
-	endif
+	; if ownerContainerLocation != None
+	; 	; if we're guarding a location and it is under attack, keep trying to find the enemy
+	; 	if meActor && !meActor.IsDead() && !meActor.IsInCombat()
+	; 		SAB_CommanderScript cmderInOurLocation = ownerContainerLocation.InteractingCommander
+	; 		if cmderInOurLocation != None && cmderInOurLocation.factionScript != ownerContainerLocation.factionScript
+	; 			Actor attackingCmderActor = cmderInOurLocation.GetReference() as Actor
+	; 			if attackingCmderActor && !attackingCmderActor.IsDead()
+	; 				meActor.StartCombat(cmderInOurLocation.GetReference() as Actor)
+	; 			endif
+	; 		endif
+	; 	endif
+	; endif
 
 	return true
 EndFunction
