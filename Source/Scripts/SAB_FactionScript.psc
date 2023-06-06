@@ -841,7 +841,18 @@ ObjectReference function GetRandomCmderDefaultSpawnPoint()
 	Actor player = Game.GetPlayer()
 	int numRandomAttempts = 0
 
+	; try to spawn them in random uncontested locs away from the player
 	while numRandomAttempts < 10
+		SAB_LocationScript pickedLoc = LocationDataHandler.GetRandomLocation()
+		if !pickedLoc.isNearby && !pickedLoc.IsBeingContested()
+			return pickedLoc.GetInteriorSpawnPointIfPossible()
+		endif
+
+		numRandomAttempts += 1
+	endwhile
+
+	; no good loc? use one of the default ones
+	while numRandomAttempts < 20
 		pickedSpawnPoint = DefaultCmderSpawnPointsList.GetAt(Utility.RandomInt(0, DefaultCmderSpawnPointsList.GetSize() - 1)) as ObjectReference
 
 		if pickedSpawnPoint.GetDistance(player) >= 2500.0
