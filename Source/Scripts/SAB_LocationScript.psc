@@ -405,7 +405,7 @@ int Function GetMaxSpawnedUnitsAmount()
 EndFunction
 
 string Function GetLocId()
-	return ThisLocation.GetFormID() as string
+	return JString.encodeFormToString(ThisLocation)
 EndFunction
 
 string Function GetLocName()

@@ -340,6 +340,27 @@ Function WriteCurrentLocOwnershipsToJmap()
 
 EndFunction
 
+Function WriteCurrentLocNamesToJmap()
+    
+    int i = 0
+
+    while i < NextLocationIndex
+        int jLocDataMap = JMap.getObj(jLocationsConfigMap, Locations[i].GetLocId())
+
+        if jLocDataMap == 0
+            jLocDataMap = jMap.object()
+            jMap.setObj(jLocationsConfigMap, Locations[i].GetLocId(), jLocDataMap)
+        endif
+
+        jMap.setStr(jLocDataMap, "OverrideDisplayName", Locations[i].GetLocName())
+
+        i += 1
+    endwhile
+
+    return None
+
+EndFunction
+
 
 ; creates a string array with location IDs accompanied by their names
 string[] Function CreateStringArrayWithLocationIdentifiers()

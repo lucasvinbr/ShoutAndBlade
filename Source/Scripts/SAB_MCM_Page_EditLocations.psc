@@ -397,6 +397,7 @@ state LOC_EDIT_SAVE
     event OnSelectST(string state_id)
         string filePath = JContainers.userDirectory() + "SAB/locationData.json"
         MainPage.MainQuest.LocationDataHandler.WriteCurrentLocOwnershipsToJmap()
+        MainPage.MainQuest.LocationDataHandler.WriteCurrentLocNamesToJmap()
         JValue.writeToFile(MainPage.MainQuest.LocationDataHandler.jLocationsConfigMap, filePath)
         ShowMessage("Save: " + filePath, false)
 	endEvent
