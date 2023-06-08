@@ -10,8 +10,11 @@ SAB_LocationScript[] Property EnabledLocations Auto Hidden
 SAB_FactionDataHandler Property FactionDataHandler Auto
 
 bool initialSetupDone = false
-
 bool isBusyUpdatingLocationData = false
+bool isBusyAddingNewLocsToBaseArray = false
+
+bool shouldRecalculateDistances = false
+bool shouldRebuildEnabledLocations = false
 
 int Property NextLocationIndex = 0 Auto Hidden
 int Property NextEnabledLocationIndex = 0 Auto Hidden
@@ -47,12 +50,12 @@ Function AddNewLocationsFromAddon(SAB_LocationDataAddon addon)
         return
     endif
 
-    while isBusyUpdatingLocationData
-        Debug.Trace("SAB queued addon location dist calculations is waiting")
+    while isBusyAddingNewLocsToBaseArray
+        Debug.Trace("SAB queued new addon location registration is waiting")
         Utility.Wait(0.1)
     endwhile
 
-    isBusyUpdatingLocationData = true
+    isBusyAddingNewLocsToBaseArray = true
 
     SAB_LocationScript[] newLocations = addon.NewLocations
     int i = 0
@@ -72,7 +75,7 @@ Function AddNewLocationsFromAddon(SAB_LocationDataAddon addon)
         endif
     endwhile
 
-    isBusyUpdatingLocationData = false
+    isBusyAddingNewLocsToBaseArray = false
 
     RebuildEnabledLocationsArray()
     CalculateLocationDistances()
@@ -83,11 +86,9 @@ EndFunction
 Function SetLocationEnabled(SAB_LocationScript locScript, bool enable)
 
     while isBusyUpdatingLocationData
-        Debug.Trace("SAB queued location dist calculations is waiting")
+        Debug.Trace("SAB queued location enable is waiting")
         Utility.Wait(0.1)
     endwhile
-
-    isBusyUpdatingLocationData = true
 
     int jLocDataMap = jMap.getObj(jLocationsConfigMap, locScript.ThisLocation.GetFormID())
     int locationOwnerFacIndex = -1
@@ -112,19 +113,27 @@ Function SetLocationEnabled(SAB_LocationScript locScript, bool enable)
         endif
     endif
 
-    isBusyUpdatingLocationData = false
+    RebuildEnabledLocationsArray()
+    CalculateLocationDistances()
     
 EndFunction
 
 
 Function RebuildEnabledLocationsArray()
 
-    while isBusyUpdatingLocationData
-        Debug.Trace("SAB queued location dist calculations is waiting")
-        Utility.Wait(0.1)
-    endwhile
+    if isBusyUpdatingLocationData
+        if !shouldRebuildEnabledLocations
+            Debug.Trace("SAB: rebuild enabled locations is  now scheduled")
+        endif
+        
+        shouldRebuildEnabledLocations = true
+        return
+    endif
 
     isBusyUpdatingLocationData = true
+    shouldRebuildEnabledLocations = false
+
+    Debug.Trace("SAB: rebuild enabled locations - start")
 
     int i = 0
     NextEnabledLocationIndex = 0
@@ -148,7 +157,10 @@ Function RebuildEnabledLocationsArray()
         i -= 1
     endwhile
 
+    Debug.Trace("SAB: rebuild enabled locations - end")
+
     isBusyUpdatingLocationData = false
+    OnDoneUpdatingLocationData()
 
 EndFunction
 
@@ -157,12 +169,20 @@ EndFunction
 ; should be run again whenever a location is added/removed, to make sure the faction AIs know where it's better to go
 Function CalculateLocationDistances()
 
-    while isBusyUpdatingLocationData
-        Debug.Trace("SAB queued location dist calculations is waiting")
-        Utility.Wait(0.1)
-    endwhile
+    if isBusyUpdatingLocationData
+        ; schedule a recalculation once the current updates are done
+        if !shouldRebuildEnabledLocations
+            Debug.Trace("SAB: recalculate location distances is now scheduled")
+        endif
+        
+        shouldRecalculateDistances = true
+        return
+    endif
 
     isBusyUpdatingLocationData = true
+    shouldRecalculateDistances = false
+
+    Debug.Trace("SAB: recalculate location distances - start")
 
     int i = 0
     int j = 0
@@ -260,7 +280,23 @@ Function CalculateLocationDistances()
     jValue.release(jlocationDistancesMap)
     jValue.zeroLifetime(jlocationDistancesMap)
 
+    Debug.Trace("SAB: recalculate location distances - end")
+
     isBusyUpdatingLocationData = false
+
+    OnDoneUpdatingLocationData()
+
+EndFunction
+
+; checks if other update data requests were sent during this update and starts updating again if so
+Function OnDoneUpdatingLocationData()
+    if shouldRebuildEnabledLocations
+        RebuildEnabledLocationsArray()
+    endif
+
+    if shouldRecalculateDistances
+        CalculateLocationDistances()
+    endif
 EndFunction
 
 
@@ -360,7 +396,6 @@ Function WriteCurrentLocNamesToJmap()
     return None
 
 EndFunction
-
 
 ; creates a string array with location IDs accompanied by their names
 string[] Function CreateStringArrayWithLocationIdentifiers()
