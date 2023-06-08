@@ -90,7 +90,8 @@ endfunction
 bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 
 	if updateIndex == 1
-		return RunCloseByUpdate()
+		; testing running the big update on nearby updates as well
+		RunCloseByUpdate()
 	endif
 
 	if curGameTime != 0.0 && gameTimeOfLastExpAward == 0.0
