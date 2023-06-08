@@ -105,8 +105,11 @@ ObjectReference Function GetSpawnLocationForUnit()
 	return spawnLocation
 EndFunction
 
+ReferenceAlias Function SpawnUnitAtLocationWithDefaultFollowRank(int unitIndex, ObjectReference targetLocation)
+	return SpawnUnitAtLocation(unitIndex, targetLocation, 0)
+EndFunction
 
-ReferenceAlias Function SpawnUnitAtLocation(int unitIndex, ObjectReference targetLocation)
+ReferenceAlias Function SpawnUnitAtLocation(int unitIndex, ObjectReference targetLocation, int followRank)
 	ReferenceAlias spawnedUnit = PlayerDataHandler.SpawnPlayerUnit(unitIndex, targetLocation, gameTimeOfLastSetup)
 
 	if spawnedUnit != None
@@ -140,7 +143,7 @@ Function SpawnBesiegingUnitAtPos(ObjectReference targetLocation)
 		int indexToSpawn = GetUnitIndexToSpawn()
 
 		if indexToSpawn >= 0
-			SpawnUnitAtLocation(indexToSpawn, targetLocation)
+			SpawnUnitAtLocationWithDefaultFollowRank(indexToSpawn, targetLocation)
 		endif
 		
 	endif

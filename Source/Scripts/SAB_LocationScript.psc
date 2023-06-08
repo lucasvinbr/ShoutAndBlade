@@ -47,11 +47,29 @@ float timeOfLastUnitLoss = -1.0
 ; used for knowing whether this location is under attack or not
 float timeSinceLastUnitLoss = 1.0
 
-SAB_CommanderScript Property InteractingCommander Auto Hidden
-{ a reference to the commander currently either attacking or reinforcing this location }
+; game time of the last moment when a hostile cmder has notified this location that they're nearby
+float timeOfLastHostileCmderUpdate = -1.0
+
+; used for knowing whether this location is under attack or not
+float timeSinceLastHostileCmderUpdate = 1.0
+
+SAB_CommanderScript[] Property NearbyCommanders Auto Hidden
+{ references to the commanders currently either attacking or reinforcing this location }
+
+int topFilledNearbyCmderIndex = -1
+bool editingNearbyCmderIndexes = false
+int jKnownVacantNearbyCmderSlots = -1
+
 
 Function Setup(SAB_FactionScript factionScriptRef, float curGameTime = 0.0)
 	parent.Setup(factionScriptRef, curGameTime)
+
+	if jKnownVacantNearbyCmderSlots == -1 || jKnownVacantNearbyCmderSlots == 0
+		NearbyCommanders = new SAB_CommanderScript[32]
+		jKnownVacantNearbyCmderSlots = jArray.object()
+		JValue.retain(jKnownVacantNearbyCmderSlots, "ShoutAndBlade")
+	endif
+
 	isEnabled = true
 
 	if factionScriptRef != None
@@ -196,6 +214,19 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 		else 
 			timeSinceLastUnitLoss = curGameTime - timeOfLastUnitLoss
 		endif
+
+		; a timeOfLastHostileCmderUpdate equal to 0.0 means a hostile cmder has just been updated
+		if timeOfLastHostileCmderUpdate == 0.0
+			timeOfLastHostileCmderUpdate = curGameTime
+			timeSinceLastHostileCmderUpdate = 0.0
+
+			; notify our owners about the attack
+			if factionScript
+				factionScript.ReactToLocationUnderAttack(self, curGameTime)
+			endif
+		else 
+			timeSinceLastHostileCmderUpdate = curGameTime - timeOfLastHostileCmderUpdate
+		endif
 	endif
 
 	;debug.Trace("game time updating commander (pre check)!")
@@ -269,9 +300,25 @@ bool function RunCloseByUpdate()
 		endif
 	endif
 
-	; if we're being attacked by another faction, spawn their units around this location, to make the attack "visible"
-	if InteractingCommander != None && InteractingCommander.factionScript != factionScript
-		InteractingCommander.SpawnBesiegingUnitBatchAtLocation(GetSpawnLocationForUnit())
+	; if commanders are nearby, spawn their units around the loc, to try and make it as populated as it actually is,
+	; both inside and outside
+	if topFilledNearbyCmderIndex >= 0 
+		int i = topFilledNearbyCmderIndex
+		While (i >= 0)
+			SAB_CommanderScript InteractingCommander = NearbyCommanders[i]
+
+			if InteractingCommander != None && InteractingCommander.IsValid()
+				if IsBeingContested()
+					InteractingCommander.SpawnBesiegingUnitBatchAtLocation(GetSpawnLocationForUnit(), InteractingCommander.CmderFollowFactionRank)
+				else
+					; "ambient units", just to populate the location
+					InteractingCommander.SpawnBesiegingUnitAtPos(GetSpawnLocationForUnit(), -1)
+				endif
+			endif
+
+			i -= 1
+		EndWhile
+		
 	endif
 
 	return true
@@ -279,14 +326,143 @@ bool function RunCloseByUpdate()
 endfunction
 
 
+; returns the cmder's index in the nearbies array, or -1 if we failed to find a vacant index
+int Function RegisterCommanderInNearbyList(SAB_CommanderScript cmderScript, int currentIndex = -1)
+
+	if currentIndex > -1
+		; debug.Trace(GetLocName() + " wanted to register " + cmderScript + ", but it already had an index")
+		return -1
+	endif
+
+	while editingNearbyCmderIndexes
+		debug.Trace("(register) hold on, " + GetLocName() + " is editing nearby cmder indexes")
+		Utility.Wait(0.05)
+	endwhile
+
+	editingNearbyCmderIndexes = true
+	int vacantIndex = topFilledNearbyCmderIndex + 1
+
+	if !jValue.empty(jKnownVacantNearbyCmderSlots)
+		if vacantIndex == 0
+			; topFilledNearbyCmderIndex is -1!
+			; in this case, we aren't expecting any vacant slots,
+			; so we empty the vacants list
+			debug.Trace("loc " + GetLocName() + " is clearing invalid vacant nearby cmder slots")
+			jArray.clear(jKnownVacantNearbyCmderSlots)
+			; numActives = 0
+			topFilledNearbyCmderIndex = vacantIndex
+		else
+			; we know of a hole in the array, let's fill it
+			vacantIndex = jArray.getInt(jKnownVacantNearbyCmderSlots, 0)
+			; debug.Trace("got vacant alias index from hole: " + vacantIndex)
+			jArray.eraseInteger(jKnownVacantNearbyCmderSlots, vacantIndex)
+		endif
+	else 
+		if vacantIndex >= 32
+			; there are no holes and all entries are filled!
+			; abort
+			debug.Trace("loc " + GetLocName() + " is full of nearby cmders!")
+			editingNearbyCmderIndexes = false
+			return -1
+		endif
+		; increment top index since there are no holes in the array
+		topFilledNearbyCmderIndex = vacantIndex
+		; debug.Trace("aliasUpdater: topFilledNearbyCmderIndex is now " + topFilledNearbyCmderIndex)
+	endif
+
+	NearbyCommanders[vacantIndex] = cmderScript
+
+	; numActives += 1
+
+	editingNearbyCmderIndexes = false
+	return vacantIndex
+EndFunction
+
+; nullifies the alias's index in the arrays and add the index to the "holes" jArray
+Function UnregisterCommanderFromNearbyList(int cmderIndexInNearbies)
+	; debug.Trace("unregister alias " + aliasIndex)
+
+	if cmderIndexInNearbies < 0
+		return
+	endif
+
+	while editingNearbyCmderIndexes
+		debug.Trace("(unregister) hold on, " + GetLocName() + " is editing nearby cmder indexes")
+		Utility.Wait(0.05)
+	endwhile
+
+	editingNearbyCmderIndexes = true
+
+	NearbyCommanders[cmderIndexInNearbies] = None
+
+	; handle this new "hole" in the filled array:
+	; if it's a hole in the top, we can just decrement the top
+	if cmderIndexInNearbies == topFilledNearbyCmderIndex
+		topFilledNearbyCmderIndex -= 1
+	else
+		JArray.addInt(jKnownVacantNearbyCmderSlots, cmderIndexInNearbies)
+
+		if topFilledNearbyCmderIndex > -1
+			; try and decrement topFilledNearbyCmderIndex by finding holes at the top
+			int topHoleIndex = JArray.findInt(jKnownVacantNearbyCmderSlots, topFilledNearbyCmderIndex)
+
+			SAB_CommanderScript topRef = NearbyCommanders[topFilledNearbyCmderIndex]
+
+			While topHoleIndex != -1 || (topFilledNearbyCmderIndex >= 0 && !topRef)
+				debug.Trace("found hole at the top of a loc's nearby cmders! decrementing topFilledNearbyCmderIndex")
+				jArray.eraseInteger(jKnownVacantNearbyCmderSlots, topFilledNearbyCmderIndex)
+				topFilledNearbyCmderIndex -= 1
+
+				topHoleIndex = JArray.findInt(jKnownVacantNearbyCmderSlots, topFilledNearbyCmderIndex)
+
+				if topFilledNearbyCmderIndex >= 0
+					topRef = NearbyCommanders[topFilledNearbyCmderIndex]
+				endif
+			EndWhile
+
+			if topFilledNearbyCmderIndex == -1 && jArray.count(jKnownVacantNearbyCmderSlots) > 0
+				; there's an invalid hole in the vacant slots array! It should be empty if topFilled is -1
+				jArray.clear(jKnownVacantNearbyCmderSlots)
+			endif
+
+			
+		endif
+	endif
+	
+	editingNearbyCmderIndexes = false
+	; numActives -= 1
+EndFunction
+
+bool function IsCommanderInNearbyList(SAB_CommanderScript cmderScript)
+	int i = topFilledNearbyCmderIndex
+	While (i >= 0)
+		if NearbyCommanders[i] == cmderScript
+			return true
+		endif
+
+		i -= 1
+	EndWhile
+
+	return false
+endfunction
+
+int Function GetTopNearbyCmderIndex()
+	return topFilledNearbyCmderIndex
+EndFunction
+
+; refreshes the time of last hostile cmder detection, to mark the loc as contested
+Function BeNotifiedOfNearbyHostileCmder()
+	timeOfLastHostileCmderUpdate = 0.0
+EndFunction
+
 bool Function IsRefInsideThisLocation(ObjectReference ref)
 	;debug.Trace(ThisLocation + ": is same location as " + ref.GetCurrentLocation() + "?")
 	return ThisLocation.IsSameLocation(ref.GetCurrentLocation())
 EndFunction
 
-; returns true if this location has recently lost a unit
+; returns true if this location has recently lost a unit or a hostile commander is nearby
 bool Function IsBeingContested()
-	return timeOfLastUnitLoss == 0.0 || timeSinceLastUnitLoss < 0.1
+	return timeOfLastUnitLoss == 0.0 || timeSinceLastUnitLoss < 0.1 || timeSinceLastHostileCmderUpdate < 0.1
 endfunction
 
 ; the location can only get involved in autocalc battles if the player isn't nearby.

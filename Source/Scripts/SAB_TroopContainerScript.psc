@@ -391,7 +391,7 @@ Function SpawnUnitBatch()
 		int unitIndexToSpawn = GetUnitIndexToSpawn()
 
 		if unitIndexToSpawn >= 0
-			SpawnUnitAtLocation(unitIndexToSpawn, spawnLocation)
+			SpawnUnitAtLocationWithDefaultFollowRank(unitIndexToSpawn, spawnLocation)
 			spawnedCount += 1
 		else 
 			; stop spawning, we're out of spawnable units
@@ -415,7 +415,7 @@ Function SpawnUnitBatchAtLocation(ObjectReference spawnLocation)
 		int unitIndexToSpawn = GetUnitIndexToSpawn()
 
 		if unitIndexToSpawn >= 0
-			SpawnUnitAtLocation(unitIndexToSpawn, spawnLocation)
+			SpawnUnitAtLocationWithDefaultFollowRank(unitIndexToSpawn, spawnLocation)
 			spawnedCount += 1
 		else 
 			; stop spawning, we're out of spawnable units
@@ -434,17 +434,20 @@ Function SpawnRandomUnitAtPos(ObjectReference targetLocation)
 		int indexToSpawn = GetUnitIndexToSpawn()
 
 		if indexToSpawn >= 0
-			SpawnUnitAtLocation(indexToSpawn, targetLocation)
+			SpawnUnitAtLocationWithDefaultFollowRank(indexToSpawn, targetLocation)
 		endif
 		
 	endif
 
 EndFunction
 
+; Override this if your default follow rank shouldn't be -1 (-1 means the unit should sandbox. Other indexes should follow the respective cmders)
+ReferenceAlias Function SpawnUnitAtLocationWithDefaultFollowRank(int unitIndex, ObjectReference targetLocation)
+	return SpawnUnitAtLocation(unitIndex, targetLocation, -1)
+EndFunction
 
-
-ReferenceAlias Function SpawnUnitAtLocation(int unitIndex, ObjectReference targetLocation)
-	ReferenceAlias spawnedUnit = factionScript.SpawnUnitForTroopContainer(self, unitIndex, targetLocation, gameTimeOfLastSetup)
+ReferenceAlias Function SpawnUnitAtLocation(int unitIndex, ObjectReference targetLocation, int followRank)
+	ReferenceAlias spawnedUnit = factionScript.SpawnUnitForTroopContainer(self, unitIndex, targetLocation, gameTimeOfLastSetup, followRank)
 
 	if spawnedUnit != None
 		; add spawned unit index to spawneds list
@@ -546,7 +549,7 @@ EndFunction
 
 
 
-; makes our units "fight" the enemyContainer's units.
+; makes our units "fight" the enemyContainer's units, and calculates the diplomatic effect as well.
 ; the result is decided based on the units' autocalcpower values
 Function DoAutocalcBattle(SAB_TroopContainerScript enemyContainer)
 

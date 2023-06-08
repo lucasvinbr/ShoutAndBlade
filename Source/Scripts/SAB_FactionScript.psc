@@ -392,7 +392,7 @@ bool Function ValidateCmderReachedDestination(SAB_CommanderScript commander, str
 		; the commander has really arrived! Do stuff like autocalc battles now.
 		; assign the location to the cmder, and then they'll figure out what to do when updating
 		; Debug.Trace("commander has arrived and has been assigned the loc script!")
-		commander.TargetLocationScript = targetLocScript
+		commander.RegisterAsNearLocation(targetLocScript)
 		return true
 	endif
 

@@ -20,10 +20,20 @@ SAB_CrowdReducer Property CrowdReducer Auto
 
 float gameTimeOfLastDestCheck = 0.0
 
+int indexInLocNearbiesArray = -1
 
 Function Setup(SAB_FactionScript factionScriptRef, float curGameTime = 0.0)
 	meActor = GetReference() as Actor
+
+	if TargetLocationScript != None
+		; clear previous cmder's linked loc data
+		if indexInLocNearbiesArray != -1 && TargetLocationScript.NearbyCommanders[indexInLocNearbiesArray] == self
+			TargetLocationScript.UnregisterCommanderFromNearbyList(indexInLocNearbiesArray)
+		endif
+	endif
+
 	TargetLocationScript = None
+	indexInLocNearbiesArray = -1
 	parent.Setup(factionScriptRef, curGameTime)
 	availableExpPoints = JDB.solveFlt(".ShoutAndBlade.cmderOptions.initialExpPoints", 600.0)
 	UpdateConfidenceLevel()
@@ -159,64 +169,73 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 
 		if !cmderCanAutocalc
 			; we're too far away from the target loc, disengage
-			if TargetLocationScript.InteractingCommander == self
-				TargetLocationScript.InteractingCommander = None
-			endif
+			UnregisterAsNearLocation(TargetLocationScript)
 			TargetLocationScript = None
 		else
+			if indexInLocNearbiesArray == -1
+				RegisterAsNearLocation(TargetLocationScript)
+			endif
+
 			if TargetLocationScript.factionScript == factionScript
 				; attempt to reinforce the location if it's undermanned
 				if TargetLocationScript.totalOwnedUnitsAmount < TargetLocationScript.GetMaxOwnedUnitsAmount()
 					; mark ourselves as interacting so that we can be attacked instead of the location
-					TargetLocationScript.InteractingCommander = self
 					TryTransferUnitsToAnotherContainer(TargetLocationScript)
 				endif
 			else
 				SAB_FactionScript locFaction = TargetLocationScript.factionScript
 				SAB_DiplomacyDataHandler diploHandler = factionScript.DiplomacyDataHandler
 				int ourFacIndex = factionScript.GetFactionIndex()
+				bool locIsHostileToUs = !diploHandler.AreFactionsInGoodStanding(factionScript, locFaction)
+
+				if locIsHostileToUs
+					TargetLocationScript.BeNotifiedOfNearbyHostileCmder()
+
+					if locFaction != None && diploHandler.AreFactionsNeutral(ourFacIndex, locFaction.GetFactionIndex())
+						; don't just stand there, kill them!
+						diploHandler.GlobalReactToWarDeclaration \
+							(ourFacIndex, locFaction.GetFactionIndex())
+
+						Debug.Trace(factionScript.GetFactionName() + " has declared war against the " + locFaction.GetFactionName())
+						Debug.Notification(factionScript.GetFactionName() + " has declared war against the " + locFaction.GetFactionName())
+					endif
+				endif
 
 				if !isNearby
 					; if the player is far away, do autocalc fights!
-					; if any cmder is currently interacting with the location, we fight them first
-					if TargetLocationScript.InteractingCommander != None && TargetLocationScript.InteractingCommander != self
-						if !TargetLocationScript.InteractingCommander.IsValid()
-							; the loc had a bad link to a no longer existing cmder.
-							; let's just take their place
-							TargetLocationScript.InteractingCommander = self
-						elseif !diploHandler.AreFactionsInGoodStanding(factionScript, TargetLocationScript.InteractingCommander.factionScript)
-							DoAutocalcBattle(TargetLocationScript.InteractingCommander)
-							
-							; if the interacting cmder has just been defeated and we're still standing,
-							; mark ourselves as the currently interacting ones
-							if totalOwnedUnitsAmount > 0 && TargetLocationScript.InteractingCommander == None
-								TargetLocationScript.InteractingCommander = self
+					; pick fights with the other nearby cmders!
+					int i = TargetLocationScript.GetTopNearbyCmderIndex()
+					While (i >= 0)
+						SAB_CommanderScript otherCmder = TargetLocationScript.NearbyCommanders[i]
+						If otherCmder != None && otherCmder != self
+							if !diploHandler.AreFactionsInGoodStanding(factionScript, otherCmder.factionScript)
+								DoAutocalcBattle(otherCmder)
+								return true
 							endif
-							return true
-						endif
-					elseif locFaction != None
-						TargetLocationScript.InteractingCommander = self
-						; do an autocalc fight against the location's units!
-						if TargetLocationScript.CanAutocalcNow() && \
-						 !diploHandler.AreFactionsInGoodStanding(factionScript, locFaction)
+						EndIf
 
+						i -= 1
+					EndWhile
+
+					; we couldn't find an enemy cmder to fight. Maybe the loc's garrison then?
+					if locFaction != None
+						; do an autocalc fight against the location's units!
+						if TargetLocationScript.CanAutocalcNow() && locIsHostileToUs
 							diploHandler.GlobalReactToLocationAttacked(ourFacIndex, locFaction.GetFactionIndex())
 							DoAutocalcBattle(TargetLocationScript)
 							return true
 						endif
 					else
 						; the location is neutral! Let's take it
-						TargetLocationScript.InteractingCommander = self
 						TargetLocationScript.BeTakenByFaction(factionScript, true)
 						TryTransferUnitsToAnotherContainer(TargetLocationScript)
 					endif
 				else
 					; if the player is nearby but the location is empty, take it
 					if locFaction == None || \
-						(!diploHandler.AreFactionsInGoodStanding(factionScript, locFaction) && \
-						TargetLocationScript.totalOwnedUnitsAmount <= 0)
+						(locIsHostileToUs && TargetLocationScript.totalOwnedUnitsAmount <= 0)
 
-						TargetLocationScript.InteractingCommander = self
+						; TargetLocationScript.InteractingCommander = self
 						TargetLocationScript.BeTakenByFaction(factionScript, true)
 						TryTransferUnitsToAnotherContainer(TargetLocationScript)
 					else
@@ -246,7 +265,7 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 
 					if nearbyLocScript
 						if nearbyLocScript.IsReferenceCloseEnoughForAutocalc(meActor)
-							TargetLocationScript = nearbyLocScript
+							RegisterAsNearLocation(nearbyLocScript)
 						endif
 					endif
 				endif
@@ -257,20 +276,67 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 	return true
 endfunction
 
+; returns the cmder's index in the loc's nearby cmders list. Also sets targetLocation and index in loc nearbies if we successfully register
+int Function RegisterAsNearLocation(SAB_LocationScript loc)
+	if TargetLocationScript == None
+		if indexInLocNearbiesArray != -1
+			indexInLocNearbiesArray = -1
+		endif
+	Else
+		if TargetLocationScript != loc
+			UnregisterAsNearLocation(TargetLocationScript)
+			TargetLocationScript = None
+		endif
+	endif
+
+	int myIndexInLoc = loc.RegisterCommanderInNearbyList(self, indexInLocNearbiesArray)
+
+	if myIndexInLoc != -1
+		TargetLocationScript = loc
+		indexInLocNearbiesArray = myIndexInLoc
+	else
+		; try again later! The loc is full
+	endif
+
+	return myIndexInLoc
+EndFunction
+
+; sets our index in loc nearbies back to -1
+Function UnregisterAsNearLocation(SAB_LocationScript loc)
+	if TargetLocationScript == None
+		return
+	endif
+
+	if loc.NearbyCommanders[indexInLocNearbiesArray] == self
+		loc.UnregisterCommanderFromNearbyList(indexInLocNearbiesArray)
+	endif
+	
+	indexInLocNearbiesArray = -1
+EndFunction
+
 
 ObjectReference Function GetSpawnLocationForUnit()
 	ObjectReference spawnLocation = meActor
 
 	if meActor.IsInCombat()
-		spawnLocation = factionScript.UnitSpawnPoint.GetReference()
-	endif
+		spawnLocation = Game.FindRandomReferenceOfAnyTypeInListFromRef\
+			(factionScript.LocationDataHandler.Locations[0].SAB_ObjectsToUseAsSpawnsList, meActor, 1500)
 
+		if spawnLocation == None
+			spawnLocation = factionScript.UnitSpawnPoint.GetReference()
+		endif
+	endif
+	
 	return spawnLocation
 EndFunction
 
 
-ReferenceAlias Function SpawnUnitAtLocation(int unitIndex, ObjectReference targetLocation)
-	ReferenceAlias spawnedUnit = factionScript.SpawnUnitForTroopContainer(self, unitIndex, targetLocation, gameTimeOfLastSetup, CmderFollowFactionRank)
+ReferenceAlias Function SpawnUnitAtLocationWithDefaultFollowRank(int unitIndex, ObjectReference targetLocation)
+	return SpawnUnitAtLocation(unitIndex, targetLocation, CmderFollowFactionRank)
+EndFunction
+
+ReferenceAlias Function SpawnUnitAtLocation(int unitIndex, ObjectReference targetLocation, int followRank)
+	ReferenceAlias spawnedUnit = factionScript.SpawnUnitForTroopContainer(self, unitIndex, targetLocation, gameTimeOfLastSetup, followRank)
 
 	if spawnedUnit != None
 		; add spawned unit index to spawneds list
@@ -295,21 +361,21 @@ EndFunction
 
 
 ; like spawnRandomUnitAtPos, but spawns are limited by the max besieging units instead
-Function SpawnBesiegingUnitAtPos(ObjectReference targetLocation)
+Function SpawnBesiegingUnitAtPos(ObjectReference targetLocation, int followRank)
 
 	if spawnedUnitsAmount < GetMaxBesiegingUnitsAmount()
 		int indexToSpawn = GetUnitIndexToSpawn()
 
 		if indexToSpawn >= 0
-			SpawnUnitAtLocation(indexToSpawn, targetLocation)
+			SpawnUnitAtLocation(indexToSpawn, targetLocation, followRank)
 		endif
 		
 	endif
 
 EndFunction
 
-; like SpawnUnitBatchAtLocation, but spawns are limited by the max besieging units instead
-Function SpawnBesiegingUnitBatchAtLocation(ObjectReference spawnLocation)
+; like SpawnUnitBatchAtLocation, but spawns are limited by the max besieging units instead, and may not follow the cmder
+Function SpawnBesiegingUnitBatchAtLocation(ObjectReference spawnLocation, int followRank)
 	int maxBatchSize = 8
 	int spawnedCount = 0
 
@@ -319,7 +385,7 @@ Function SpawnBesiegingUnitBatchAtLocation(ObjectReference spawnLocation)
 		int unitIndexToSpawn = GetUnitIndexToSpawn()
 
 		if unitIndexToSpawn >= 0
-			SpawnUnitAtLocation(unitIndexToSpawn, spawnLocation)
+			SpawnUnitAtLocation(unitIndexToSpawn, spawnLocation, followRank)
 			spawnedCount += 1
 		else 
 			; stop spawning, we're out of spawnable units
@@ -453,9 +519,7 @@ Function ClearCmderData()
 	; debug.Trace("commander: clear cmder data!")
 
 	if TargetLocationScript != None
-		if TargetLocationScript.InteractingCommander == self
-			TargetLocationScript.InteractingCommander = None
-		endif
+		UnregisterAsNearLocation(TargetLocationScript)
 	endif
 
 	ToggleNearbyUpdates(false)
@@ -507,8 +571,13 @@ int Function GetMaxSpawnedUnitsAmount()
 	endif
 EndFunction
 
+; returns max units per cmder that is inside the location
 int Function GetMaxBesiegingUnitsAmount()
 	int nearbyCmders = CrowdReducer.NumNearbyCmders
+
+	if TargetLocationScript != None
+		nearbyCmders += TargetLocationScript.GetTopNearbyCmderIndex()
+	endif
 
 	if nearbyCmders >= JDB.solveInt(".ShoutAndBlade.cmderOptions.nearbyCmdersLimit", 5)
 		return JDB.solveInt(".ShoutAndBlade.cmderOptions.combatSpawnsDividend", 20) / nearbyCmders
