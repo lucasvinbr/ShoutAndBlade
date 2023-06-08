@@ -409,12 +409,11 @@ Function QueueGlobalReactToPlayerKillingUnit(int killedUnitFacIndex)
         ; set it up and start the updates
         jPendingUnitKillRelUpdates = jArray.object()
         JValue.retain(jPendingUnitKillRelUpdates, "ShoutAndBlade")
-        RegisterForSingleUpdate(1.0)
     endif
 
     debug.Trace("enqueued to relation kills queue")
     jArray.addInt(jPendingUnitKillRelUpdates, killedUnitFacIndex)
-    RegisterForSingleUpdate(0.25)
+    RegisterForSingleUpdate(0.05)
 
 EndFunction
 
