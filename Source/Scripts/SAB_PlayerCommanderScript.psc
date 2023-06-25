@@ -34,9 +34,9 @@ Function ToggleNearbyUpdates(bool updatesEnabled)
 			indexInCloseByUpdater = -2 ; an attempt to prevent this from running more than once
 			indexInCloseByUpdater = CloseByUpdater.CmderUpdater.RegisterAliasForUpdates(self, indexInCloseByUpdater)
 			if indexInCloseByUpdater > -1
-				CrowdReducer.NearbyCmdersList.AddForm(GetReference())
+				; CrowdReducer.NearbyCmdersList.AddForm(GetReference())
 				debug.Trace("player: began closebyupdating!")
-				debug.Trace("player: nearby cmders: " + CrowdReducer.NumNearbyCmders)
+				; debug.Trace("player: nearby cmders: " + CrowdReducer.NumNearbyCmders)
 			endif
 		endif
 	elseif !updatesEnabled
@@ -45,7 +45,7 @@ Function ToggleNearbyUpdates(bool updatesEnabled)
 			int indexToUnregister = indexInCloseByUpdater
 			indexInCloseByUpdater = -1
 			CloseByUpdater.CmderUpdater.UnregisterAliasFromUpdates(indexToUnregister)
-			CrowdReducer.RemoveCmderFromNearbyList(GetReference(), playerActor)
+			; CrowdReducer.RemoveCmderFromNearbyList(GetReference(), playerActor)
 			debug.Trace("player: stopped closebyupdating!")
 		endif
 	endif
@@ -262,7 +262,7 @@ int Function GetMaxOwnedUnitsAmount()
 EndFunction
 
 int Function GetMaxSpawnedUnitsAmount()
-	int nearbyCmders = CrowdReducer.NumNearbyCmders
+	int nearbyCmders = CloseByUpdater.CmderUpdater.numActives
 
 	if nearbyCmders >= JDB.solveInt(".ShoutAndBlade.cmderOptions.nearbyCmdersLimit", 5)
 		return JDB.solveInt(".ShoutAndBlade.cmderOptions.combatSpawnsDividend", 20) / nearbyCmders

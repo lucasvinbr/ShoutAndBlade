@@ -49,9 +49,9 @@ Function ToggleNearbyUpdates(bool updatesEnabled)
 		if indexInCloseByUpdater == -1
 			indexInCloseByUpdater = -2 ; an attempt to prevent this from running more than once
 			indexInCloseByUpdater = CloseByUpdater.CmderUpdater.RegisterAliasForUpdates(self, indexInCloseByUpdater)
-			if indexInCloseByUpdater > -1
-				CrowdReducer.NearbyCmdersList.AddForm(GetReference())
-			endif
+			; if indexInCloseByUpdater > -1
+			; 	CrowdReducer.NearbyCmdersList.AddForm(GetReference())
+			; endif
 			; debug.Trace("commander: began closebyupdating!")
 			; debug.Trace("commander: nearby cmders: " + CrowdReducer.NumNearbyCmders)
 		endif
@@ -61,7 +61,7 @@ Function ToggleNearbyUpdates(bool updatesEnabled)
 			int indexToUnregister = indexInCloseByUpdater
 			indexInCloseByUpdater = -1
 			CloseByUpdater.CmderUpdater.UnregisterAliasFromUpdates(indexToUnregister)
-			CrowdReducer.RemoveCmderFromNearbyList(GetReference(), playerActor)
+			; CrowdReducer.RemoveCmderFromNearbyList(GetReference(), playerActor)
 			; debug.Trace("commander: stopped closebyupdating!")
 		endif
 	endif
@@ -534,7 +534,7 @@ int Function GetMaxOwnedUnitsAmount()
 EndFunction
 
 float Function GetIsNearbyDistance()
-	int nearbyCmders = CrowdReducer.NumNearbyCmders
+	int nearbyCmders = CloseByUpdater.CmderUpdater.numActives
 
 	if nearbyCmders >= JDB.solveInt(".ShoutAndBlade.cmderOptions.nearbyCmdersLimit", 5)
 		return JDB.solveFlt(".ShoutAndBlade.cmderOptions.nearbyDistanceDividend", 16384.0) / nearbyCmders
@@ -544,7 +544,7 @@ float Function GetIsNearbyDistance()
 EndFunction
 
 int Function GetMaxSpawnedUnitsAmount()
-	int nearbyCmders = CrowdReducer.NumNearbyCmders
+	int nearbyCmders = CloseByUpdater.CmderUpdater.numActives
 	
 	if meActor == None
 		return 0
@@ -574,7 +574,7 @@ EndFunction
 
 ; returns max units per cmder that is inside the location
 int Function GetMaxBesiegingUnitsAmount()
-	int nearbyCmders = CrowdReducer.NumNearbyCmders
+	int nearbyCmders = CloseByUpdater.CmderUpdater.numActives
 
 	if TargetLocationScript != None
 		nearbyCmders += TargetLocationScript.GetTopNearbyCmderIndex()
