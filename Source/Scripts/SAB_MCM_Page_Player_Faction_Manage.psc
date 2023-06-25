@@ -64,9 +64,15 @@ Function SetupPage()
     AddEmptyOption()
 
     if playerFactionIndex >= 0
-        ; show faction's move destinations
         SAB_FactionScript facScript = MainPage.MainQuest.FactionDataHandler.SAB_FactionQuests[playerFactionIndex]
 
+        int facGold = jMap.getInt(facScript.jFactionData, "AvailableGold", JDB.solveInt(".ShoutAndBlade.factionOptions.initialGold", SAB_FactionDataHandler.GetDefaultFactionGold()))
+        int numCmders = facScript.GetNumActiveCommanders()
+
+        AddTextOptionST("PLYR_CUR_FAC_NUM_GOLD", "$sab_mcm_myfaction_numgold", facGold)
+        AddTextOptionST("PLYR_CUR_FAC_NUM_CMDERS", "$sab_mcm_myfaction_numcmders", numCmders)
+
+        ; show faction's move destinations
         AddTargetLocationInfo(facScript.destinationScript_A, "PLYR_CUR_FAC_DEST___A", "$sab_mcm_mytroops_menu_ourdest_a")
         AddTargetLocationInfo(facScript.destinationScript_B, "PLYR_CUR_FAC_DEST___B", "$sab_mcm_mytroops_menu_ourdest_b")
         AddTargetLocationInfo(facScript.destinationScript_C, "PLYR_CUR_FAC_DEST___C", "$sab_mcm_mytroops_menu_ourdest_c")
@@ -180,6 +186,20 @@ state PLYR_CUR_FAC_NUM_LOCS
 	event OnHighlightST(string state_id)
         MainPage.ToggleQuickHotkey(true)
 		SetInfoText("$sab_mcm_myfaction_numlocs_desc")
+	endEvent
+endstate
+
+state PLYR_CUR_FAC_NUM_CMDERS
+	event OnHighlightST(string state_id)
+        MainPage.ToggleQuickHotkey(true)
+        SetInfoText("$sab_mcm_myfaction_numcmders_desc")
+	endEvent
+endstate
+
+state PLYR_CUR_FAC_NUM_GOLD
+	event OnHighlightST(string state_id)
+        MainPage.ToggleQuickHotkey(true)
+        SetInfoText("$sab_mcm_myfaction_numgold_desc")
 	endEvent
 endstate
 
