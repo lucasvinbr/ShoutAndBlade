@@ -92,19 +92,37 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 	if updateIndex == 1
 		; testing running the big update on nearby updates as well
 		RunCloseByUpdate()
-	endif
+	else
+		if curGameTime != 0.0 && gameTimeOfLastExpAward == 0.0
+			; set initial values for "gameTime" variables, to avoid them from getting huge accumulated awards
+			gameTimeOfLastExpAward = curGameTime
+		endif
+	
+		;debug.Trace("game time updating commander (pre check)!")
+		float expAwardInterval = JDB.solveFlt(".ShoutAndBlade.cmderOptions.expAwardInterval", 0.08)
+		if curGameTime - gameTimeOfLastExpAward >= expAwardInterval
+			int numAwardsObtained = ((curGameTime - gameTimeOfLastExpAward) / expAwardInterval) as int
+			availableExpPoints += JDB.solveFlt(".ShoutAndBlade.cmderOptions.awardedXpPerInterval", 500.0) * numAwardsObtained
+			gameTimeOfLastExpAward = curGameTime
+		endif
 
-	if curGameTime != 0.0 && gameTimeOfLastExpAward == 0.0
-		; set initial values for "gameTime" variables, to avoid them from getting huge accumulated awards
-		gameTimeOfLastExpAward = curGameTime
-	endif
-
-	;debug.Trace("game time updating commander (pre check)!")
-	float expAwardInterval = JDB.solveFlt(".ShoutAndBlade.cmderOptions.expAwardInterval", 0.08)
-	if curGameTime - gameTimeOfLastExpAward >= expAwardInterval
-		int numAwardsObtained = ((curGameTime - gameTimeOfLastExpAward) / expAwardInterval) as int
-		availableExpPoints += JDB.solveFlt(".ShoutAndBlade.cmderOptions.awardedXpPerInterval", 500.0) * numAwardsObtained
-		gameTimeOfLastExpAward = curGameTime
+		if !meActor.IsDead()
+			if !meActor.IsInCombat()
+				;debug.Trace("game time updating commander!")
+	
+				if curGameTime - gameTimeOfLastUnitUpgrade >= JDB.solveFlt(".ShoutAndBlade.cmderOptions.unitMaintenanceInterval", 0.06)
+					gameTimeOfLastUnitUpgrade = curGameTime
+	
+					; if we have enough units, upgrade. If we don't, recruit some more
+					if totalOwnedUnitsAmount >= GetMaxOwnedUnitsAmount() * 0.7
+						TryUpgradeUnits()
+					else 
+						TryRecruitUnits()
+					endif
+				endif
+				
+			endif
+		endif
 	endif
 	
 	if !meActor
@@ -123,23 +141,7 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 		endif
 	endif
 
-	if !meActor.IsDead()
-		if !meActor.IsInCombat()
-			;debug.Trace("game time updating commander!")
-
-			if curGameTime - gameTimeOfLastUnitUpgrade >= JDB.solveFlt(".ShoutAndBlade.cmderOptions.unitMaintenanceInterval", 0.06)
-				gameTimeOfLastUnitUpgrade = curGameTime
-
-				; if we have enough units, upgrade. If we don't, recruit some more
-				if totalOwnedUnitsAmount >= GetMaxOwnedUnitsAmount() * 0.7
-					TryUpgradeUnits()
-				else 
-					TryRecruitUnits()
-				endif
-			endif
-			
-		endif
-	else 
+	if meActor.IsDead()
 		if ClearAliasIfOutOfTroops()
 			CrowdReducer.AddDeadBody(meActor)
 			meActor = None
@@ -156,8 +158,14 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 				meActor.Delete()
 				meActor = None
 				return true
+			else
+				; the player is near our dead body and we still have troops.
+				; try to make one of our units "inherit" our position and become the new commander
+				if TryGiveCmderPositionToOurUnit()
+					return true
+				endif
 			endif
-		endif
+		endif		
 	endif
 
 
@@ -439,6 +447,22 @@ Event OnDetachedFromCell()
 	endif
 EndEvent
 
+Event OnLocationChange(Location akOldLoc, Location akNewLoc)
+	if akNewLoc == None
+		return
+	endif
+
+	SAB_LocationScript nearbyLocScript = factionScript.DiplomacyDataHandler.PlayerDataHandler.NearbyLocation
+
+	if nearbyLocScript
+		if akNewLoc.IsSameLocation(nearbyLocScript.ThisLocation)
+			if nearbyLocScript.IsReferenceCloseEnoughForAutocalc(meActor)
+				RegisterAsNearLocation(nearbyLocScript)
+			endif
+		endif
+	endif
+EndEvent
+
 Event OnPackageEnd(Package akOldPackage)
 	; this is kind of reliable, but the cmder has to ge to the exact point, so we should probably run other, more "relaxed", checks
 	factionScript.ValidateCmderReachedDestination(self, CmderDestinationType)
@@ -526,6 +550,40 @@ Function ClearCmderData()
 	ToggleNearbyUpdates(false)
 	ToggleUpdates(false)
 	Clear()
+
+EndFunction
+
+; tries to make one of our spawned living units become the new commander for this alias. returns true on success.
+bool Function TryGiveCmderPositionToOurUnit()
+
+	SAB_UnitScript unitToBecomeCmder = factionScript.GetASpawnedUnitFromCmder(self)
+
+	if unitToBecomeCmder != None
+
+		bool wasNearby = isNearby
+
+		; first we make the unit stop being a unit, to make sure it won't behave and despawn like the rest etc
+		Actor unitActor = unitToBecomeCmder.GetReference() as Actor
+		unitToBecomeCmder.BeDetachedFromContainerAndAlias()
+
+		; removes the cmder actor from crowdReducer's list
+		ToggleNearbyUpdates(false)
+
+		if meActor != None && meActor.IsDead()
+			CrowdReducer.AddDeadBody(meActor)
+		endif
+
+		ForceRefTo(unitActor)
+		meActor = unitActor
+
+		if wasNearby
+			ToggleNearbyUpdates(true)
+		endif
+
+		availableExpPoints = 0.0
+
+		return true
+	endif
 
 EndFunction
 

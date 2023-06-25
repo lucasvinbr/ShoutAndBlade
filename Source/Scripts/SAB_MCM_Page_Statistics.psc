@@ -206,7 +206,7 @@ Function SetupDebugStatistics()
         numStatsPages = 1
     endif
 
-    SAB_CrowdReducer crowdReducer = MainPage.MainQuest.CrowdReducer
+    ; SAB_CrowdReducer crowdReducer = MainPage.MainQuest.CrowdReducer
 
     AddTextOptionST("STATS_DISPLAY___NEARBYUNITS_ALIAS", "$sab_mcm_stats_menu_statspage_debug_nearbyunits_aliases", MainPage.MainQuest.UnitsUpdater.UnitUpdater.numActives)
     int nearbyUnitsTopFilledIndex = MainPage.MainQuest.UnitsUpdater.UnitUpdater.GetTopIndex()
@@ -219,7 +219,7 @@ Function SetupDebugStatistics()
     Actor plyrRef = game.GetPlayer()
 
     ; show all locs in nearbies alias list (we expect - and hope! - it's less than 128)
-    i = nearbyLocsTopFilledIndex
+    int i = nearbyLocsTopFilledIndex
     SAB_UpdatedReferenceAlias[] nearbyLocAliases = MainPage.MainQuest.SpawnersUpdater.LocationUpdater.GetAliasesArray(0)
     While i >= 0
         SAB_UpdatedReferenceAlias locAlias = nearbyLocAliases[i]
@@ -227,6 +227,7 @@ Function SetupDebugStatistics()
         if locref
             AddTextOptionST("STATS_DISPLAY___NEARBYLOC_ALIAS" + i, locref.GetLocName(), i + " - dist: " + plyrRef.GetDistance(locref.GetReference()))
             AddTextOptionST("STATS_DISPLAY___NEARBYLOC_NUM_NEAR_CMDERS" + i, "$sab_mcm_stats_menu_statspage_debug_nearbyloc_numnearbycmders", locref.GetTopNearbyCmderIndex())
+            AddTextOptionST("STATS_DISPLAY___NEARBYLOC_PLAYER_INSIDE" + i, "$sab_mcm_stats_menu_statspage_debug_nearbyloc_playerinside", locref.IsRefInsideThisLocation(plyrRef))
         elseif locAlias
             AddTextOptionST("STATS_DISPLAY___NEARBYLOC_ALIAS" + i, locAlias, i + " - valid alias")
         else
@@ -236,20 +237,11 @@ Function SetupDebugStatistics()
         i -= 1
     EndWhile
 
-    AddTextOptionST("STATS_DISPLAY___NEARBYCMDERS", "$sab_mcm_stats_menu_statspage_debug_nearbycmders", crowdReducer.NumNearbyCmders)
+    ; AddTextOptionST("STATS_DISPLAY___NEARBYCMDERS", "$sab_mcm_stats_menu_statspage_debug_nearbycmders", crowdReducer.NumNearbyCmders)
     AddTextOptionST("STATS_DISPLAY___NEARBYCMDERS_ALIAS", "$sab_mcm_stats_menu_statspage_debug_nearbycmders_aliases", MainPage.MainQuest.SpawnersUpdater.CmderUpdater.numActives)
 
     int nearbyCmdersTopFilledIndex = MainPage.MainQuest.SpawnersUpdater.CmderUpdater.GetTopIndex()
     AddTextOptionST("STATS_DISPLAY___NEARBYCMDERS_ALIAS_TOPFILLEDINDEX", "$sab_mcm_stats_menu_statspage_debug_nearbycmders_topfilledindex", nearbyCmdersTopFilledIndex)
-
-    FormList cmdersList = crowdReducer.NearbyCmdersList
-    int i = crowdReducer.NumNearbyCmders
-    ; show all cmders in list
-    While i > 0
-        i -= 1
-        ObjectReference cmderRef = cmdersList.GetAt(i) as ObjectReference
-        AddTextOptionST("STATS_DISPLAY___NEARBYCMDERS" + i, cmderRef.GetFormID(), plyrRef.GetDistance(cmderRef))
-    EndWhile
 
     i = AddEmptyOption()
 

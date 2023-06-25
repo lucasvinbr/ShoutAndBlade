@@ -140,6 +140,12 @@ Function Despawn()
 	ClearAliasData()
 EndFunction
 
+; don't delete or mark the unit as a dead body, but remove them from their troop container and from this alias
+Function BeDetachedFromContainerAndAlias()
+	ownerTroopContainer.OwnedUnitHasDied(unitIndex, gameTimeOwnerContainerWasSetup)
+	ClearAliasData()
+EndFunction
+
 ; despawn, but removes the unit from the container's list instead of adding it back as spawnable
 Function DespawnAndDontReturnToContainer()
 	deathHasBeenHandled = true
@@ -155,4 +161,12 @@ Function ClearAliasData()
 	gameTimeOwnerContainerWasSetup = 0.0
 	parent.ClearAliasData()
 	meActor = None
+EndFunction
+
+bool Function IsAlive()
+	return meActor && !meActor.IsDead()
+EndFunction
+
+SAB_TroopContainerScript Function GetOwnerContainer()
+	return ownerTroopContainer
 EndFunction
