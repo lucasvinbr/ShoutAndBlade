@@ -227,7 +227,7 @@ Function SetupDebugStatistics()
         if locref
             AddTextOptionST("STATS_DISPLAY___NEARBYLOC_ALIAS" + i, locref.GetLocName(), i + " - dist: " + plyrRef.GetDistance(locref.GetReference()))
             AddTextOptionST("STATS_DISPLAY___NEARBYLOC_NUM_NEAR_CMDERS" + i, "$sab_mcm_stats_menu_statspage_debug_nearbyloc_numnearbycmders", locref.GetTopNearbyCmderIndex())
-            AddTextOptionST("STATS_DISPLAY___NEARBYLOC_PLAYER_INSIDE" + i, "$sab_mcm_stats_menu_statspage_debug_nearbyloc_playerinside", locref.IsRefInsideThisLocation(plyrRef))
+            AddTextOptionST("STATS_DISPLAY___NEARBYLOC_PLAYER_INSIDE" + i, "$sab_mcm_stats_menu_statspage_debug_nearbyloc_playerinside", locref.IsRefInThisLocationsInteriors(plyrRef))
         elseif locAlias
             AddTextOptionST("STATS_DISPLAY___NEARBYLOC_ALIAS" + i, locAlias, i + " - valid alias")
         else

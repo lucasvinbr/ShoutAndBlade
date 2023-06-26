@@ -242,18 +242,7 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 	; debug.Trace("dist to player from location of faction " + jMap.getStr(factionScript.jFactionData, "name", "NEUTRAL") + ": " + distToPlayer)
 
 	; is player in this location's interior or exterior? Does this location have an interior?
-	playerIsInside = IsRefInsideThisLocation(playerActor)
-
-	if playerIsInside
-		if InteriorCells.Length > 0
-			Cell curPlayerCell = playerActor.GetParentCell()
-			if curPlayerCell == None || !curPlayerCell.IsInterior()
-				playerIsInside = false
-			endif
-		else
-			playerIsInside = false
-		endif
-	endif
+	playerIsInside = IsRefInThisLocationsInteriors(playerActor)
 
 	ToggleNearbyUpdates(distToPlayer <= 8100.0 || playerIsInside) ; TODO make this configurable
 	; debug.Trace(GetLocName() + ": player is inside? " + playerIsInside)
@@ -455,9 +444,37 @@ Function BeNotifiedOfNearbyHostileCmder()
 	timeOfLastHostileCmderUpdate = 0.0
 EndFunction
 
+; does a ThisLocation.IsSameLocation check. This can be true even if we're outside the loc but close by,
+; like at the gates of the fort or something like that
 bool Function IsRefInsideThisLocation(ObjectReference ref)
 	;debug.Trace(ThisLocation + ": is same location as " + ref.GetCurrentLocation() + "?")
 	return ThisLocation.IsSameLocation(ref.GetCurrentLocation())
+EndFunction
+
+; checks the interiorCells list. if there is no interior, always returns false
+bool Function IsRefInThisLocationsInteriors(ObjectReference ref)
+	if InteriorCells.Length == 0
+		return false
+	endif
+
+	Cell refCell = ref.GetParentCell()
+
+	if refCell == None
+		return false
+	endif
+
+	int i = InteriorCells.Length
+
+	While (i > 0)
+		i -= 1
+		Cell testedCell = InteriorCells[i]
+
+		if refCell == testedCell
+			return true
+		endif
+	EndWhile
+
+	return false
 EndFunction
 
 ; returns true if this location has recently lost a unit or a hostile commander is nearby
@@ -472,17 +489,31 @@ bool Function CanAutocalcNow()
 EndFunction
 
 bool Function IsReferenceCloseEnoughForAutocalc(ObjectReference targetRef)
-	float distToLoc = GetReference().GetDistance(targetRef)
-	; debug.Trace("dist to loc from actor: " + distToLoc)
-	if distToLoc <= 800.0
-		return true
-	endif
 
-	distToLoc = MoveDestination.GetDistance(targetRef)
-	; debug.Trace("dist to loc movedest from actor: " + distToLoc)
-	if distToLoc <= 800.0
-		return true
+	if IsRefInThisLocationsInteriors(targetRef)
+		if playerIsInside
+			float distToLoc = MoveDestination.GetDistance(targetRef)
+			; debug.Trace("dist to loc movedest from actor: " + distToLoc)
+			if distToLoc <= 1800.0
+				return true
+			endif
+		else
+			return true
+		endif
+	else
+		float distToLoc = GetReference().GetDistance(targetRef)
+		; debug.Trace("dist to loc from actor: " + distToLoc)
+		if distToLoc <= 1800.0
+			return true
+		else
+			distToLoc = MoveDestination.GetDistance(targetRef)
+			; debug.Trace("dist to loc movedest from actor: " + distToLoc)
+			if distToLoc <= 1800.0
+				return true
+			endif
+		endif
 	endif
+	
 
 	return false
 EndFunction
