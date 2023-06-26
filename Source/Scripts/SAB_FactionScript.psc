@@ -321,6 +321,26 @@ int Function FindAttackTargets()
 		endwhile
 	endif
 
+
+	if jArray.count(jPossibleAttackTargets) <= 0
+		; no "really good" targets found!
+		; we're probably in a good situation, like with more than one location, or surrounded by allies.
+		; it's time to take the fight to any enemies left
+
+		i = locScripts.Length
+
+		while i > 0
+			i -= 1
+
+			SAB_LocationScript locScript = locScripts[i]
+			; check if this location is still owned by us and is enabled.
+			; if not, remove it from the owneds list
+			if locScript != None && locScript.isEnabled && !DiplomacyDataHandler.AreFactionsInGoodStanding(self, locScript.factionScript)
+				JArray.addInt(jPossibleAttackTargets, i)
+			endif
+		endwhile
+	endif
+
 	return jPossibleAttackTargets
 
 EndFunction
