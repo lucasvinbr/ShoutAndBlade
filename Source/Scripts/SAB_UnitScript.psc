@@ -164,7 +164,7 @@ Function ClearAliasData()
 EndFunction
 
 bool Function IsAlive()
-	return meActor && !meActor.IsDead()
+	return meActor != None && !meActor.IsDead()
 EndFunction
 
 SAB_TroopContainerScript Function GetOwnerContainer()

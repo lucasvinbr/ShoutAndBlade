@@ -11,9 +11,10 @@ int Property jSABFactionRelationsMap Auto Hidden
 ; an intMap representing each faction's relation with the player
 int Property jSABPlayerRelationsMap Auto Hidden
 
-; a jArray representing a queue of faction indexes of which the player has killed a unit.
-; this is used to avoid updating them all at the same time, decreasing the chance of stack dumps
-int jPendingUnitKillRelUpdates = -1
+; a jIntMap representing a queue of faction indexes of which the player has killed units.
+; this is used to avoid updating them all at the same time, decreasing the chance of stack dumps.
+; keys are faction indexes, values are pending kills
+int jPendingUnitKillsMap = -1
 
 Function InitializeJData()
     jSABFactionRelationsMap = JIntMap.object()
@@ -26,17 +27,24 @@ EndFunction
 
 Event OnUpdate()
 	
-    if jArray.count(jPendingUnitKillRelUpdates) > 0
+    if jIntMap.count(jPendingUnitKillsMap) > 0
+        int facKey = JIntMap.getNthKey(jPendingUnitKillsMap, 0)
         ; run fac relations updates due to player killing units, one at a time
-        int attackedFacIndex = jArray.getInt(jPendingUnitKillRelUpdates, 0, -1)
+        int facKilledsAmount = JIntMap.getInt(jPendingUnitKillsMap, facKey, 0)
 
-        if attackedFacIndex != -1
-            GlobalReactToPlayerKillingUnit(attackedFacIndex)
+        if facKey != -1
+            if facKilledsAmount > 0
+                GlobalReactToPlayerKillingUnit(facKey, facKilledsAmount)
+                JIntMap.setInt(jPendingUnitKillsMap, facKey, JIntMap.getInt(jPendingUnitKillsMap, facKey, 0) - facKilledsAmount)
+
+                if JIntMap.getInt(jPendingUnitKillsMap, facKey, 0) <= 0
+                    JIntMap.removeKey(jPendingUnitKillsMap, facKey)
+                endif
+            endif
         endif
-
-        JArray.eraseIndex(jPendingUnitKillRelUpdates, 0)
     endif
     
+    RegisterForSingleUpdate(1.0)
 EndEvent
 
 
@@ -403,25 +411,26 @@ EndFunction
 ; enemies of the killed become closer to player.
 ; this queues the reaction, to avoid stack dumps due to too many units being killed
 Function QueueGlobalReactToPlayerKillingUnit(int killedUnitFacIndex)
-    if jPendingUnitKillRelUpdates == -1
+    if jPendingUnitKillsMap == -1
         debug.Trace("initial set up for relation kills queue")
         ; the queue array hasn't been set up yet!
         ; set it up and start the updates
-        jPendingUnitKillRelUpdates = jArray.object()
-        JValue.retain(jPendingUnitKillRelUpdates, "ShoutAndBlade")
+        jPendingUnitKillsMap = jIntMap.object()
+        JValue.retain(jPendingUnitKillsMap, "ShoutAndBlade")
+
+        RegisterForSingleUpdate(0.05)
     endif
 
-    debug.Trace("enqueued to relation kills queue")
-    jArray.addInt(jPendingUnitKillRelUpdates, killedUnitFacIndex)
-    RegisterForSingleUpdate(0.05)
+    int numPendingKillsFromFac = jIntMap.getInt(jPendingUnitKillsMap, killedUnitFacIndex, 0)
+    JIntMap.setInt(jPendingUnitKillsMap, killedUnitFacIndex, numPendingKillsFromFac + 1)
 
 EndFunction
 
 ; killed and allies of the killed get angry at player.
 ; enemies of the killed become closer to player
-Function GlobalReactToPlayerKillingUnit(int killedUnitFacIndex)
+Function GlobalReactToPlayerKillingUnit(int killedUnitFacIndex, int killedUnitAmount)
 
-    debug.Trace("global react to unit kill start!")
+    debug.Trace("global react to unit kills start! killedFac: "+ killedUnitFacIndex +", killedAmount: " + killedUnitAmount)
 
     SAB_FactionScript[] facQuests = FactionDataHandler.SAB_FactionQuests
 
@@ -432,21 +441,21 @@ Function GlobalReactToPlayerKillingUnit(int killedUnitFacIndex)
         playerFacIndex = PlayerDataHandler.PlayerFaction.GetFactionIndex()
     endif
 
-    AddOrSubtractPlayerRelationWithFac(killedUnitFacIndex, JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.relDmg_playerKilledMyUnit", -0.05)) ; TODO make this configurable
+    AddOrSubtractPlayerRelationWithFac(killedUnitFacIndex, killedUnitAmount * JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.relDmg_playerKilledMyUnit", -0.05)) ; TODO make this configurable
 
     While i > 0
         i -= 1
 
         if i != killedUnitFacIndex
             if i == playerFacIndex
-                AddOrSubtractRelationBetweenFacs(playerFacIndex, killedUnitFacIndex, JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.relDmg_playerKilledMyUnit", -0.05), playerFacIndex) ; TODO make this configurable
-                AddOrSubtractPlayerRelationWithFac(playerFacIndex, JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.relAdd_playerKilledMyEnemysUnit", 0.01))
+                AddOrSubtractRelationBetweenFacs(playerFacIndex, killedUnitFacIndex, killedUnitAmount * JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.relDmg_playerKilledMyUnit", -0.05), playerFacIndex) ; TODO make this configurable
+                AddOrSubtractPlayerRelationWithFac(playerFacIndex, killedUnitAmount * JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.relAdd_playerKilledMyEnemysUnit", 0.01))
             elseif AreFactionsAllied(i, killedUnitFacIndex)
-                AddOrSubtractPlayerRelationWithFac(i, JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.relDmg_playerKilledMyAllysUnit", -0.02)) ; TODO make this configurable
-                AddOrSubtractRelationBetweenFacs(i, playerFacIndex, JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.relDmg_playerKilledMyAllysUnit", -0.02), playerFacIndex) ; TODO make this configurable
+                AddOrSubtractPlayerRelationWithFac(i, killedUnitAmount * JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.relDmg_playerKilledMyAllysUnit", -0.02)) ; TODO make this configurable
+                AddOrSubtractRelationBetweenFacs(i, playerFacIndex, killedUnitAmount * JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.relDmg_playerKilledMyAllysUnit", -0.02), playerFacIndex) ; TODO make this configurable
             elseif AreFactionsEnemies(i, killedUnitFacIndex)
-                AddOrSubtractPlayerRelationWithFac(i, JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.relAdd_playerKilledMyEnemysUnit", 0.01)) ; TODO make this configurable
-                AddOrSubtractRelationBetweenFacs(i, playerFacIndex, JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.relAdd_playerKilledMyEnemysUnit", 0.01), playerFacIndex) ; TODO make this configurable
+                AddOrSubtractPlayerRelationWithFac(i, killedUnitAmount * JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.relAdd_playerKilledMyEnemysUnit", 0.01)) ; TODO make this configurable
+                AddOrSubtractRelationBetweenFacs(i, playerFacIndex, killedUnitAmount * JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.relAdd_playerKilledMyEnemysUnit", 0.01), playerFacIndex) ; TODO make this configurable
             endif
         endif
     EndWhile

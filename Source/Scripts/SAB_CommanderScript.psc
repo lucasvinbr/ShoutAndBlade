@@ -502,7 +502,7 @@ endEvent
 
 Function OwnedUnitHasDied(int unitIndex, float timeOwnerWasSetup)
 	parent.OwnedUnitHasDied(unitIndex, timeOwnerWasSetup)
-	UpdateConfidenceLevel()
+	; UpdateConfidenceLevel()
 EndFunction
 
 ; returns true if out of troops and cleared
@@ -564,6 +564,11 @@ bool Function TryGiveCmderPositionToOurUnit()
 
 		; first we make the unit stop being a unit, to make sure it won't behave and despawn like the rest etc
 		Actor unitActor = unitToBecomeCmder.GetReference() as Actor
+
+		if unitActor == None
+			return false
+		endif
+		
 		unitToBecomeCmder.BeDetachedFromContainerAndAlias()
 
 		; removes the cmder actor from crowdReducer's list
@@ -585,6 +590,7 @@ bool Function TryGiveCmderPositionToOurUnit()
 		return true
 	endif
 
+	return false
 EndFunction
 
 int Function GetMaxOwnedUnitsAmount()
