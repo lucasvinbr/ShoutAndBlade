@@ -130,6 +130,14 @@ event OnPageDraw()
     ; "is under attack" timer (time since last unit loss)
     ; is nearby distance
 
+    AddEmptyOption()
+    AddEmptyOption()
+
+    AddHeaderOption("$sab_mcm_options_header_diplomacyoptions")
+    AddEmptyOption()
+
+    AddToggleOptionST("OPTIONS_DIPLO_TOGGLE___showRelChangeMessageBox", "$sab_mcm_options_toggle_diplo_change_messagebox", JDB.solveInt(".ShoutAndBlade.diplomacyOptions.showRelChangeMessageBox", 0) >= 1, 0)
+    AddToggleOptionST("OPTIONS_DIPLO_TOGGLE___showRelChangeNotify", "$sab_mcm_options_toggle_diplo_change_notify", JDB.solveInt(".ShoutAndBlade.diplomacyOptions.showRelChangeNotify", 1) >= 1, 0)
 
     AddEmptyOption()
     AddEmptyOption()
@@ -903,6 +911,38 @@ state OPTIONS_LOC_GOLD
         endif
 	endEvent
 
+endstate
+
+state OPTIONS_DIPLO_TOGGLE
+    event OnSelectST(string state_id)
+        int curValue = JDB.solveInt(".ShoutAndBlade.diplomacyOptions." + state_id, 0)
+
+        if curValue != 0
+            curValue = 0
+        else
+            curValue = 1
+        endif
+
+        JDB.solveIntSetter(".ShoutAndBlade.diplomacyOptions." + state_id, curValue, true)
+
+        SetToggleOptionValueST(curValue != 0)
+	endEvent
+
+    event OnDefaultST(string state_id)
+        int curValue = 0
+        JDB.solveIntSetter(".ShoutAndBlade.diplomacyOptions." + state_id, curValue, true)
+        SetToggleOptionValueST(curValue != 0)
+    endevent
+
+	event OnHighlightST(string state_id)
+        ToggleQuickHotkey(true)
+        
+		if state_id == "showRelChangeMessageBox"
+            SetInfoText("$sab_mcm_options_toggle_diplo_change_messagebox_desc")
+        elseif state_id == "showRelChangeNotify"
+            SetInfoText("$sab_mcm_options_toggle_diplo_change_notify_desc")
+        endif
+	endEvent
 endstate
 
 

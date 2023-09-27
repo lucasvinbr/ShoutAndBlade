@@ -34,8 +34,8 @@ Event OnUpdate()
 
         if facKey != -1
             if facKilledsAmount > 0
-                GlobalReactToPlayerKillingUnit(facKey, facKilledsAmount)
                 JIntMap.setInt(jPendingUnitKillsMap, facKey, JIntMap.getInt(jPendingUnitKillsMap, facKey, 0) - facKilledsAmount)
+                GlobalReactToPlayerKillingUnit(facKey, facKilledsAmount)
 
                 if JIntMap.getInt(jPendingUnitKillsMap, facKey, 0) <= 0
                     JIntMap.removeKey(jPendingUnitKillsMap, facKey)
@@ -218,10 +218,7 @@ bool Function AddOrSubtractPlayerRelationWithFac(int factionIndex, float valueTo
     bool standingsChanged = DoValuesIndicateDifferentStandings(curRelation, newValue)
 
     if standingsChanged
-        SAB_FactionScript[] facQuests = FactionDataHandler.SAB_FactionQuests
-        string msg = "The "+ facQuests[factionIndex].GetFactionName() +" are now "+ GetRelationValueDescriptionWord(newValue) +" towards you."
-        Debug.Notification(msg)
-        Debug.MessageBox(msg)
+        NotifyPlayerRelationChangeTowardsFac(factionIndex, newValue)
     endif
 
     return standingsChanged
@@ -582,13 +579,19 @@ bool Function DoValuesIndicateDifferentStandings(float relValueOne, float relVal
     return RelationValueToFactionStanding(relValueOne) != RelationValueToFactionStanding(relValueTwo)
 EndFunction
 
-Function NotifyPlayerRelationChangeTowardsFac(int facIndex)
-    ; code
+Function NotifyPlayerRelationChangeTowardsFac(int facIndex, float newRelationValue)
+    SAB_FactionScript[] facQuests = FactionDataHandler.SAB_FactionQuests
+    string msg = "The "+ facQuests[facIndex].GetFactionName() +" are now "+ GetRelationValueDescriptionWord(newRelationValue) +" towards you."
+    if JDB.solveInt(".ShoutAndBlade.diplomacyOptions.showRelChangeNotify", 1) >= 1
+        Debug.Notification(msg)
+    endif
+    
+    if JDB.solveInt(".ShoutAndBlade.diplomacyOptions.showRelChangeMessageBox", 0) >= 1
+        Debug.MessageBox(msg)
+    endif
+    
 EndFunction
 
-Function NotifyFactionRelationChangeTowardsFac(int facOneIndex, int facTwoIndex)
-    ; code
-EndFunction
 
 ; factionData jmap entries:
 
