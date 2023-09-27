@@ -8,7 +8,7 @@ int editedFactionIndex = -1
 int jEditedFactionData = 0
 
 event OnInit()
-    RegisterModule("$sab_mcm_diplomacy", 5)
+    RegisterModule("$sab_mcm_diplomacy", 4)
 endevent
 
 Event OnPageInit()

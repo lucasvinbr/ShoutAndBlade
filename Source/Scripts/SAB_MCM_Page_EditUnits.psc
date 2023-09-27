@@ -20,7 +20,7 @@ string[] editedUnitIdentifiersArray
 string[] unitRaceEditOptions
 
 event OnInit()
-    RegisterModule("$sab_mcm_page_edit_units", 2)
+    RegisterModule("$sab_mcm_page_edit_units", 5)
 endevent
 
 Event OnPageInit()

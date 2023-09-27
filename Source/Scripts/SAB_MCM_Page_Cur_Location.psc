@@ -1,4 +1,4 @@
-scriptname SAB_MCM_Page_EditLocations extends nl_mcm_module
+scriptname SAB_MCM_Page_Cur_Location extends nl_mcm_module
 
 SAB_MCM Property MainPage Auto
 
@@ -11,7 +11,7 @@ SAB_LocationScript editedLocationScript
 
 
 event OnInit()
-    RegisterModule("$sab_mcm_page_edit_locations", 7)
+    RegisterModule("$sab_mcm_page_edit_locations", 3)
 endevent
 
 Event OnPageInit()

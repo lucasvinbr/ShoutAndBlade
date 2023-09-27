@@ -7,7 +7,7 @@ bool Property isLoadingData Auto
 int key_openMCM = -1
 
 event OnInit()
-    RegisterModule("$sab_mcm_page_options", 7)
+    RegisterModule("$sab_mcm_page_options", 9)
 endevent
 
 event OnPageInit()

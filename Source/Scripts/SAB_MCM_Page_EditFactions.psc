@@ -15,7 +15,7 @@ int jEditedTroopLine = 0
 
 
 event OnInit()
-    RegisterModule("$sab_mcm_page_edit_factions", 3)
+    RegisterModule("$sab_mcm_page_edit_factions", 6)
 endevent
 
 Event OnPageInit()
