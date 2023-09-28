@@ -137,6 +137,46 @@ float Function GetRelationBetweenFacs(int factionOneIndex, int factionTwoIndex)
     return JIntMap.getFlt(jSmallerFacRelationsMap, factionWithBiggerIndex, 0.0)
 EndFunction
 
+; returns a jArray with the facIndexes of all allied factions of the target fac. The jArray must be released after its use!
+int Function GetAlliedFactionsOfTargetFac(int targetFacIndex)
+    int jReturnedArray = jArray.object()
+    jValue.retain(jReturnedArray, "ShoutAndBlade")
+
+    SAB_FactionScript[] facQuests = FactionDataHandler.SAB_FactionQuests
+
+    int i = facQuests.Length
+
+    While i > 0
+        i -= 1
+
+        if i != targetFacIndex
+            if AreFactionsAllied(i, targetFacIndex)
+                jArray.addInt(jReturnedArray, i)
+            endif
+        endif
+    EndWhile
+EndFunction
+
+; returns a jArray with the facIndexes of all enemy factions of the target fac. The jArray must be released after its use!
+int Function GetEnemyFactionsOfTargetFac(int targetFacIndex)
+    int jReturnedArray = jArray.object()
+    jValue.retain(jReturnedArray, "ShoutAndBlade")
+
+    SAB_FactionScript[] facQuests = FactionDataHandler.SAB_FactionQuests
+
+    int i = facQuests.Length
+
+    While i > 0
+        i -= 1
+
+        if i != targetFacIndex
+            if AreFactionsEnemies(i, targetFacIndex)
+                jArray.addInt(jReturnedArray, i)
+            endif
+        endif
+    EndWhile
+EndFunction
+
 ; returns true if faction one and two have a relation value above or equal to the ally relation level threshold.
 ; also returns true if faction one and two are the same
 bool Function AreFactionsAllied(int factionOneIndex, int factionTwoIndex)

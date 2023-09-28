@@ -4,15 +4,15 @@ SAB_MCM Property MainPage Auto
 
 
 string[] editedFactionIdentifiersArray
-int playerFactionIndex = -1
-int jPlayerFactionData = 0
+int trackedFactionIndex = -1
+int jTrackedFactionData = 0
 int jFacVanillaRelationsMap = 0
 
 Form Property Gold001 Auto
 
 
 event OnInit()
-    RegisterModule("$sab_mcm_page_myfaction", 2)
+    RegisterModule("$sab_mcm_page_factiontracker", 2)
 endevent
 
 Event OnPageInit()
@@ -26,7 +26,7 @@ Event OnVersionUpdate(Int a_version)
 EndEvent
 
 Event OnPageDraw()
-    SetLandingPage("$sab_mcm_page_myfaction")
+    SetLandingPage("$sab_mcm_page_factiontracker")
     SetupPage()
 EndEvent
 
@@ -45,44 +45,88 @@ Function SetupPage()
 
     SetCursorFillMode(TOP_TO_BOTTOM)
 
-    string playerFacName = "$sab_mcm_locationedit_ownership_option_neutral"
+    string trackedFacName = "$sab_mcm_locationedit_ownership_option_neutral"
 
-    if playerFactionIndex >= 0
-        jPlayerFactionData = jArray.getObj(MainPage.MainQuest.FactionDataHandler.jSABFactionDatasArray, playerFactionIndex)
+    if trackedFactionIndex >= 0
+        jTrackedFactionData = jArray.getObj(MainPage.MainQuest.FactionDataHandler.jSABFactionDatasArray, trackedFactionIndex)
         ; set up fac if it doesn't exist
-        if jPlayerFactionData == 0
-            jPlayerFactionData = jMap.object()
-            JArray.setObj(MainPage.MainQuest.FactionDataHandler.jSABFactionDatasArray, playerFactionIndex, jPlayerFactionData)
+        if jTrackedFactionData == 0
+            jTrackedFactionData = jMap.object()
+            JArray.setObj(MainPage.MainQuest.FactionDataHandler.jSABFactionDatasArray, trackedFactionIndex, jTrackedFactionData)
         endif
 
-        playerFacName = jMap.getStr(jPlayerFactionData, "Name", "Faction")
+        trackedFacName = jMap.getStr(jTrackedFactionData, "Name", "Faction")
     endif
     
     
-    AddMenuOptionST("PLYR_CUR_FAC", "$sab_mcm_vanillafacrel_menu_selectedfac", playerFacName)
+    AddMenuOptionST("PLYR_CUR_FAC", "$sab_mcm_vanillafacrel_menu_selectedfac", trackedFacName)
 
     AddEmptyOption()
 
-    if playerFactionIndex >= 0
-        SAB_FactionScript facScript = MainPage.MainQuest.FactionDataHandler.SAB_FactionQuests[playerFactionIndex]
+    if trackedFactionIndex >= 0
+        SAB_FactionScript facScript = MainPage.MainQuest.FactionDataHandler.SAB_FactionQuests[trackedFactionIndex]
 
-        int facGold = jMap.getInt(facScript.jFactionData, "AvailableGold", JDB.solveInt(".ShoutAndBlade.factionOptions.initialGold", SAB_FactionDataHandler.GetDefaultFactionGold()))
+        ; int facGold = jMap.getInt(facScript.jFactionData, "AvailableGold", JDB.solveInt(".ShoutAndBlade.factionOptions.initialGold", SAB_FactionDataHandler.GetDefaultFactionGold()))
         int numCmders = facScript.GetNumActiveCommanders()
 
-        AddTextOptionST("PLYR_CUR_FAC_NUM_GOLD", "$sab_mcm_myfaction_numgold", facGold)
+        ;AddTextOptionST("PLYR_CUR_FAC_NUM_GOLD", "$sab_mcm_myfaction_numgold", facGold)
         AddTextOptionST("PLYR_CUR_FAC_NUM_CMDERS", "$sab_mcm_myfaction_numcmders", numCmders)
 
         ; show faction's move destinations
-        AddTargetLocationInfo(facScript.destinationScript_A, "PLYR_CUR_FAC_DEST___A", "$sab_mcm_mytroops_menu_ourdest_a")
-        AddTargetLocationInfo(facScript.destinationScript_B, "PLYR_CUR_FAC_DEST___B", "$sab_mcm_mytroops_menu_ourdest_b")
-        AddTargetLocationInfo(facScript.destinationScript_C, "PLYR_CUR_FAC_DEST___C", "$sab_mcm_mytroops_menu_ourdest_c")
+        ; AddTargetLocationInfo(facScript.destinationScript_A, "PLYR_CUR_FAC_DEST___A", "$sab_mcm_mytroops_menu_ourdest_a")
+        ; AddTargetLocationInfo(facScript.destinationScript_B, "PLYR_CUR_FAC_DEST___B", "$sab_mcm_mytroops_menu_ourdest_b")
+        ; AddTargetLocationInfo(facScript.destinationScript_C, "PLYR_CUR_FAC_DEST___C", "$sab_mcm_mytroops_menu_ourdest_c")
+
+        AddEmptyOption()
+
+        int i = -1
+        ; faction's allies and enemies
+        SAB_DiplomacyDataHandler diploHandler = facScript.DiplomacyDataHandler
+        int jAlliedFacsArray = diploHandler.GetAlliedFactionsOfTargetFac(trackedFactionIndex)
+        int jEnemyFacsArray = diploHandler.GetEnemyFactionsOfTargetFac(trackedFactionIndex)
+        int jFacDatasArray = MainPage.MainQuest.FactionDataHandler.jSABFactionDatasArray
+
+        AddHeaderOption("$sab_mcm_factiontracker_header_alliedfacs")
+        i = jArray.count(jAlliedFacsArray)
+        While i > 0
+            i -= 1
+
+            int allyFacIndex = jArray.getInt(jAlliedFacsArray, i, -1)
+            
+            if allyFacIndex >= 0
+                int facData = jArray.getObj(jFacDatasArray, allyFacIndex)
+                string alliedFacName = jMap.getStr(facData, "Name", "Faction")
+
+                AddTextOptionST("PLYR_CUR_FAC_ALLIEDLIST___" + alliedFacName, alliedFacName, "")
+            endif
+            
+        EndWhile
+        jValue.release(jAlliedFacsArray)
+
+        AddHeaderOption("$sab_mcm_factiontracker_header_enemyfacs")
+        i = jArray.count(jEnemyFacsArray)
+        While i > 0
+            i -= 1
+
+            int enemyFacIndex = jArray.getInt(jEnemyFacsArray, i, -1)
+            
+            if enemyFacIndex >= 0
+                int facData = jArray.getObj(jFacDatasArray, enemyFacIndex)
+                string alliedFacName = jMap.getStr(facData, "Name", "Faction")
+
+                AddTextOptionST("PLYR_CUR_FAC_ENEMYLIST___" + alliedFacName, alliedFacName, "")
+            endif
+            
+        EndWhile
+        jValue.release(jEnemyFacsArray)
+
 
         SetCursorPosition(1)
 
         SAB_LocationDataHandler locHandler = facScript.LocationDataHandler
 
         ; faction's locations
-        int i = jArray.count(facScript.jOwnedLocationIndexesArray)
+        i = jArray.count(facScript.jOwnedLocationIndexesArray)
         AddTextOptionST("PLYR_CUR_FAC_NUM_LOCS", "$sab_mcm_myfaction_numlocs", i)
         While i > 0
             i -= 1
@@ -98,55 +142,55 @@ Function SetupPage()
         EndWhile
 
         ; defense targets
-        AddHeaderOption("$sab_mcm_myfaction_defensetargets")
-        int jDefenseTargetsArray = facScript.FindDefenseTargets()
+        ; AddHeaderOption("$sab_mcm_myfaction_defensetargets")
+        ; int jDefenseTargetsArray = facScript.FindDefenseTargets()
 
-        i = jArray.count(jDefenseTargetsArray)
+        ; i = jArray.count(jDefenseTargetsArray)
 
-        While i > 0
-            i -= 1
+        ; While i > 0
+        ;     i -= 1
 
-            int locIndex = jArray.getInt(jDefenseTargetsArray, i, -1)
+        ;     int locIndex = jArray.getInt(jDefenseTargetsArray, i, -1)
             
-            if locIndex >= 0
-                string locName = locHandler.Locations[locIndex].GetLocName()
-                string reason = "$sab_mcm_myfaction_defend_smallgarrison"
-                if locHandler.Locations[locIndex].IsBeingContested()
-                    reason = "$sab_mcm_myfaction_defend_underattack"
-                endif
+        ;     if locIndex >= 0
+        ;         string locName = locHandler.Locations[locIndex].GetLocName()
+        ;         string reason = "$sab_mcm_myfaction_defend_smallgarrison"
+        ;         if locHandler.Locations[locIndex].IsBeingContested()
+        ;             reason = "$sab_mcm_myfaction_defend_underattack"
+        ;         endif
 
-                AddTextOptionST("PLYR_CUR_FAC_DEFTARGET___" + locName, locName, reason)
-            endif
+        ;         AddTextOptionST("PLYR_CUR_FAC_DEFTARGET___" + locName, locName, reason)
+        ;     endif
             
-        EndWhile
+        ; EndWhile
 
-        jValue.release(jDefenseTargetsArray)
+        ; jValue.release(jDefenseTargetsArray)
 
 
         AddEmptyOption()
-        ; attack targets
-        AddHeaderOption("$sab_mcm_myfaction_attacktargets")
-        int jAttackTargetsArray = facScript.FindAttackTargets()
+        ; ; attack targets
+        ; AddHeaderOption("$sab_mcm_myfaction_attacktargets")
+        ; int jAttackTargetsArray = facScript.FindAttackTargets()
 
-        int jAlreadyAddedTargetsArray = jArray.object()
-        i = jArray.count(jAttackTargetsArray)
+        ; int jAlreadyAddedTargetsArray = jArray.object()
+        ; i = jArray.count(jAttackTargetsArray)
 
-        While i > 0
-            i -= 1
+        ; While i > 0
+        ;     i -= 1
 
-            int locIndex = jArray.getInt(jAttackTargetsArray, i, -1)
+        ;     int locIndex = jArray.getInt(jAttackTargetsArray, i, -1)
             
-            if locIndex >= 0
-                string locName = locHandler.Locations[locIndex].GetLocName()
-                if jArray.findStr(jAlreadyAddedTargetsArray, locName) == -1
-                    AddTargetLocationInfo(locHandler.Locations[locIndex], "PLYR_CUR_FAC_ATKTARGET___" + locName, locName)
-                    jArray.addStr(jAlreadyAddedTargetsArray, locName)
-                endif
-            endif
-        EndWhile
+        ;     if locIndex >= 0
+        ;         string locName = locHandler.Locations[locIndex].GetLocName()
+        ;         if jArray.findStr(jAlreadyAddedTargetsArray, locName) == -1
+        ;             AddTargetLocationInfo(locHandler.Locations[locIndex], "PLYR_CUR_FAC_ATKTARGET___" + locName, locName)
+        ;             jArray.addStr(jAlreadyAddedTargetsArray, locName)
+        ;         endif
+        ;     endif
+        ; EndWhile
 
-        jValue.release(jAttackTargetsArray)
-        JValue.release(jAlreadyAddedTargetsArray)
+        ; jValue.release(jAttackTargetsArray)
+        ; JValue.release(jAlreadyAddedTargetsArray)
     endif
 
 EndFunction
@@ -163,7 +207,6 @@ EndFunction
 
 event OnHighlightST(string state_id)
     MainPage.ToggleQuickHotkey(true)
-    SetInfoText("$sab_mcm_mytroops_menu_ourdest_undefined")
 endEvent
 
 string Function GetLocationNameForOurDests(SAB_LocationScript locScript)
@@ -175,54 +218,54 @@ string Function GetLocationNameForOurDests(SAB_LocationScript locScript)
 EndFunction
 
 
-state PLYR_CUR_FAC_DEST
-	event OnHighlightST(string state_id)
-        MainPage.ToggleQuickHotkey(true)
-		SetInfoText("$sab_mcm_mytroops_menu_ourdest_desc")
-	endEvent
-endstate
+; state PLYR_CUR_FAC_DEST
+; 	event OnHighlightST(string state_id)
+;         MainPage.ToggleQuickHotkey(true)
+; 		SetInfoText("$sab_mcm_mytroops_menu_ourdest_desc")
+; 	endEvent
+; endstate
 
 state PLYR_CUR_FAC_NUM_LOCS
 	event OnHighlightST(string state_id)
         MainPage.ToggleQuickHotkey(true)
-		SetInfoText("$sab_mcm_myfaction_numlocs_desc")
+		SetInfoText("$sab_mcm_factiontracker_numlocs_desc")
 	endEvent
 endstate
 
 state PLYR_CUR_FAC_NUM_CMDERS
 	event OnHighlightST(string state_id)
         MainPage.ToggleQuickHotkey(true)
-        SetInfoText("$sab_mcm_myfaction_numcmders_desc")
+        SetInfoText("$sab_mcm_factiontracker_numcmders_desc")
 	endEvent
 endstate
 
-state PLYR_CUR_FAC_NUM_GOLD
-	event OnHighlightST(string state_id)
-        MainPage.ToggleQuickHotkey(true)
-        SetInfoText("$sab_mcm_myfaction_numgold_desc")
-	endEvent
-endstate
+; state PLYR_CUR_FAC_NUM_GOLD
+; 	event OnHighlightST(string state_id)
+;         MainPage.ToggleQuickHotkey(true)
+;         SetInfoText("$sab_mcm_myfaction_numgold_desc")
+; 	endEvent
+; endstate
 
-state PLYR_CUR_FAC_ATKTARGET
-	event OnHighlightST(string state_id)
-        MainPage.ToggleQuickHotkey(true)
-		SetInfoText("$sab_mcm_myfaction_attacktargets_desc")
-	endEvent
-endstate
+; state PLYR_CUR_FAC_ATKTARGET
+; 	event OnHighlightST(string state_id)
+;         MainPage.ToggleQuickHotkey(true)
+; 		SetInfoText("$sab_mcm_myfaction_attacktargets_desc")
+; 	endEvent
+; endstate
 
-state PLYR_CUR_FAC_DEFTARGET
-	event OnHighlightST(string state_id)
-        MainPage.ToggleQuickHotkey(true)
-		SetInfoText("$sab_mcm_myfaction_defensetargets_desc")
-	endEvent
-endstate
+; state PLYR_CUR_FAC_DEFTARGET
+; 	event OnHighlightST(string state_id)
+;         MainPage.ToggleQuickHotkey(true)
+; 		SetInfoText("$sab_mcm_myfaction_defensetargets_desc")
+; 	endEvent
+; endstate
 
 state PLYR_CUR_FAC
 
 	event OnMenuOpenST(string state_id)
-		SetMenuDialogStartIndex(playerFactionIndex + 1)
+		SetMenuDialogStartIndex(trackedFactionIndex + 1)
 		SetMenuDialogDefaultIndex(0)
-        MainPage.MainQuest.FactionDataHandler.SetupStringArrayWithOwnershipIdentifiers(editedFactionIdentifiersArray, "$sab_mcm_locationedit_ownership_option_neutral")
+        MainPage.MainQuest.FactionDataHandler.SetupStringArrayWithOwnershipIdentifiers(editedFactionIdentifiersArray, "-")
 		SetMenuDialogOptions(editedFactionIdentifiersArray)
 	endEvent
 
@@ -230,53 +273,36 @@ state PLYR_CUR_FAC
 		SetMenuOptionValueST(editedFactionIdentifiersArray[index])
 
         int ownerIndex = index - 1
-        Actor playerActor = Game.GetPlayer()
 
-        ; make player leave previous faction, then join the new one
-        SAB_FactionScript newFac = None
-
-        if ownerIndex != -1
-            newFac = MainPage.MainQuest.FactionDataHandler.SAB_FactionQuests[ownerIndex]
-        endif
-
-        MainPage.MainQuest.PlayerDataHandler.JoinFaction(newFac)
-
-        playerFactionIndex = ownerIndex
+        trackedFactionIndex = ownerIndex
 
         ForcePageReset()
         ; jMap.setInt(jLocDataMap, "OwnerFactionIndex", ownerIndex)
 	endEvent
 
 	event OnDefaultST(string state_id)
-		SetMenuOptionValueST("$sab_mcm_locationedit_ownership_option_neutral")
+		SetMenuOptionValueST("-")
 
         int ownerIndex = -1
-        Actor playerActor = Game.GetPlayer()
 
-        ; make player leave previous faction
-        if playerFactionIndex > -1
-            SAB_FactionScript previousFac = MainPage.MainQuest.FactionDataHandler.SAB_FactionQuests[playerFactionIndex]
-            previousFac.RemoveActorFromOurFaction(playerActor)
-        endif
-
-        playerFactionIndex = ownerIndex
+        trackedFactionIndex = ownerIndex
 	endEvent
 
 	event OnHighlightST(string state_id)
         MainPage.ToggleQuickHotkey(true)
-		SetInfoText("$sab_mcm_mytroops_menu_set_player_fac_desc")
+		SetInfoText("$sab_mcm_factiontracker_menu_set_tracked_fac_desc")
 	endEvent
     
     
 endstate
 
 
-Function SetActualFactionRelations(string facName, int relationValue)
-    Faction targetVanillaFac = MainPage.MainQuest.FactionDataHandler.GetVanillaFactionByName(facName)
+; Function SetActualFactionRelations(string facName, int relationValue)
+;     Faction targetVanillaFac = MainPage.MainQuest.FactionDataHandler.GetVanillaFactionByName(facName)
 
-    if targetVanillaFac != None
-        SAB_FactionScript curFacScript = MainPage.MainQuest.FactionDataHandler.SAB_FactionQuests[playerFactionIndex]
-        curFacScript.SetRelationsWithFaction(targetVanillaFac, relationValue)
-    endif
+;     if targetVanillaFac != None
+;         SAB_FactionScript curFacScript = MainPage.MainQuest.FactionDataHandler.SAB_FactionQuests[trackedFactionIndex]
+;         curFacScript.SetRelationsWithFaction(targetVanillaFac, relationValue)
+;     endif
     
-EndFunction
+; EndFunction

@@ -11,7 +11,7 @@ SAB_LocationScript editedLocationScript
 
 
 event OnInit()
-    RegisterModule("$sab_mcm_page_edit_locations", 3)
+    RegisterModule("$sab_mcm_page_cur_location", 3)
 endevent
 
 Event OnPageInit()
@@ -25,7 +25,7 @@ Event OnVersionUpdate(Int a_version)
 EndEvent
 
 Event OnPageDraw()
-    SetLandingPage("$sab_mcm_page_edit_locations")
+    SetLandingPage("$sab_mcm_page_cur_location")
     SetupPage()
 EndEvent
 
