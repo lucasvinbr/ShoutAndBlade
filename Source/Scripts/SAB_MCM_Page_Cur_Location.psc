@@ -2,21 +2,11 @@ scriptname SAB_MCM_Page_Cur_Location extends nl_mcm_module
 
 SAB_MCM Property MainPage Auto
 
-string[] editedFactionIdentifiersArray
-
-string[] editedLocationIdentifiersArray
-int editedLocationIndex = 0
-int jLocationsDataMap
-SAB_LocationScript editedLocationScript
-
-
 event OnInit()
     RegisterModule("$sab_mcm_page_cur_location", 3)
 endevent
 
 Event OnPageInit()
-
-    editedFactionIdentifiersArray = new string[101]
 
 EndEvent
 
@@ -61,384 +51,91 @@ Function SetupPage()
 
     SAB_LocationDataHandler locHandler = MainPage.MainQuest.LocationDataHandler
 
-    editedLocationIdentifiersArray = locHandler.CreateStringArrayWithLocationIdentifiers()
-
-    if editedLocationIdentifiersArray.Length <= 0
-        AddTextOptionST("NO_LOCS_FOUND", "$sab_mcm_locationedit_text_no_locs_found", "")
-        return
-    endif
-
-    SetCursorFillMode(TOP_TO_BOTTOM)
-
-    jLocationsDataMap = locHandler.jLocationsConfigMap
-
-    editedLocationScript = locHandler.Locations[editedLocationIndex]
-
-    AddMenuOptionST("LOC_EDIT_CUR_LOC", "$sab_mcm_locationedit_menu_currentloc", editedLocationScript.GetLocName())
-
-    AddInputOptionST("LOC_EDIT_LOC_DISPLAYNAME", "$sab_mcm_locationedit_input_loc_name", editedLocationScript.GetLocName())
-    AddEmptyOption()
-
-    string ownerFacName = "$sab_mcm_locationedit_ownership_option_neutral"
-
-    if editedLocationScript.factionScript != None
-        ownerFacName = editedLocationScript.factionScript.GetFactionName()
-    endif
-
-    AddToggleOptionST("LOC_EDIT_ENABLED", "$sab_mcm_locationedit_toggle_enabled", editedLocationScript.isEnabled)
-
-    AddMenuOptionST("LOC_EDIT_LOC_OWNER", "$sab_mcm_locationedit_menu_ownership", ownerFacName)
-    
-    AddSliderOptionST("LOC_EDIT_MULTIPLIER___GoldReward", "$sab_mcm_locationedit_slider_gold_award_mult", editedLocationScript.GoldRewardMultiplier, "{1}")
-    AddSliderOptionST("LOC_EDIT_MULTIPLIER___GarrisonSize", "$sab_mcm_locationedit_slider_garrison_size_mult", editedLocationScript.GarrisonSizeMultiplier, "{1}")
-
-    SetCursorPosition(1)
-
-    AddEmptyOption()
-    AddTextOptionST("LOC_EDIT_SAVE", "$sab_mcm_locationedit_button_save", "")
-    AddTextOptionST("LOC_EDIT_LOAD", "$sab_mcm_locationedit_button_load", "")
-
-    AddEmptyOption()
-
-    int jNearbyLocsArray = editedLocationScript.jNearbyLocationsArray
-    int i = jArray.count(jNearbyLocsArray)
-
-    While i > 0
-        i -= 1
-
-        int locIndex = jArray.getInt(jNearbyLocsArray, i, -1)
-            
-        if locIndex >= 0
-            string locName = locHandler.Locations[locIndex].GetLocName()
-            AddTextOptionST("LOC_NEARBY___" + locName, "$sab_mcm_locationedit_nearbyloc", locName)
+    ; show all locs in nearbies alias list (we expect - and hope! - it's less than 128)
+    int i = MainPage.MainQuest.SpawnersUpdater.LocationUpdater.GetTopIndex()
+    SAB_UpdatedReferenceAlias[] nearbyLocAliases = MainPage.MainQuest.SpawnersUpdater.LocationUpdater.GetAliasesArray(0)
+    While i >= 0
+        SAB_UpdatedReferenceAlias locAlias = nearbyLocAliases[i]
+        SAB_LocationScript locref = locAlias as SAB_LocationScript
+        if locref
+            SetupOptionsForLoc(locref, i)
         endif
+        
+        i -= 1
     EndWhile
-
-    AddTextOptionST("LOC_RECALC_NEARBY", "$sab_mcm_locationedit_recalculate_nearbyloc", "")
     
 EndFunction
 
+Function SetupOptionsForLoc(SAB_LocationScript loc, int locIndexInLocUpdater)
+    string locName = loc.GetName()
+    AddHeaderOption(locName)
+    AddEmptyOption()
 
-state LOC_EDIT_CUR_LOC
+    AddTextOptionST("STATS_DISPLAY_OWNER_FAC___" + locIndexInLocUpdater, "$sab_mcm_curloc_owner_fac_name", loc.GetOwnerFactionName())
+    AddTextOptionST("STATS_DISPLAY_NUM_UNITS___" + locIndexInLocUpdater, "$sab_mcm_curloc_num_units", loc.totalOwnedUnitsAmount)
+    AddTextOptionST("BUTTON_CLAIMLOC___" + locIndexInLocUpdater, "$sab_mcm_curloc_button_claim_loc", "")
+    AddEmptyOption()
 
-	event OnMenuOpenST(string state_id)
-		SetMenuDialogStartIndex(editedLocationIndex)
-		SetMenuDialogDefaultIndex(0)
-		SetMenuDialogOptions(editedLocationIdentifiersArray)
-	endEvent
+    AddEmptyOption()
+    AddEmptyOption()
+EndFunction
 
-	event OnMenuAcceptST(string state_id, int index)
-		editedLocationIndex = index
-		SetMenuOptionValueST(index)
-        ForcePageReset()
-	endEvent
 
-	event OnDefaultST(string state_id)
-		editedLocationIndex = 0
-		SetMenuOptionValueST(editedLocationIndex)
-        ForcePageReset()
-	endEvent
+
+state STATS_DISPLAY_OWNER_FAC
 
 	event OnHighlightST(string state_id)
         MainPage.ToggleQuickHotkey(true)
-		SetInfoText("$sab_mcm_locationedit_menu_currentloc_desc")
+		SetInfoText("$sab_mcm_curloc_owner_fac_name_desc")
 	endEvent
-    
+
 endstate
 
-
-state LOC_EDIT_LOC_OWNER
-
-	event OnMenuOpenST(string state_id)
-        int ownerIndex = MainPage.MainQuest.FactionDataHandler.GetFactionIndex(editedLocationScript.factionScript)
-		SetMenuDialogStartIndex(ownerIndex + 1)
-        SetMenuDialogDefaultIndex(0)
-		MainPage.MainQuest.FactionDataHandler.SetupStringArrayWithOwnershipIdentifiers(editedFactionIdentifiersArray, "$sab_mcm_locationedit_ownership_option_neutral")
-		SetMenuDialogOptions(editedFactionIdentifiersArray)
-	endEvent
-
-	event OnMenuAcceptST(string state_id, int index)
-		SetMenuOptionValueST(editedFactionIdentifiersArray[index])
-
-        int ownerIndex = index - 1
-
-        if index == 0
-            editedLocationScript.BecomeNeutral(true)
-        else
-            SAB_FactionScript newOwner = MainPage.MainQuest.FactionDataHandler.SAB_FactionQuests[ownerIndex]
-            editedLocationScript.BeTakenByFaction(newOwner, true)
-        endif
-
-        int jLocDataMap = JMap.getObj(jLocationsDataMap, editedLocationScript.GetLocId())
-
-        if jLocDataMap == 0
-            jLocDataMap = jMap.object()
-            jMap.setObj(jLocationsDataMap, editedLocationScript.GetLocId(), jLocDataMap)
-        endif
-
-        jMap.setInt(jLocDataMap, "OwnerFactionIndex", ownerIndex)
-	endEvent
-
-	event OnDefaultST(string state_id)
-		SetMenuOptionValueST("$sab_mcm_locationedit_ownership_option_neutral")
-        editedLocationScript.BecomeNeutral(true)
-
-        int ownerIndex = -1
-        int jLocDataMap = JMap.getObj(jLocationsDataMap, editedLocationScript.GetLocId())
-
-        if jLocDataMap == 0
-            jLocDataMap = jMap.object()
-            jMap.setObj(jLocationsDataMap, editedLocationScript.GetLocId(), jLocDataMap)
-        endif
-
-        jMap.setInt(jLocDataMap, "OwnerFactionIndex", ownerIndex)
-	endEvent
+state STATS_DISPLAY_NUM_UNITS
 
 	event OnHighlightST(string state_id)
         MainPage.ToggleQuickHotkey(true)
-		SetInfoText("$sab_mcm_locationedit_menu_ownership_desc")
+		SetInfoText("$sab_mcm_curloc_num_units_desc")
 	endEvent
-    
+
 endstate
 
-
-state LOC_EDIT_ENABLED
+state BUTTON_CLAIMLOC
     event OnSelectST(string state_id)
-        bool newValue = !editedLocationScript.isEnabled
-        int newValueInt = 0
+        int locIndex = state_id as int
 
-        MainPage.MainQuest.LocationDataHandler.SetLocationEnabled(editedLocationScript, newValue)
+        SAB_FactionScript playerFac = MainPage.MainQuest.PlayerDataHandler.PlayerFaction
 
-        if newValue
-            newValueInt = 1
+        if playerFac == None
+            ShowMessage("$sab_mcm_curloc_popup_cant_claim_not_in_fac", false)
+            return
         endif
 
-        int jLocDataMap = JMap.getObj(jLocationsDataMap, editedLocationScript.GetLocId())
+        SAB_UpdatedReferenceAlias[] nearbyLocAliases = MainPage.MainQuest.SpawnersUpdater.LocationUpdater.GetAliasesArray(0)
+        SAB_UpdatedReferenceAlias locAlias = nearbyLocAliases[locIndex]
+        SAB_LocationScript locref = locAlias as SAB_LocationScript
 
-        if jLocDataMap == 0
-            jLocDataMap = jMap.object()
-            jMap.setObj(jLocationsDataMap, editedLocationScript.GetLocId(), jLocDataMap)
-        endif
-
-        jMap.setInt(jLocDataMap, "OwnerFactionIndex", newValueInt)
-        SetToggleOptionValueST(newValue)
-	endEvent
-
-    event OnDefaultST(string state_id)
-        bool newValue = true
-        int newValueInt = 1
-
-        MainPage.MainQuest.LocationDataHandler.SetLocationEnabled(editedLocationScript, newValue)
-
-        int jLocDataMap = JMap.getObj(jLocationsDataMap, editedLocationScript.GetLocId())
-
-        if jLocDataMap == 0
-            jLocDataMap = jMap.object()
-            jMap.setObj(jLocationsDataMap, editedLocationScript.GetLocId(), jLocDataMap)
-        endif
-
-        jMap.setInt(jLocDataMap, "OwnerFactionIndex", newValueInt)
-        SetToggleOptionValueST(newValue)
-    endevent
-
-	event OnHighlightST(string state_id)
-        MainPage.ToggleQuickHotkey(true)
-		SetInfoText("$sab_mcm_locationedit_toggle_enabled_desc")
-	endEvent
-endstate
-
-state LOC_EDIT_LOC_DISPLAYNAME
-
-	event OnInputOpenST(string state_id)
-        string locName = editedLocationScript.GetLocName()
-		SetInputDialogStartText(locName)
-	endEvent
-
-	event OnInputAcceptST(string state_id, string inputs)
-        MainPage.ToggleQuickHotkey(true)
-        int jLocDataMap = JMap.getObj(jLocationsDataMap, editedLocationScript.GetLocId())
-
-        if jLocDataMap == 0
-            jLocDataMap = jMap.object()
-            jMap.setObj(jLocationsDataMap, editedLocationScript.GetLocId(), jLocDataMap)
-        endif
-
-        editedLocationScript.OverrideDisplayName = inputs
-        JMap.setStr(jLocDataMap, "OverrideDisplayName", inputs)
-        SetInputOptionValueST(inputs)
-
-        ;force a reset to update other fields that use the name
-        ForcePageReset()
-	endEvent
-
-	event OnDefaultST(string state_id)
-
-        int jLocDataMap = JMap.getObj(jLocationsDataMap, editedLocationScript.GetLocId())
-
-        if jLocDataMap == 0
-            jLocDataMap = jMap.object()
-            jMap.setObj(jLocationsDataMap, editedLocationScript.GetLocId(), jLocDataMap)
-        endif
-
-        string inputs = editedLocationScript.ThisLocation.GetName()
-        editedLocationScript.OverrideDisplayName = inputs
-        JMap.setStr(jLocDataMap, "OverrideDisplayName", inputs)
-        SetInputOptionValueST(inputs)
-
-        ;force a reset to update other fields that use the name
-        ForcePageReset()
-	endEvent
-
-	event OnHighlightST(string state_id)
-        MainPage.ToggleQuickHotkey(false)
-		SetInfoText("$sab_mcm_locationedit_input_loc_name_desc")
-	endEvent
-    
-endstate
-
-
-state LOC_EDIT_MULTIPLIER
-	event OnSliderOpenST(string state_id)
-        float initialValue = editedLocationScript.GoldRewardMultiplier
-
-        if state_id == "GarrisonSize"
-            initialValue = editedLocationScript.GarrisonSizeMultiplier
-        endif
-
-		SetSliderDialogStartValue(initialValue)
-		SetSliderDialogDefaultValue(1.0)
-		SetSliderDialogRange(0.1, 10.0)
-		SetSliderDialogInterval(0.1)
-	endEvent
-
-	event OnSliderAcceptST(string state_id, float value)
-        int jLocDataMap = JMap.getObj(jLocationsDataMap, editedLocationScript.GetLocId())
-
-        if jLocDataMap == 0
-            jLocDataMap = jMap.object()
-            jMap.setObj(jLocationsDataMap, editedLocationScript.GetLocId(), jLocDataMap)
-        endif
-
-        if state_id == "GarrisonSize"
-            editedLocationScript.GarrisonSizeMultiplier = value
-            JMap.setFlt(jLocDataMap, "GarrisonSizeMultiplier", value)
+        if locref
+            if locref.factionScript == None
+                locref.BeTakenByFaction(playerFac)
+                MainPage.MainQuest.DiplomacyHandler.AddOrSubtractPlayerRelationWithFac(playerFac.GetFactionIndex(), JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.relAdd_playerTookLocForUs", 0.5))
+                ShowMessage("$sab_mcm_curloc_popup_zone_claimed", false)
+                ForcePageReset()
+            else
+                if locref.factionScript == playerFac
+                    ShowMessage("$sab_mcm_curloc_popup_zone_already_yours", false)
+                else
+                    ShowMessage("$sab_mcm_curloc_popup_cant_claim_not_neutral", false)
+                endif
+            endif
         else
-            editedLocationScript.GoldRewardMultiplier = value
-            JMap.setFlt(jLocDataMap, "GoldRewardMultiplier", value)
+            ShowMessage("ERROR: no loc with passed index", false)
         endif
 
-		SetSliderOptionValueST(value, "{1}")
-	endEvent
-
-	event OnDefaultST(string state_id)
-        float value = 1.0
-        int jLocDataMap = JMap.getObj(jLocationsDataMap, editedLocationScript.GetLocId())
-
-        if jLocDataMap == 0
-            jLocDataMap = jMap.object()
-            jMap.setObj(jLocationsDataMap, editedLocationScript.GetLocId(), jLocDataMap)
-        endif
-
-        if state_id == "GarrisonSize"
-            editedLocationScript.GarrisonSizeMultiplier = value
-            JMap.setFlt(jLocDataMap, "GarrisonSizeMultiplier", value)
-        else
-            editedLocationScript.GoldRewardMultiplier = value
-            JMap.setFlt(jLocDataMap, "GoldRewardMultiplier", value)
-        endif
-
-		SetSliderOptionValueST(value)
 	endEvent
 
 	event OnHighlightST(string state_id)
         MainPage.ToggleQuickHotkey(true)
-
-        if state_id == "GarrisonSize"
-            SetInfoText("$sab_mcm_locationedit_slider_garrison_size_mult_desc")
-        else
-            SetInfoText("$sab_mcm_locationedit_slider_gold_award_mult_desc")
-        endif
-		
-	endEvent
-endState
-
-state NO_LOCS_FOUND
-
-	event OnHighlightST(string state_id)
-        MainPage.ToggleQuickHotkey(true)
-		SetInfoText("$sab_mcm_locationedit_text_no_locs_found_desc")
-	endEvent
-
-endstate
-
-state LOC_NEARBY
-
-	event OnHighlightST(string state_id)
-        MainPage.ToggleQuickHotkey(true)
-		SetInfoText("$sab_mcm_locationedit_nearbyloc_desc")
-	endEvent
-
-endstate
-
-state LOC_RECALC_NEARBY
-    event OnSelectST(string state_id)
-        MainPage.MainQuest.LocationDataHandler.CalculateLocationDistances()
-        ShowMessage("$sab_mcm_locationedit_recalculate_nearbyloc_desc", false)
-	endEvent
-
-	event OnHighlightST(string state_id)
-        MainPage.ToggleQuickHotkey(true)
-		SetInfoText("$sab_mcm_locationedit_recalculate_nearbyloc_desc")
-	endEvent
-endstate
-
-
-state LOC_EDIT_SAVE
-    event OnSelectST(string state_id)
-        string filePath = JContainers.userDirectory() + "SAB/locationData.json"
-        MainPage.MainQuest.LocationDataHandler.WriteCurrentLocOwnershipsToJmap()
-        MainPage.MainQuest.LocationDataHandler.WriteCurrentLocNamesToJmap()
-        JValue.writeToFile(MainPage.MainQuest.LocationDataHandler.jLocationsConfigMap, filePath)
-        ShowMessage("Save: " + filePath, false)
-	endEvent
-
-    event OnDefaultST(string state_id)
-        ; nothing
-    endevent
-
-	event OnHighlightST(string state_id)
-        MainPage.ToggleQuickHotkey(true)
-		SetInfoText("$sab_mcm_factionedit_button_save_desc")
-	endEvent
-endstate
-
-state LOC_EDIT_LOAD
-    event OnSelectST(string state_id)
-        string filePath = JContainers.userDirectory() + "SAB/locationData.json"
-        MainPage.isLoadingData = true
-        int jReadData = JValue.readFromFile(filePath)
-        if jReadData != 0
-            ShowMessage("$sab_mcm_shared_popup_msg_load_started", false)
-            ;force a page reset to disable all action buttons!
-            ForcePageReset()
-            MainPage.MainQuest.LocationDataHandler.jLocationsConfigMap = JValue.releaseAndRetain(MainPage.MainQuest.LocationDataHandler.jLocationsConfigMap, jReadData, "ShoutAndBlade")
-            MainPage.MainQuest.LocationDataHandler.UpdateLocationsAccordingToJMap()
-            MainPage.isLoadingData = false
-            Debug.Notification("SAB: Load complete!")
-            ShowMessage("$sab_mcm_shared_popup_msg_load_success", false)
-            ForcePageReset()
-        else
-            MainPage.isLoadingData = false
-            ShowMessage("$sab_mcm_shared_popup_msg_load_fail", false)
-        endif
-	endEvent
-
-    event OnDefaultST(string state_id)
-        ; nothing
-    endevent
-
-	event OnHighlightST(string state_id)
-        MainPage.ToggleQuickHotkey(true)
-		SetInfoText("$sab_mcm_factionedit_button_load_desc")
+		SetInfoText("$sab_mcm_curloc_button_claim_loc_desc")
 	endEvent
 endstate

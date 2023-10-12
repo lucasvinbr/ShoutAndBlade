@@ -155,6 +155,8 @@ int Function GetAlliedFactionsOfTargetFac(int targetFacIndex)
             endif
         endif
     EndWhile
+
+    return jReturnedArray
 EndFunction
 
 ; returns a jArray with the facIndexes of all enemy factions of the target fac. The jArray must be released after its use!
@@ -175,6 +177,8 @@ int Function GetEnemyFactionsOfTargetFac(int targetFacIndex)
             endif
         endif
     EndWhile
+
+    return jReturnedArray
 EndFunction
 
 ; returns true if faction one and two have a relation value above or equal to the ally relation level threshold.
