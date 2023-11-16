@@ -417,6 +417,39 @@ string[] Function CreateStringArrayWithLocationIdentifiers()
     return namesArray
 EndFunction
 
+; creates a string array with only enabled location IDs accompanied by their names
+string[] Function CreateStringArrayWithEnabledLocationIdentifiers()
+
+    string[] namesArray = Utility.CreateStringArray(NextEnabledLocationIndex)
+    int endingIndex = NextEnabledLocationIndex
+
+    int i = 0
+
+    while(i < endingIndex)
+
+        string locName = EnabledLocations[i].GetLocName()
+
+        namesArray[i] = ((i + 1) as string) + " - " + locName
+
+        i += 1
+    endwhile
+
+    return namesArray
+EndFunction
+
+
+int Function GetEnabledLocationIndex(SAB_LocationScript locScript)
+    int i = 0
+
+    while i < NextEnabledLocationIndex
+        if EnabledLocations[i] == locScript
+            return i
+        endif
+        i += 1
+    endwhile
+
+    return -1
+EndFunction
 
 ; returns a jArray with the indexes of the locations that have the target faction as owner
 int Function GetLocationIndexesOwnedByFaction(SAB_FactionScript factionScript)

@@ -41,6 +41,9 @@ int Property jFactionData Auto Hidden
 int Property jOwnedLocationIndexesArray Auto Hidden
 { indexes of the LocationDataHandler array that contain locations owned by this faction }
 
+bool Property playerIsControllingDestinations Auto Hidden
+{ if true and the player is part of this faction,, destinations won't be automatically changed for this faction }
+
 ; the player-related handler script. if this var has a value assigned, it probably means the player belongs to this faction
 SAB_PlayerDataHandler playerHandler
 
@@ -111,6 +114,11 @@ Function RemovePlayerFromOurFaction(Actor playerActor)
 	playerHandler = None
 EndFunction
 
+; true if the plyr belongs to this fac and has set to control its destinations
+bool Function IsPlayerInControlOfThisFaction()
+	return playerIsControllingDestinations && playerHandler != None
+endfunction
+
 ; don't use this for the player! use AddPlayerToOurFaction in that case
 Function AddActorToOurFaction(Actor targetActor)
 	targetActor.AddToFaction(OurFaction)
@@ -162,6 +170,11 @@ EndFunction
 ; makes the faction "think" about where its commanders should go to.
 ; the faction should try to both attack other locations and defend their own
 Function RunDestinationsUpdate(float curGameTime)
+
+	if IsPlayerInControlOfThisFaction()
+		; don't change destinations, player is in control!
+		return
+	endif
 
 	int jAttackTargetsArray = FindAttackTargets()
 	int jDefenseTargetsArray = FindDefenseTargets()
@@ -386,7 +399,6 @@ int Function FindDefenseTargets()
 
 EndFunction
 
-
 ; destination code can be A, B or C.
 ; we should check if the cmder really is close to the respective xmarker, and,
 ; if it really is the case, assign them to the loc script!
@@ -471,10 +483,44 @@ Function RemoveLocationFromOwnedList(SAB_LocationScript locationScript)
 	
 EndFunction
 
+Function PlayerSetFacDestination(string cmderDestType = "a", SAB_LocationScript newDestination)
+	if newDestination == None
+		return
+	endif
+	
+	ObjectReference cmderDest = CmderDestination_A.GetReference()
+
+	if cmderDestType == "a" || cmderDestType == "A"
+		cmderDest = CmderDestination_A.GetReference()
+		destinationScript_A = newDestination
+		SetObjectiveDisplayed(0, true, true)
+	elseif cmderDestType == "b" || cmderDestType == "B"
+		cmderDest = CmderDestination_B.GetReference()
+		destinationScript_B = newDestination
+		SetObjectiveDisplayed(1, true, true)
+	elseif cmderDestType == "c" || cmderDestType == "C"
+		cmderDest = CmderDestination_C.GetReference()
+		destinationScript_C = newDestination
+		SetObjectiveDisplayed(2, true, true)
+	endif
+
+	cmderDest.MoveTo(newDestination.MoveDestination)
+	
+EndFunction
+
 ; if we're still owners of the attacked loc and aren't busy defending some other loc that's also being attacked,
 ; change one of our defensive objectives to the attacked loc
 Function ReactToLocationUnderAttack(SAB_LocationScript attackedLoc, float curGameTime)
+
 	if attackedLoc.factionScript == self
+		if IsPlayerInControlOfThisFaction()
+			; don't change dests, just notify player about the attack if the loc isn't marked as dest already
+			if destinationScript_A != attackedLoc && destinationScript_B != attackedLoc && destinationScript_C != attackedLoc
+				Debug.Notification(attackedLoc.GetLocName() + " is under attack!")
+				return
+			endif
+		endif
+
 		if destinationScript_B == None || destinationScript_B.factionScript != self || \
 				(destinationScript_B.factionScript == self && !destinationScript_B.IsBeingContested()) || \
 				destinationScript_B.isEnabled == false

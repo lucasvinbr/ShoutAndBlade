@@ -7,6 +7,7 @@ string[] editedFactionIdentifiersArray
 int playerFactionIndex = -1
 int jPlayerFactionData = 0
 int jFacVanillaRelationsMap = 0
+bool playerControlsFacOrders = false
 
 Form Property Gold001 Auto
 
@@ -72,10 +73,12 @@ Function SetupPage()
         AddTextOptionST("PLYR_CUR_FAC_NUM_GOLD", "$sab_mcm_myfaction_numgold", facGold)
         AddTextOptionST("PLYR_CUR_FAC_NUM_CMDERS", "$sab_mcm_myfaction_numcmders", numCmders)
 
+        AddToggleOptionST("PLYR_CUR_FAC_PLYR_CONTROLS", "$sab_mcm_myfaction_playercontrols", playerControlsFacOrders)
+
         ; show faction's move destinations
-        AddTargetLocationInfo(facScript.destinationScript_A, "PLYR_CUR_FAC_DEST___A", "$sab_mcm_mytroops_menu_ourdest_a")
-        AddTargetLocationInfo(facScript.destinationScript_B, "PLYR_CUR_FAC_DEST___B", "$sab_mcm_mytroops_menu_ourdest_b")
-        AddTargetLocationInfo(facScript.destinationScript_C, "PLYR_CUR_FAC_DEST___C", "$sab_mcm_mytroops_menu_ourdest_c")
+        AddTargetLocationInfo(facScript.destinationScript_A, "PLYR_CUR_FAC_DEST___A", "$sab_mcm_mytroops_menu_ourdest_a", true)
+        AddTargetLocationInfo(facScript.destinationScript_B, "PLYR_CUR_FAC_DEST___B", "$sab_mcm_mytroops_menu_ourdest_b", true)
+        AddTargetLocationInfo(facScript.destinationScript_C, "PLYR_CUR_FAC_DEST___C", "$sab_mcm_mytroops_menu_ourdest_c", true)
 
         SetCursorPosition(1)
 
@@ -139,7 +142,7 @@ Function SetupPage()
             if locIndex >= 0
                 string locName = locHandler.Locations[locIndex].GetLocName()
                 if jArray.findStr(jAlreadyAddedTargetsArray, locName) == -1
-                    AddTargetLocationInfo(locHandler.Locations[locIndex], "PLYR_CUR_FAC_ATKTARGET___" + locName, locName)
+                    AddTargetLocationInfo(locHandler.Locations[locIndex], "PLYR_CUR_FAC_ATKTARGET___" + locName, locName, false)
                     jArray.addStr(jAlreadyAddedTargetsArray, locName)
                 endif
             endif
@@ -153,8 +156,13 @@ EndFunction
 
 ; adds MCM entries for the target location (if not null):
 ; it should show the location's name, the current owner and whether it's under attack or not
-Function AddTargetLocationInfo(SAB_LocationScript locScript, string entryStateId, string baseEntryName)
-    AddTextOptionST(entryStateId, baseEntryName, GetLocationNameForOurDests(locScript))
+Function AddTargetLocationInfo(SAB_LocationScript locScript, string entryStateId, string baseEntryName, bool editableIfPlayerControls)
+    if playerControlsFacOrders && editableIfPlayerControls
+        AddMenuOptionST(entryStateId, baseEntryName, GetLocationNameForOurDests(locScript))
+    else
+        AddTextOptionST(entryStateId, baseEntryName, GetLocationNameForOurDests(locScript))
+    endif
+    
     if locScript != None
         AddTextOptionST(entryStateId + "_owner", "$sab_mcm_myfaction_targetloc_owner", locScript.GetOwnerFactionName())
         AddToggleOptionST(entryStateId + "_iscontested", "$sab_mcm_myfaction_targetloc_iscontested", locScript.IsBeingContested(), OPTION_FLAG_DISABLED)
@@ -176,6 +184,44 @@ EndFunction
 
 
 state PLYR_CUR_FAC_DEST
+    event OnMenuOpenST(string state_id)
+		SetMenuDialogDefaultIndex(0)
+
+        SAB_FactionScript facScript = MainPage.MainQuest.FactionDataHandler.SAB_FactionQuests[playerFactionIndex]
+        SAB_LocationDataHandler locHandler = MainPage.MainQuest.LocationDataHandler
+        int curLocIndex = 0
+
+        if state_id == "a"
+            curLocIndex = locHandler.GetEnabledLocationIndex(facScript.destinationScript_A)
+        elseif state_id == "b"
+            curLocIndex = locHandler.GetEnabledLocationIndex(facScript.destinationScript_B)
+        elseif state_id == "c"
+            curLocIndex = locHandler.GetEnabledLocationIndex(facScript.destinationScript_C)
+        endif
+
+        if curLocIndex < 0
+            curLocIndex = 0
+        endif
+
+        SetMenuDialogStartIndex(curLocIndex)
+
+        string[] editedLocationIdentifiersArray = locHandler.CreateStringArrayWithEnabledLocationIdentifiers()
+
+		SetMenuDialogOptions(editedLocationIdentifiersArray)
+	endEvent
+
+	event OnMenuAcceptST(string state_id, int index)
+		; find loc by index, then set target dest in fac script
+        SAB_LocationDataHandler locHandler = MainPage.MainQuest.LocationDataHandler
+        SAB_LocationScript targetLoc = locHandler.EnabledLocations[index]
+
+        SAB_FactionScript facScript = MainPage.MainQuest.FactionDataHandler.SAB_FactionQuests[playerFactionIndex]
+        facScript.PlayerSetFacDestination(state_id, targetLoc)
+
+        SetMenuOptionValueST(targetLoc.GetLocName())
+        ForcePageReset()
+	endEvent
+
 	event OnHighlightST(string state_id)
         MainPage.ToggleQuickHotkey(true)
 		SetInfoText("$sab_mcm_mytroops_menu_ourdest_desc")
@@ -214,6 +260,31 @@ state PLYR_CUR_FAC_DEFTARGET
 	event OnHighlightST(string state_id)
         MainPage.ToggleQuickHotkey(true)
 		SetInfoText("$sab_mcm_myfaction_defensetargets_desc")
+	endEvent
+endstate
+
+state PLYR_CUR_FAC_PLYR_CONTROLS
+    event OnSelectST(string state_id)
+        playerControlsFacOrders = !playerControlsFacOrders
+
+        SAB_FactionScript facScript = MainPage.MainQuest.FactionDataHandler.SAB_FactionQuests[playerFactionIndex]
+        facScript.playerIsControllingDestinations = playerControlsFacOrders
+        SetToggleOptionValueST(playerControlsFacOrders)
+        ForcePageReset()
+	endEvent
+
+    event OnDefaultST(string state_id)
+        playerControlsFacOrders = false
+
+        SAB_FactionScript facScript = MainPage.MainQuest.FactionDataHandler.SAB_FactionQuests[playerFactionIndex]
+        facScript.playerIsControllingDestinations = playerControlsFacOrders
+        SetToggleOptionValueST(playerControlsFacOrders)
+        ForcePageReset()
+    endevent
+
+	event OnHighlightST(string state_id)
+        MainPage.ToggleQuickHotkey(true)
+		SetInfoText("$sab_mcm_myfaction_playercontrols_desc")
 	endEvent
 endstate
 
