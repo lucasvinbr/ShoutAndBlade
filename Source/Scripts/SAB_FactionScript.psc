@@ -663,7 +663,12 @@ ReferenceAlias Function TrySpawnCommander(float curGameTime, bool onlySpawnIfHas
 
 	; check if we can afford creating a new cmder
 	int cmderCost = JDB.solveInt(".ShoutAndBlade.factionOptions.createCmderCost", 250)
+
+	float extraCmderCostPercent = JDB.solveFlt(".ShoutAndBlade.factionOptions.createCmderCostPercent", 10.0) / 100.0
+
 	int currentGold = jMap.getInt(jFactionData, "AvailableGold", JDB.solveInt(".ShoutAndBlade.factionOptions.initialGold", SAB_FactionDataHandler.GetDefaultFactionGold()))
+
+	cmderCost += (currentGold * extraCmderCostPercent) as int
 
 	if (!onlySpawnIfHasExtraMoney && currentGold < cmderCost) || (onlySpawnIfHasExtraMoney && currentGold < JDB.solveInt(".ShoutAndBlade.factionOptions.minCmderGold", 600))
 		return None
@@ -738,6 +743,9 @@ EndFunction
 ; the faction gets some gold back, based on the gold costs of the units
 Function GetGoldFromDespawningCommander(int jCmderArmyMap)
 	int armyGold = SpawnerScript.UnitDataHandler.GetTotalCurrentGoldCostFromArmy(jCmderArmyMap)
+	int cmderSpawnCost = JDB.solveInt(".ShoutAndBlade.factionOptions.createCmderCost", 250)
+
+	armyGold += cmderSpawnCost
 
 	int currentGold = jMap.getInt(jFactionData, "AvailableGold", JDB.solveInt(".ShoutAndBlade.factionOptions.initialGold", SAB_FactionDataHandler.GetDefaultFactionGold()))
 

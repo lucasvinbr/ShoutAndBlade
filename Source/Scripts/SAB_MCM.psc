@@ -78,11 +78,13 @@ event OnPageDraw()
     AddSliderOptionST("OPTIONS_FAC_INTERVAL___goldInterval", "$sab_mcm_options_slider_fac_goldinterval", JDB.solveFlt(".ShoutAndBlade.factionOptions.goldInterval", 0.12), "{3}")
     AddSliderOptionST("OPTIONS_FAC_GOLD___baseGoldAward", "$sab_mcm_options_slider_fac_goldaward", JDB.solveInt(".ShoutAndBlade.factionOptions.baseGoldAward", 500))
     AddSliderOptionST("OPTIONS_FAC_GOLD___createCmderCost", "$sab_mcm_options_slider_fac_createcmdercost", JDB.solveInt(".ShoutAndBlade.factionOptions.createCmderCost", 250))
+    AddSliderOptionST("OPTIONS_FAC_POWER___createCmderCostPercent", "$sab_mcm_options_slider_fac_createcmdercostpercent", JDB.solveFlt(".ShoutAndBlade.factionOptions.createCmderCostPercent", 10.0), "{1}")
     AddSliderOptionST("OPTIONS_FAC_INTERVAL___destCheckInterval", "$sab_mcm_options_slider_fac_destcheckinterval", JDB.solveFlt(".ShoutAndBlade.factionOptions.destCheckInterval", 0.15), "{3}")
     AddSliderOptionST("OPTIONS_FAC_INTERVAL___destChangeInterval", "$sab_mcm_options_slider_fac_destchangeinterval", JDB.solveFlt(".ShoutAndBlade.factionOptions.destChangeInterval", 1.05), "{3}")
     AddSliderOptionST("OPTIONS_FAC_GOLD___minCmderGold", "$sab_mcm_options_slider_fac_mincmdergold", JDB.solveInt(".ShoutAndBlade.factionOptions.minCmderGold", 600))
     AddSliderOptionST("OPTIONS_FAC_POWER___safeLocationPower", "$sab_mcm_options_slider_fac_safelocationpower", JDB.solveFlt(".ShoutAndBlade.factionOptions.safeLocationPower", 32.0), "{1}")
 
+    AddEmptyOption()
     AddEmptyOption()
     AddEmptyOption()
     AddEmptyOption()
@@ -400,7 +402,6 @@ state OPTIONS_FAC_INTERVAL
 endstate
 
 
-
 state OPTIONS_FAC_POWER
 
     event OnSliderOpenST(string state_id)
@@ -427,6 +428,8 @@ state OPTIONS_FAC_POWER
 
         if state_id == "safeLocationPower"
             SetInfoText("$sab_mcm_options_slider_fac_safelocationpower_desc")
+        elseif state_id == "createCmderCostPercent"
+            SetInfoText("$sab_mcm_options_slider_fac_createcmdercostpercent_desc")
         endif
 	endEvent
 
@@ -1006,6 +1009,8 @@ float Function GetDefaultFltValueForOption(string category, string entryName)
     elseif category == "factionPower"
         if entryName == "safeLocationPower"
             return 32.0
+        elseif entryName == "createCmderCostPercent"
+            return 10.0
         endif
     elseif category == "locExp"
         if entryName == "awardedXpPerInterval"
