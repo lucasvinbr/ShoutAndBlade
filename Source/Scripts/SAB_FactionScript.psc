@@ -517,8 +517,9 @@ Function ReactToLocationUnderAttack(SAB_LocationScript attackedLoc, float curGam
 			; don't change dests, just notify player about the attack if the loc isn't marked as dest already
 			if destinationScript_A != attackedLoc && destinationScript_B != attackedLoc && destinationScript_C != attackedLoc
 				Debug.Notification(attackedLoc.GetLocName() + " is under attack!")
-				return
 			endif
+
+			return
 		endif
 
 		if destinationScript_B == None || destinationScript_B.factionScript != self || \
