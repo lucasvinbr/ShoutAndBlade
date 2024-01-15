@@ -95,6 +95,8 @@ event OnPageDraw()
     AddSliderOptionST("OPTIONS_PLAYER_INTERVAL___expAwardInterval", "$sab_mcm_options_slider_player_expAwardInterval", JDB.solveFlt(".ShoutAndBlade.playerOptions.expAwardInterval", 0.08), "{3}")
     AddSliderOptionST("OPTIONS_PLAYER_EXP___expAwardPerPlayerLevel", "$sab_mcm_options_slider_player_expawardperplayerlevel", JDB.solveFlt(".ShoutAndBlade.playerOptions.expAwardPerPlayerLevel", 25.0), "{1}")
     AddSliderOptionST("OPTIONS_PLAYER_UNITS___baseMaxOwnedUnits", "$sab_mcm_options_slider_player_maxownedunits_base", JDB.solveInt(".ShoutAndBlade.playerOptions.baseMaxOwnedUnits", 30))
+    AddSliderOptionST("OPTIONS_PLAYER_UNITS___minUnitsAvailablePerRecruiter", "$sab_mcm_options_slider_player_recruiterunits_min", JDB.solveInt(".ShoutAndBlade.playerOptions.minUnitsAvailablePerRecruiter", 8))
+    AddSliderOptionST("OPTIONS_PLAYER_UNITS___maxUnitsAvailablePerRecruiter", "$sab_mcm_options_slider_player_recruiterunits_max", JDB.solveInt(".ShoutAndBlade.playerOptions.maxUnitsAvailablePerRecruiter", 25))
     AddSliderOptionST("OPTIONS_PLAYER_UNITFRACTION___bonusMaxOwnedUnitsPerLevel", "$sab_mcm_options_slider_player_maxownedunits_perlevel", JDB.solveFlt(".ShoutAndBlade.playerOptions.bonusMaxOwnedUnitsPerLevel", 0.5), "{1}")
 
     AddEmptyOption()
@@ -575,19 +577,40 @@ state OPTIONS_PLAYER_UNITS
     event OnSliderOpenST(string state_id)
         int defaultValue = GetDefaultIntValueForOption("player", state_id)
 		SetSliderDialogStartValue(JDB.solveInt(".ShoutAndBlade.playerOptions." + state_id, defaultValue))
-        SetSliderDialogRange(0, 120)
+        SetSliderDialogRange(0, 200)
 	    SetSliderDialogInterval(1)
 		SetSliderDialogDefaultValue(defaultValue)
 	endEvent
 
 	event OnSliderAcceptST(string state_id, float value)
         int valueInt = value as int
+
+        if(state_id == "maxUnitsAvailablePerRecruiter")
+            ; enforce max greater than min
+            int minUnits = JDB.solveInt(".ShoutAndBlade.playerOptions.minUnitsAvailablePerRecruiter", 8)
+
+            if(minUnits >= valueInt)
+                valueInt = minUnits + 1
+            endif
+        endif
+
         JDB.solveIntSetter(".ShoutAndBlade.playerOptions." + state_id, valueInt, true)
+
 		SetSliderOptionValueST(valueInt)
 	endEvent
 
 	event OnDefaultST(string state_id)
         int valueInt = GetDefaultIntValueForOption("player", state_id)
+
+        if(state_id == "maxUnitsAvailablePerRecruiter")
+            ; enforce max greater than min
+            int minUnits = JDB.solveInt(".ShoutAndBlade.playerOptions.minUnitsAvailablePerRecruiter", 8)
+
+            if(minUnits >= valueInt)
+                valueInt = minUnits + 1
+            endif
+        endif
+
         JDB.solveIntSetter(".ShoutAndBlade.playerOptions." + state_id, valueInt, true)
 		SetSliderOptionValueST(valueInt)
 	endEvent
@@ -597,6 +620,10 @@ state OPTIONS_PLAYER_UNITS
 
         if state_id == "baseMaxOwnedUnits"
             SetInfoText("$sab_mcm_options_slider_player_maxownedunits_base_desc")
+        elseif state_id == "maxUnitsAvailablePerRecruiter"
+            SetInfoText("$sab_mcm_options_slider_player_recruiterunits_max_desc")
+        elseif state_id == "minUnitsAvailablePerRecruiter"
+            SetInfoText("$sab_mcm_options_slider_player_recruiterunits_min_desc")
         endif
 	endEvent
 
@@ -710,7 +737,7 @@ state OPTIONS_CMDER_POWER
     event OnSliderOpenST(string state_id)
         float defaultValue = GetDefaultFltValueForOption("cmderPower", state_id)
 		SetSliderDialogStartValue(JDB.solveFlt(".ShoutAndBlade.cmderOptions." + state_id, defaultValue))
-        SetSliderDialogRange(0.0, 100.0)
+        SetSliderDialogRange(0.0, 1000.0)
 	    SetSliderDialogInterval(0.5)
 		SetSliderDialogDefaultValue(defaultValue)
 	endEvent
@@ -743,7 +770,7 @@ state OPTIONS_CMDER_UNITS
     event OnSliderOpenST(string state_id)
         int defaultValue = GetDefaultIntValueForOption("cmderUnits", state_id)
 		SetSliderDialogStartValue(JDB.solveInt(".ShoutAndBlade.cmderOptions." + state_id, defaultValue))
-        SetSliderDialogRange(0, 120)
+        SetSliderDialogRange(0, 300)
 	    SetSliderDialogInterval(1)
 		SetSliderDialogDefaultValue(defaultValue)
 	endEvent
@@ -787,7 +814,7 @@ state OPTIONS_LOC_UNITS
     event OnSliderOpenST(string state_id)
         int defaultValue = GetDefaultIntValueForOption("locUnits", state_id)
 		SetSliderDialogStartValue(JDB.solveInt(".ShoutAndBlade.locationOptions." + state_id, defaultValue))
-        SetSliderDialogRange(0, 120)
+        SetSliderDialogRange(0, 300)
 	    SetSliderDialogInterval(1)
 		SetSliderDialogDefaultValue(defaultValue)
 	endEvent
@@ -857,7 +884,7 @@ state OPTIONS_LOC_EXP
     event OnSliderOpenST(string state_id)
         float defaultValue = GetDefaultFltValueForOption("locExp", state_id)
 		SetSliderDialogStartValue(JDB.solveFlt(".ShoutAndBlade.locationOptions." + state_id, defaultValue))
-        SetSliderDialogRange(0.0, 2000.0)
+        SetSliderDialogRange(0.0, 4000.0)
 	    SetSliderDialogInterval(1)
 		SetSliderDialogDefaultValue(defaultValue)
 	endEvent
@@ -991,6 +1018,10 @@ int Function GetDefaultIntValueForOption(string category, string entryName)
     elseif category == "player"
         if entryName == "maxOwnedUnits"
             return 30
+        elseif entryName == "maxUnitsAvailablePerRecruiter"
+            return 25
+        elseif entryName == "minUnitsAvailablePerRecruiter"
+            return 8
         endif
     endif
 EndFunction

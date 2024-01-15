@@ -52,7 +52,7 @@ Function OpenPurchaseUnitsMenu(int unitIndex = -1, Actor recruiter)
 		return
 	endif
 
-	int numUnitsAvailable = utility.RandomInt(8, 25) ; TODO make this configurable (max and min units available per recruiter)
+	int numUnitsAvailable = utility.RandomInt(JDB.solveInt(".ShoutAndBlade.playerOptions.minUnitsAvailablePerRecruiter", 8), JDB.solveInt(".ShoutAndBlade.playerOptions.maxUnitsAvailablePerRecruiter", 25))
 
 	; limit num units available according to number of free unit slots the player has
 	if numUnitsAvailable > freeUnitSlots
