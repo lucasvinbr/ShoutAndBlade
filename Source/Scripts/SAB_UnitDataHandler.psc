@@ -329,6 +329,9 @@ EndFunction
 ; true if this key exists and is greater than 0
 ; int IsRanged
 
+; an array of ints, each entry indicating a possible upgrade option for this unit
+; int jUpgradeOptionsArray
+
 ;allowed races/genders - 0 is "none", 1 is "male only", 2 is "female only", 3 is "both"
 
 ; int RaceBreton

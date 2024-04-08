@@ -11,10 +11,16 @@ int editedUnitsMenuPage = 0
 int editedUnitIndex = 0
 int jEditedUnitData = 0
 
+int upgradeOptionsMenuPage = 0
+int jEditedUnitUpgradesArray = 0
+
 ; the name of the jMap entry being hovered or edited in the currently opened dialog
 string currentFieldBeingEdited = ""
 
 float currentSliderDefaultValue = 0.0
+
+int displayedRightSideMenu = 0
+string[] rightSideMenuOptions
 
 string[] editedUnitIdentifiersArray
 string[] unitRaceEditOptions
@@ -30,9 +36,18 @@ Event OnPageInit()
     unitRaceEditOptions[2] = "$sab_mcm_unitedit_race_option_female"
     unitRaceEditOptions[3] = "$sab_mcm_unitedit_race_option_both"
 
+    rightSideMenuOptions = new string[3]
+    rightSideMenuOptions[0] = "$sab_mcm_unitedit_menu_rightside_costskills"
+    rightSideMenuOptions[1] = "$sab_mcm_unitedit_menu_rightside_racesgenders"
+    rightSideMenuOptions[2] = "$sab_mcm_unitedit_menu_rightside_upgrades"
+
     editedUnitIdentifiersArray = new string[128]
 
 EndEvent
+
+int Function GetVersion()
+    return 2
+EndFunction
 
 Event OnVersionUpdate(Int a_version)
 	OnPageInit()
@@ -81,6 +96,13 @@ Function SetupEditUnitsPage()
         jEditedUnitData = jMap.object()
         JArray.setObj(MainPage.MainQuest.UnitDataHandler.jSABUnitDatasArray, editedUnitIndex, jEditedUnitData)
     endif
+
+    jEditedUnitUpgradesArray = jMap.getObj(jEditedUnitData, "jUpgradeOptionsArray")
+
+    if jEditedUnitUpgradesArray == 0
+        jEditedUnitUpgradesArray = jArray.object()
+        jMap.setObj(jEditedUnitData, "jUpgradeOptionsArray", jEditedUnitUpgradesArray)
+    endif
     
     AddHeaderOption("$sab_mcm_unitedit_header_selectunit")
     AddSliderOptionST("UNITEDIT_MENU_PAGE", "$sab_mcm_unitedit_slider_menupage", editedUnitsMenuPage + 1)
@@ -110,32 +132,68 @@ Function SetupEditUnitsPage()
     AddTextOptionST("UNITEDIT_TESTSPAWN___FAC1", "$sab_mcm_unitedit_button_spawn_testfac", "1")
     AddTextOptionST("UNITEDIT_TESTSPAWN___FAC2", "$sab_mcm_unitedit_button_spawn_testfac", "2")
 
-    AddHeaderOption("$sab_mcm_unitedit_header_costs")
-    AddSliderOptionST("UNITEDIT_COST_GOLD", "$sab_mcm_unitedit_slider_cost_gold", JMap.getFlt(jEditedUnitData, "GoldCost", 10.0))
-    AddSliderOptionST("UNITEDIT_COST_EXP", "$sab_mcm_unitedit_slider_cost_exp", JMap.getFlt(jEditedUnitData, "ExpCost", 10.0))
-
-    AddHeaderOption("$sab_mcm_unitedit_header_skills")
-    AddSliderOptionST("UNITEDIT_SKL___SkillMarksman", "$sab_mcm_unitedit_slider_marksman", JMap.getFlt(jEditedUnitData, "SkillMarksman", 15.0))
-    AddSliderOptionST("UNITEDIT_SKL___SkillOneHanded", "$sab_mcm_unitedit_slider_onehanded", JMap.getFlt(jEditedUnitData, "SkillOneHanded", 15.0))
-    AddSliderOptionST("UNITEDIT_SKL___SkillTwoHanded", "$sab_mcm_unitedit_slider_twohanded", JMap.getFlt(jEditedUnitData, "SkillTwoHanded", 15.0))
-    AddSliderOptionST("UNITEDIT_SKL___SkillLightArmor", "$sab_mcm_unitedit_slider_lightarmor", JMap.getFlt(jEditedUnitData, "SkillLightArmor", 15.0))
-    AddSliderOptionST("UNITEDIT_SKL___SkillHeavyArmor", "$sab_mcm_unitedit_slider_heavyarmor", JMap.getFlt(jEditedUnitData, "SkillHeavyArmor", 15.0))
-    AddSliderOptionST("UNITEDIT_SKL___SkillBlock", "$sab_mcm_unitedit_slider_block", JMap.getFlt(jEditedUnitData, "SkillBlock", 15.0))
-
     AddEmptyOption()
+    AddMenuOptionST("UNITEDIT_RIGTHSIDE_MENU", "$sab_mcm_unitedit_menu_rightside", rightSideMenuOptions[displayedRightSideMenu])
 
-    AddHeaderOption("$sab_mcm_unitedit_header_races")
-    AddMenuOptionST("UNITEDIT_RACE___RaceArgonian", "$sab_mcm_unitedit_race_arg", GetEditedUnitRaceStatus(jEditedUnitData, "RaceArgonian"))
-    AddMenuOptionST("UNITEDIT_RACE___RaceKhajiit", "$sab_mcm_unitedit_race_kha", GetEditedUnitRaceStatus(jEditedUnitData, "RaceKhajiit"))
-    AddMenuOptionST("UNITEDIT_RACE___RaceOrc", "$sab_mcm_unitedit_race_orc", GetEditedUnitRaceStatus(jEditedUnitData, "RaceOrc"))
-    AddMenuOptionST("UNITEDIT_RACE___RaceBreton", "$sab_mcm_unitedit_race_bre", GetEditedUnitRaceStatus(jEditedUnitData, "RaceBreton"))
-    AddMenuOptionST("UNITEDIT_RACE___RaceImperial", "$sab_mcm_unitedit_race_imp", GetEditedUnitRaceStatus(jEditedUnitData, "RaceImperial"))
-    AddMenuOptionST("UNITEDIT_RACE___RaceNord", "$sab_mcm_unitedit_race_nor", GetEditedUnitRaceStatus(jEditedUnitData, "RaceNord"))
-    AddMenuOptionST("UNITEDIT_RACE___RaceRedguard", "$sab_mcm_unitedit_race_red", GetEditedUnitRaceStatus(jEditedUnitData, "RaceRedguard"))
-    AddMenuOptionST("UNITEDIT_RACE___RaceDarkElf", "$sab_mcm_unitedit_race_daf", GetEditedUnitRaceStatus(jEditedUnitData, "RaceDarkElf"))
-    AddMenuOptionST("UNITEDIT_RACE___RaceHighElf", "$sab_mcm_unitedit_race_hif", GetEditedUnitRaceStatus(jEditedUnitData, "RaceHighElf"))
-    AddMenuOptionST("UNITEDIT_RACE___RaceWoodElf", "$sab_mcm_unitedit_race_wof", GetEditedUnitRaceStatus(jEditedUnitData, "RaceWoodElf"))
+    if displayedRightSideMenu == 0
+
+        AddHeaderOption("$sab_mcm_unitedit_header_costs")
+        AddSliderOptionST("UNITEDIT_COST_GOLD", "$sab_mcm_unitedit_slider_cost_gold", JMap.getFlt(jEditedUnitData, "GoldCost", 10.0))
+        AddSliderOptionST("UNITEDIT_COST_EXP", "$sab_mcm_unitedit_slider_cost_exp", JMap.getFlt(jEditedUnitData, "ExpCost", 10.0))
+
+        AddHeaderOption("$sab_mcm_unitedit_header_skills")
+        AddSliderOptionST("UNITEDIT_SKL___SkillMarksman", "$sab_mcm_unitedit_slider_marksman", JMap.getFlt(jEditedUnitData, "SkillMarksman", 15.0))
+        AddSliderOptionST("UNITEDIT_SKL___SkillOneHanded", "$sab_mcm_unitedit_slider_onehanded", JMap.getFlt(jEditedUnitData, "SkillOneHanded", 15.0))
+        AddSliderOptionST("UNITEDIT_SKL___SkillTwoHanded", "$sab_mcm_unitedit_slider_twohanded", JMap.getFlt(jEditedUnitData, "SkillTwoHanded", 15.0))
+        AddSliderOptionST("UNITEDIT_SKL___SkillLightArmor", "$sab_mcm_unitedit_slider_lightarmor", JMap.getFlt(jEditedUnitData, "SkillLightArmor", 15.0))
+        AddSliderOptionST("UNITEDIT_SKL___SkillHeavyArmor", "$sab_mcm_unitedit_slider_heavyarmor", JMap.getFlt(jEditedUnitData, "SkillHeavyArmor", 15.0))
+        AddSliderOptionST("UNITEDIT_SKL___SkillBlock", "$sab_mcm_unitedit_slider_block", JMap.getFlt(jEditedUnitData, "SkillBlock", 15.0))
+
+    elseif displayedRightSideMenu == 1
+
+        AddHeaderOption("$sab_mcm_unitedit_header_races")
+        AddMenuOptionST("UNITEDIT_RACE___RaceArgonian", "$sab_mcm_unitedit_race_arg", GetEditedUnitRaceStatus(jEditedUnitData, "RaceArgonian"))
+        AddMenuOptionST("UNITEDIT_RACE___RaceKhajiit", "$sab_mcm_unitedit_race_kha", GetEditedUnitRaceStatus(jEditedUnitData, "RaceKhajiit"))
+        AddMenuOptionST("UNITEDIT_RACE___RaceOrc", "$sab_mcm_unitedit_race_orc", GetEditedUnitRaceStatus(jEditedUnitData, "RaceOrc"))
+        AddMenuOptionST("UNITEDIT_RACE___RaceBreton", "$sab_mcm_unitedit_race_bre", GetEditedUnitRaceStatus(jEditedUnitData, "RaceBreton"))
+        AddMenuOptionST("UNITEDIT_RACE___RaceImperial", "$sab_mcm_unitedit_race_imp", GetEditedUnitRaceStatus(jEditedUnitData, "RaceImperial"))
+        AddMenuOptionST("UNITEDIT_RACE___RaceNord", "$sab_mcm_unitedit_race_nor", GetEditedUnitRaceStatus(jEditedUnitData, "RaceNord"))
+        AddMenuOptionST("UNITEDIT_RACE___RaceRedguard", "$sab_mcm_unitedit_race_red", GetEditedUnitRaceStatus(jEditedUnitData, "RaceRedguard"))
+        AddMenuOptionST("UNITEDIT_RACE___RaceDarkElf", "$sab_mcm_unitedit_race_daf", GetEditedUnitRaceStatus(jEditedUnitData, "RaceDarkElf"))
+        AddMenuOptionST("UNITEDIT_RACE___RaceHighElf", "$sab_mcm_unitedit_race_hif", GetEditedUnitRaceStatus(jEditedUnitData, "RaceHighElf"))
+        AddMenuOptionST("UNITEDIT_RACE___RaceWoodElf", "$sab_mcm_unitedit_race_wof", GetEditedUnitRaceStatus(jEditedUnitData, "RaceWoodElf"))
     
+    elseif displayedRightSideMenu == 2
+
+        AddHeaderOption("$sab_mcm_unitedit_header_upgrade_options")
+        ; add slot customizers for each upgrade option.
+        ; up to 10 slots can be shown in the MCM
+        bool displayAddEntryBtn = true
+        int displayedLinesCount = jValue.count(jEditedUnitUpgradesArray)
+        if displayedLinesCount >= 10
+            displayedLinesCount = 10
+            displayAddEntryBtn = false
+        endif
+        int i = 0
+
+        while i < displayedLinesCount
+            string indexString = i as string
+            AddTextOptionST("UNITEDIT_UPGRADES_REMOVE___" + indexString, "$sab_mcm_unitedit_button_upgrade_option_remove", (i + 1) as string)
+            AddSliderOptionST("UNITEDIT_UPGRADES_MENU_PAGE___TROOPLINE_ENTRY_" + indexString, "$sab_mcm_unitedit_slider_menupage", upgradeOptionsMenuPage + 1)
+            AddMenuOptionST("UNITEDIT_UPGRADES_SELECT___" + indexString, "$sab_mcm_unitedit_menu_upgrade_option_select", \
+                MainPage.GetMCMUnitDisplayByUnitIndex(jArray.getInt(jEditedUnitUpgradesArray, i, 0)))
+            AddEmptyOption()
+
+            i += 1
+        endwhile
+
+        if displayAddEntryBtn
+            ; at the end of the upgrades, there should be a "add upgrade" button, unless there are too many options already
+            AddTextOptionST("UNITEDIT_UPGRADES_ADD", "$sab_mcm_unitedit_button_upgrade_option_add", "")
+        endif
+
+    endif
+
 EndFunction
 
 
@@ -511,6 +569,125 @@ state UNITEDIT_RACE
 		SetInfoText("$sab_mcm_unitedit_race_generic_desc")
 	endEvent
 
+endstate
+
+
+state UNITEDIT_UPGRADES_MENU_PAGE
+	event OnSliderOpenST(string state_id)
+		SetSliderDialogStartValue(upgradeOptionsMenuPage + 1)
+		SetSliderDialogDefaultValue(1)
+		SetSliderDialogRange(1, 4) ; 512 units
+		SetSliderDialogInterval(1)
+	endEvent
+
+	event OnSliderAcceptST(string state_id, float value)
+		upgradeOptionsMenuPage = (value as int) - 1
+		SetSliderOptionValueST(upgradeOptionsMenuPage + 1)
+	endEvent
+
+	event OnDefaultST(string state_id)
+		upgradeOptionsMenuPage = 0
+		SetSliderOptionValueST(upgradeOptionsMenuPage + 1)
+	endEvent
+
+	event OnHighlightST(string state_id)
+        MainPage.ToggleQuickHotkey(true)
+		SetInfoText("$sab_mcm_unitedit_slider_menupage_desc")
+	endEvent
+endState
+
+state UNITEDIT_UPGRADES_ADD
+    event OnSelectST(string state_id)
+        int upgOptionIndex = editedUnitIndex + 1 + jArray.count(jEditedUnitUpgradesArray)
+
+        JArray.addInt(jEditedUnitUpgradesArray, upgOptionIndex)
+        ForcePageReset()
+	endEvent
+
+    event OnDefaultST(string state_id)
+        ; nothing
+    endevent
+
+	event OnHighlightST(string state_id)
+        MainPage.ToggleQuickHotkey(true)
+		SetInfoText("$sab_mcm_unitedit_button_upgrade_option_add_desc")
+	endEvent
+endstate
+
+state UNITEDIT_UPGRADES_SELECT
+
+	event OnMenuOpenST(string state_id)
+        int entryIndex = state_id as int
+		SetMenuDialogStartIndex(jArray.getInt(jEditedUnitUpgradesArray, entryIndex, 0) % 128)
+		SetMenuDialogDefaultIndex(jArray.getInt(jEditedUnitUpgradesArray, entryIndex, 0) % 128)
+        MainPage.MainQuest.UnitDataHandler.SetupStringArrayWithUnitIdentifiers(editedUnitIdentifiersArray, upgradeOptionsMenuPage)
+		SetMenuDialogOptions(editedUnitIdentifiersArray)
+	endEvent
+
+	event OnMenuAcceptST(string state_id, int index)
+        int entryIndex = state_id as int
+        int trueIndex = index + upgradeOptionsMenuPage * 128
+		jArray.setInt(jEditedUnitUpgradesArray, entryIndex, trueIndex)
+		SetMenuOptionValueST(MainPage.GetMCMUnitDisplayByUnitIndex(trueIndex))
+	endEvent
+
+	event OnDefaultST(string state_id)
+        int entryIndex = state_id as int
+        int defaultOption = jArray.getInt(jEditedUnitUpgradesArray, entryIndex, 0)
+		jArray.setInt(jEditedUnitUpgradesArray, entryIndex, defaultOption)
+		SetMenuOptionValueST(MainPage.GetMCMUnitDisplayByUnitIndex(defaultOption))
+	endEvent
+
+	event OnHighlightST(string state_id)
+        MainPage.ToggleQuickHotkey(true)
+		SetInfoText("$sab_mcm_unitedit_menu_upgrade_option_select_desc")
+	endEvent
+    
+endstate
+
+state UNITEDIT_UPGRADES_REMOVE
+    event OnSelectST(string state_id)
+        int entryIndex = state_id as int
+        JArray.eraseIndex(jEditedUnitUpgradesArray, entryIndex)
+        ForcePageReset()
+	endEvent
+
+    event OnDefaultST(string state_id)
+        ; nothing
+    endevent
+
+	event OnHighlightST(string state_id)
+        MainPage.ToggleQuickHotkey(true)
+		SetInfoText("$sab_mcm_unitedit_button_upgrade_option_remove_desc")
+	endEvent
+endstate
+
+
+state UNITEDIT_RIGTHSIDE_MENU
+
+	event OnMenuOpenST(string state_id)
+		SetMenuDialogStartIndex(displayedRightSideMenu)
+		SetMenuDialogDefaultIndex(displayedRightSideMenu)
+		SetMenuDialogOptions(rightSideMenuOptions)
+	endEvent
+
+	event OnMenuAcceptST(string state_id, int index)
+        displayedRightSideMenu = index
+		SetMenuOptionValueST(rightSideMenuOptions[displayedRightSideMenu])
+        ForcePageReset()
+	endEvent
+
+	event OnDefaultST(string state_id)
+        displayedRightSideMenu = 0
+		SetMenuOptionValueST(rightSideMenuOptions[displayedRightSideMenu])
+        ForcePageReset()
+	endEvent
+
+	event OnHighlightST(string state_id)
+        MainPage.ToggleQuickHotkey(true)
+		SetInfoText("$sab_mcm_unitedit_menu_rightside_desc")
+	endEvent
+    
 endstate
 
 

@@ -223,11 +223,6 @@ EndFunction
 ; the index of a unit from the unit datas array. This unit will be used as the base recruit of this faction
 ; int RecruitUnitIndex
 
-; a list of troop lines, a jArray of jArrays; each array contains a list of unit indexes, ordered in their "evolution" order.
-; at least one troop line should begin with the base recruit; other lines can begin with other units, and in that way we can get a "troop tree".
-; we can have up to 128 troop lines, because that's when we'd have to set up another array for the UI
-; int jTroopLinesArray
-
 ; a map filled with {"RelationValue":0} objects, where the keys for each entry are faction names.
 ; RelationValue values are the same as the values used for set and getFactionReaction
 ; int jVanillaFactionRelationsMap

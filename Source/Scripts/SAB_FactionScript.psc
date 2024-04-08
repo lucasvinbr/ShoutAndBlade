@@ -72,6 +72,9 @@ function EnableFaction(int jEnabledFactionData, int thisFactionIndex)
 	factionIndex = thisFactionIndex
 endfunction
 
+bool function IsFactionEnabled()
+	return jMap.hasKey(jFactionData, "enabled")
+endfunction
 
 ; sets mutual faction relations. Doesn't edit json files, only alters the current game's relations
 ; 0 - Neutral
@@ -136,7 +139,7 @@ bool Function RunUpdate(float daysPassed)
 		return false
 	endif
 
-	if jMap.hasKey(jFactionData, "enabled")
+	if IsFactionEnabled()
 		if daysPassed - gameTimeOfLastRealUpdate >= JDB.solveFlt(".ShoutAndBlade.factionOptions.updateInterval", 0.025)
 			gameTimeOfLastRealUpdate = daysPassed
 			; Debug.Trace("updating faction " + jMap.getStr(jFactionData, "name", "Faction"))
@@ -549,6 +552,10 @@ EndFunction
 ; the caller should do something with this number
 int function PurchaseRecruits(int maxAmountPurchased = 100)
 
+	if !IsFactionEnabled()
+		return 0
+	endif
+
 	int recruitIndex = jMap.getInt(jFactionData, "RecruitUnitIndex")
 	int currentGold = jMap.getInt(jFactionData, "AvailableGold", JDB.solveInt(".ShoutAndBlade.factionOptions.initialGold", SAB_FactionDataHandler.GetDefaultFactionGold()))
 	int recruitedAmount = 0
@@ -579,34 +586,24 @@ endfunction
 ; returns a jMap with new units' index and amount
 int function TryUpgradeUnits(int unitIndex, int unitAmount, float availableExp)
 	int currentGold = jMap.getInt(jFactionData, "AvailableGold", JDB.solveInt(".ShoutAndBlade.factionOptions.initialGold", SAB_FactionDataHandler.GetDefaultFactionGold()))
-	int jUpgradeOptions = jArray.object()
-	jValue.retain(jUpgradeOptions, "ShoutAndBlade")
 
-	; iterate through troop lines, looking for the passed unitIndex, and store the indexes of the "next step" units
-	int jOurTroopLinesArr = jMap.getObj(jFactionData, "jTroopLinesArray")
-	int numTroopLines = jValue.count(jOurTroopLinesArr)
-	int relevantTroopLineLength = 0
-	int i = 0
-	int j = 0
+	int jBaseUnitData = jArray.getObj(SpawnerScript.UnitDataHandler.jSABUnitDatasArray, unitIndex)
 
-	while i < numTroopLines
-		int jCurTroopLineArr = jArray.getObj(jOurTroopLinesArr, i)
-		relevantTroopLineLength = jValue.count(jCurTroopLineArr) - 1 ; no need to look at the last index
+	if jBaseUnitData == 0
+		; bad base unit
+		return 0
+	endif
 
-		j = 0
-		while j < relevantTroopLineLength
-			if jArray.getInt(jCurTroopLineArr, j, -1) == unitIndex
-				JArray.addInt(jUpgradeOptions, jArray.getInt(jCurTroopLineArr, j + 1))
-			endif
-			; Utility.Wait(0.01)
-			j += 1
-		endwhile
-
-		i += 1
-	endwhile
+	int jUpgradeOptions = jMap.getObj(jBaseUnitData, "jUpgradeOptionsArray")
 
 	; try to spread out our upgrades if there is more than 1 upgrade option
-	i = jValue.count(jUpgradeOptions)
+	int i = jValue.count(jUpgradeOptions)
+
+	if i == 0
+		; no upgrades for the picked unit! abort
+		return 0
+	endif
+
 	int jUpgradeResultMap = jMap.object()
 	int jUpgradedUnitsArray = jArray.object()
 	jMap.setObj(jUpgradeResultMap, "UpgradedUnits", jUpgradedUnitsArray)
@@ -619,8 +616,7 @@ int function TryUpgradeUnits(int unitIndex, int unitAmount, float availableExp)
 		int jUpgradedUnitData = jArray.getObj(SpawnerScript.UnitDataHandler.jSABUnitDatasArray, upgradedUnitIndex)
 
 		if jUpgradedUnitData == 0
-			jValue.release(jUpgradeOptions)
-			jValue.zeroLifetime(jUpgradeOptions)
+			; bad data! abort
 			jValue.release(jUpgradeResultMap)
 			jValue.zeroLifetime(jUpgradeResultMap)
 			return 0

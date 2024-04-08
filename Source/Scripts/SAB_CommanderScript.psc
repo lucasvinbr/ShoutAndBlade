@@ -93,6 +93,16 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 		; testing running the big update on nearby updates as well
 		RunCloseByUpdate()
 	else
+
+		if !factionScript.IsFactionEnabled()
+			; delete this cmder, its faction should no longer exist
+			ClearCmderData()
+			meActor.Disable()
+			meActor.Delete()
+			meActor = None
+			return true
+		endif
+
 		if curGameTime != 0.0 && gameTimeOfLastExpAward == 0.0
 			; set initial values for "gameTime" variables, to avoid them from getting huge accumulated awards
 			gameTimeOfLastExpAward = curGameTime
@@ -205,8 +215,10 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 						diploHandler.GlobalReactToWarDeclaration \
 							(ourFacIndex, locFaction.GetFactionIndex())
 
-						Debug.Trace(factionScript.GetFactionName() + " has declared war against the " + locFaction.GetFactionName())
-						Debug.Notification(factionScript.GetFactionName() + " has declared war against the " + locFaction.GetFactionName())
+						if factionScript.IsFactionEnabled()
+							Debug.Trace(factionScript.GetFactionName() + " has declared war against the " + locFaction.GetFactionName())
+							Debug.Notification(factionScript.GetFactionName() + " has declared war against the " + locFaction.GetFactionName())
+						endif
 					endif
 				endif
 
@@ -255,8 +267,10 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 							diploHandler.GlobalReactToWarDeclaration \
 								(ourFacIndex, locFaction.GetFactionIndex())
 
-							Debug.Trace(factionScript.GetFactionName() + " has declared war against the " + locFaction.GetFactionName())
-							Debug.Notification(factionScript.GetFactionName() + " has declared war against the " + locFaction.GetFactionName())
+							if factionScript.IsFactionEnabled()
+								Debug.Trace(factionScript.GetFactionName() + " has declared war against the " + locFaction.GetFactionName())
+								Debug.Notification(factionScript.GetFactionName() + " has declared war against the " + locFaction.GetFactionName())
+							endif
 						endif
 					endif
 				endif

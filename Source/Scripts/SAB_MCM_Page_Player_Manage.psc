@@ -46,12 +46,6 @@ Function SetupPage()
     float expPointsAvailable = plyr.availableExpPoints
     int playerGoldAmount = plyr.playerActor.GetItemCount(Gold001)
     SAB_FactionScript playerFac = plyr.factionScript
-    int jFacTroopLinesArr = -1
-    int troopLinesCount = 0
-    if playerFac != None
-        jFacTroopLinesArr = jMap.getObj(playerFac.jFactionData, "jTroopLinesArray")
-        troopLinesCount = jValue.count(jFacTroopLinesArr)
-    endif
     int jPlyrUnitsMap = plyr.jOwnedUnitsMap
 
     ; set up a list of the current player units.
@@ -91,30 +85,10 @@ Function SetupPage()
 
     if currentSelectedUnitTypeIndex != -1
         ; find all upgrade options for the unit
-        int jUpgradeOptions = jArray.object()
-
-        ; iterate through troop lines, looking for the passed unitIndex, and store the indexes of the "next step" units
-        int relevantTroopLineLength = 0
-        int i = 0
-        int j = 0
-
-        while i < troopLinesCount
-            int jCurTroopLineArr = jArray.getObj(jFacTroopLinesArr, i)
-            relevantTroopLineLength = jValue.count(jCurTroopLineArr) - 1 ; no need to look at the last index
-
-            j = 0
-            while j < relevantTroopLineLength
-                if jArray.getInt(jCurTroopLineArr, j, -1) == currentSelectedUnitTypeIndex
-                    JArray.addInt(jUpgradeOptions, jArray.getInt(jCurTroopLineArr, j + 1))
-                endif
-                j += 1
-            endwhile
-
-            i += 1
-        endwhile
+        int jUpgradeOptions = jMap.getObj(jSelectedUnitData, "jUpgradeOptionsArray")
 
         ; add upgrade buttons for each upgrade option
-        i = jValue.count(jUpgradeOptions)
+        int i = jValue.count(jUpgradeOptions)
 
         while i > 0
             i -= 1
