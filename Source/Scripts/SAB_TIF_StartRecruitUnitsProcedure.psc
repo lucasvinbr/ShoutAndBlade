@@ -6,7 +6,7 @@ Scriptname SAB_TIF_StartRecruitUnitsProcedure Extends TopicInfo Hidden
 Function Fragment_0(ObjectReference akSpeakerRef)
 Actor akSpeaker = akSpeakerRef as Actor
 ;BEGIN CODE
-(GetOwningQuest() as SAB_PlayerDataHandler).OpenPurchaseFactionRecruitsMenu(akSpeaker)
+(GetOwningQuest() as SAB_PlayerDataHandler).OpenPurchaseMyFactionRecruitsMenu(akSpeaker)
 ;END CODE
 EndFunction
 ;END FRAGMENT

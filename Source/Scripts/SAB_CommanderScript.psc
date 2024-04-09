@@ -206,8 +206,9 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 				SAB_DiplomacyDataHandler diploHandler = factionScript.DiplomacyDataHandler
 				int ourFacIndex = factionScript.GetFactionIndex()
 				bool locIsHostileToUs = !diploHandler.AreFactionsInGoodStanding(factionScript, locFaction)
+				bool canTakeLocations = factionScript.CanFactionTakeLocations() 
 
-				if locIsHostileToUs
+				if locIsHostileToUs && canTakeLocations
 					TargetLocationScript.BeNotifiedOfNearbyHostileCmder()
 
 					if locFaction != None && diploHandler.AreFactionsNeutral(ourFacIndex, locFaction.GetFactionIndex())
@@ -222,54 +223,56 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 					endif
 				endif
 
-				if !isNearby
-					; if the player is far away, do autocalc fights!
-					; pick fights with the other nearby cmders!
-					int i = TargetLocationScript.GetTopNearbyCmderIndex()
-					While (i >= 0)
-						SAB_CommanderScript otherCmder = TargetLocationScript.NearbyCommanders[i]
-						If otherCmder != None && otherCmder != self
-							if !diploHandler.AreFactionsInGoodStanding(factionScript, otherCmder.factionScript)
-								DoAutocalcBattle(otherCmder)
+				if canTakeLocations
+					if !isNearby
+						; if the player is far away, do autocalc fights!
+						; pick fights with the other nearby cmders!
+						int i = TargetLocationScript.GetTopNearbyCmderIndex()
+						While (i >= 0)
+							SAB_CommanderScript otherCmder = TargetLocationScript.NearbyCommanders[i]
+							If otherCmder != None && otherCmder != self && otherCmder.factionScript.CanFactionTakeLocations()
+								if !diploHandler.AreFactionsInGoodStanding(factionScript, otherCmder.factionScript)
+									DoAutocalcBattle(otherCmder)
+									return true
+								endif
+							EndIf
+
+							i -= 1
+						EndWhile
+
+						; we couldn't find an enemy cmder to fight. Maybe the loc's garrison then?
+						if locFaction != None
+							; do an autocalc fight against the location's units!
+							if TargetLocationScript.CanAutocalcNow() && locIsHostileToUs
+								diploHandler.GlobalReactToLocationAttacked(ourFacIndex, locFaction.GetFactionIndex())
+								DoAutocalcBattle(TargetLocationScript)
 								return true
 							endif
-						EndIf
-
-						i -= 1
-					EndWhile
-
-					; we couldn't find an enemy cmder to fight. Maybe the loc's garrison then?
-					if locFaction != None
-						; do an autocalc fight against the location's units!
-						if TargetLocationScript.CanAutocalcNow() && locIsHostileToUs
-							diploHandler.GlobalReactToLocationAttacked(ourFacIndex, locFaction.GetFactionIndex())
-							DoAutocalcBattle(TargetLocationScript)
-							return true
+						else
+							; the location is neutral! Let's take it
+							TargetLocationScript.BeTakenByFaction(factionScript, true)
+							TryTransferUnitsToAnotherContainer(TargetLocationScript)
 						endif
 					else
-						; the location is neutral! Let's take it
-						TargetLocationScript.BeTakenByFaction(factionScript, true)
-						TryTransferUnitsToAnotherContainer(TargetLocationScript)
-					endif
-				else
-					; if the player is nearby but the location is empty, take it
-					if locFaction == None || \
-						(locIsHostileToUs && TargetLocationScript.totalOwnedUnitsAmount <= 0)
+						; if the player is nearby but the location is empty, take it
+						if locFaction == None || \
+							(locIsHostileToUs && TargetLocationScript.totalOwnedUnitsAmount <= 0)
 
-						; TargetLocationScript.InteractingCommander = self
-						TargetLocationScript.BeTakenByFaction(factionScript, true)
-						TryTransferUnitsToAnotherContainer(TargetLocationScript)
-					else
-						; if the player is nearby, the location is occupied and we are neutral to the owners... it's time to stop being neutral
-						if locFaction != None && \
-							diploHandler.AreFactionsNeutral(ourFacIndex, locFaction.GetFactionIndex())
-							
-							diploHandler.GlobalReactToWarDeclaration \
-								(ourFacIndex, locFaction.GetFactionIndex())
+							; TargetLocationScript.InteractingCommander = self
+							TargetLocationScript.BeTakenByFaction(factionScript, true)
+							TryTransferUnitsToAnotherContainer(TargetLocationScript)
+						else
+							; if the player is nearby, the location is occupied and we are neutral to the owners... it's time to stop being neutral
+							if locFaction != None && \
+								diploHandler.AreFactionsNeutral(ourFacIndex, locFaction.GetFactionIndex())
+								
+								diploHandler.GlobalReactToWarDeclaration \
+									(ourFacIndex, locFaction.GetFactionIndex())
 
-							if factionScript.IsFactionEnabled()
-								Debug.Trace(factionScript.GetFactionName() + " has declared war against the " + locFaction.GetFactionName())
-								Debug.Notification(factionScript.GetFactionName() + " has declared war against the " + locFaction.GetFactionName())
+								if factionScript.IsFactionEnabled()
+									Debug.Trace(factionScript.GetFactionName() + " has declared war against the " + locFaction.GetFactionName())
+									Debug.Notification(factionScript.GetFactionName() + " has declared war against the " + locFaction.GetFactionName())
+								endif
 							endif
 						endif
 					endif
@@ -427,13 +430,32 @@ Function UpdateConfidenceLevel()
 		return
 	endif
 
-	
-	if currentAutocalcPower > JDB.solveFlt(".ShoutAndBlade.cmderOptions.confidentPower", 45.0)
+	if factionScript.IsFactionMercenary() && !factionScript.CanFactionTakeLocations()
+		; always be confident if we're an usually neutral faction
+		meActor.SetFactionRank(SAB_CmderConfidenceFaction, 1)
+	elseif GetMyDestinationScript() != None && GetMyDestinationScript().factionScript == None
+		; always be confident if our destination is a neutral zone... we should get there before others do!
 		meActor.SetFactionRank(SAB_CmderConfidenceFaction, 1)
 	else
-		meActor.SetFactionRank(SAB_CmderConfidenceFaction, 0)
+		if currentAutocalcPower > JDB.solveFlt(".ShoutAndBlade.cmderOptions.confidentPower", 45.0)
+			meActor.SetFactionRank(SAB_CmderConfidenceFaction, 1)
+		else
+			meActor.SetFactionRank(SAB_CmderConfidenceFaction, 0)
+		endif
 	endif
 
+EndFunction
+
+SAB_LocationScript Function GetMyDestinationScript()
+	SAB_LocationScript targetLocScript = factionScript.destinationScript_A
+
+	if CmderDestinationType == "b" || CmderDestinationType == "B"
+		targetLocScript = factionScript.destinationScript_B
+	elseif CmderDestinationType == "c" || CmderDestinationType == "C"
+		targetLocScript = factionScript.destinationScript_C
+	endif
+
+	return targetLocScript
 EndFunction
 
 

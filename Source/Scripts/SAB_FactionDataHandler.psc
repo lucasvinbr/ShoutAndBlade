@@ -7,6 +7,8 @@ SAB_FactionScript[] Property SAB_FactionQuests Auto
 Faction[] Property VanillaFactions Auto
 {array containing vanilla factions of which we can edit relations with the mod factions}
 
+Faction Property MercDealerFaction Auto
+
 string[] Property VanillaFactionDisplayNames Auto
 {array contaning the names used for each faction of the vanillaFactions array. The names must be in the same order as the factions array!}
 
@@ -202,6 +204,36 @@ int Function GetFactionIndex(SAB_FactionScript factionScript)
     return -1
 EndFunction
 
+; checks each of the actor's factions against each of the SAB faction factions (yeah, it's probably a big workload).
+; returns the first match, or None
+SAB_FactionScript Function GetActorSabFaction(Actor act)
+    if act == None
+        return None
+    endif
+    
+    Faction[] actFactions = act.GetFactions(-128, 127)
+    int i = actFactions.Length
+    int j = SAB_FactionQuests.Length
+
+    while i > 0
+        i -= 1
+        j = SAB_FactionQuests.Length
+        Faction testedFac = actFactions[i]
+
+        if testedFac != MercDealerFaction
+            while j > 0
+                j -= 1
+                SAB_FactionScript sabFac = SAB_FactionQuests[j]
+                if sabFac.OurFaction == testedFac
+                    return sabFac
+                endif
+            endwhile
+        endif
+    endwhile
+
+    return None
+endfunction
+
 ; since this is written a lot, this helps avoid having to edit the number everywhere
 int Function GetDefaultFactionGold() global
     return 3000
@@ -216,6 +248,14 @@ EndFunction
 ; it's a key with a value we don't care about! We only check if it exists. If it exists it means "enabled" to us. If it doesn't, it's "disabled".
 ; if a faction isn't enabled, it won't "think" (it won't create new cmders, receive gold or give orders or anything)
 ; int enabled
+
+; it's a key with a value we don't care about! We only check if it exists. If it exists it means "enabled" to us. If it doesn't, it's "disabled".
+; if a faction is marked as mercenary, their cmders should sell their troops to the player, if they're at least neutral
+; int IsMercenary
+
+; it's a key with a value we don't care about! We only check if it exists. If it exists it means "enabled" to us. If it doesn't, it's "disabled".
+; if this is true, the faction should never capture a location. Its commanders should still walk around and all
+; int CannotTakeLocations
 
 ; the index of a unit from the unit datas array. This unit will be used as the commanders of this faction
 ; int CmderUnitIndex

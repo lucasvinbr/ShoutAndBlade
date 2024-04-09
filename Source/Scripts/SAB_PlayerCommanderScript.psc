@@ -23,6 +23,10 @@ Function Setup(SAB_FactionScript factionScriptRef, float curGameTime = 0.0)
 	gameTimeOfLastRecruiterRefresh = 0.0
 EndFunction
 
+SAB_UnitDataHandler Function GetUnitDataHandler()
+	return PlayerDataHandler.SpawnerScript.UnitDataHandler
+EndFunction
+
 ; sets isNearby and enables or disables closeBy updates
 Function ToggleNearbyUpdates(bool updatesEnabled)
 	
@@ -222,7 +226,7 @@ Function RemoveUnitsOfType(int unitTypeIndex, int amountToRemove)
 
 		totalOwnedUnitsAmount -= reservesToRemove
 
-		int jUnitMap = jArray.getObj(factionScript.SpawnerScript.UnitDataHandler.jSABUnitDatasArray, unitTypeIndex)
+		int jUnitMap = jArray.getObj(PlayerDataHandler.SpawnerScript.UnitDataHandler.jSABUnitDatasArray, unitTypeIndex)
 		float unitPower = jMap.getFlt(jUnitMap, "AutocalcStrength", 1.0)
 
 		currentAutocalcPower -= unitPower

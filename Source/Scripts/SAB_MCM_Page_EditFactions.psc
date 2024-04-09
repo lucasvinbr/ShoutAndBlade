@@ -100,55 +100,8 @@ Function SetupPage()
 
     SetCursorPosition(1)
 
-    ; troop line editor in this side
-    ; AddHeaderOption("$sab_mcm_factionedit_header_trooplines")
-
-    ; ; make sure the troop lines array exists
-    ; int jFactionTroopLinesArr = jMap.getObj(jEditedFactionData, "jTroopLinesArray")
-
-    ; if jFactionTroopLinesArr == 0
-    ;     ; create the troop lines array
-    ;     jFactionTroopLinesArr = jArray.object()
-    ;     jMap.setObj(jEditedFactionData, "jTroopLinesArray", jFactionTroopLinesArr)
-    ; endif
-
-    ; jEditedTroopLine = jArray.getObj(jFactionTroopLinesArr, editedTroopLineIndex)
-
-    ; if jEditedTroopLine == 0
-    ;     jEditedTroopLine = jArray.object()
-    ;     JArray.addObj(jFactionTroopLinesArr, jEditedTroopLine, editedTroopLineIndex)
-    ; endif
-
-    ; AddMenuOptionST("FAC_EDIT_TROOPLINE_SELECT_MENU", "$sab_mcm_factionedit_menu_troopline_select", \
-    ;     ((editedTroopLineIndex + 1) as string))
-
-    ; AddEmptyOption()
-
-    ; ; add slot customizers for each slot of the current line.
-    ; ; up to 15 slots can be shown in the MCM
-    ; bool displayAddEntryBtn = true
-    ; int displayedLinesCount = jValue.count(jEditedTroopLine)
-    ; if displayedLinesCount >= 15
-    ;     displayedLinesCount = 15
-    ;     displayAddEntryBtn = false
-    ; endif
-    ; int i = 0
-
-    ; while i < displayedLinesCount
-    ;     string indexString = i as string
-    ;     AddTextOptionST("FAC_EDIT_TROOPLINE_ENTRY_REMOVE___" + indexString, "$sab_mcm_factionedit_button_troopline_entry_remove", (i + 1) as string)
-    ;     AddSliderOptionST("FAC_EDIT_UNIT_MENU_PAGE___TROOPLINE_ENTRY_" + indexString, "$sab_mcm_unitedit_slider_menupage", editedUnitsMenuPage + 1)
-    ;     AddMenuOptionST("FAC_EDIT_TROOPLINE_ENTRY_UNIT___" + indexString, "$sab_mcm_factionedit_menu_troopline_entry_select_unit", \
-    ;         MainPage.GetMCMUnitDisplayByUnitIndex(jArray.getInt(jEditedTroopLine, i, 0)))
-    ;     AddEmptyOption()
-
-    ;     i += 1
-    ; endwhile
-
-    ; if displayAddEntryBtn
-    ;     ; at the end of the troop line, there should be a "add slot" button, unless the line is too long already
-    ;     AddTextOptionST("FAC_EDIT_TROOPLINE_ENTRY_ADD", "$sab_mcm_factionedit_button_troopline_entry_add", "")
-    ; endif
+    AddToggleOptionST("FAC_EDIT_ISMERC", "$sab_mcm_factionedit_toggle_mercenary", JMap.hasKey(jEditedFactionData, "IsMercenary"))
+    AddToggleOptionST("FAC_EDIT_TAKELOCS", "$sab_mcm_factionedit_toggle_takelocs", JMap.hasKey(jEditedFactionData, "CannotTakeLocations"))
     
 EndFunction
 
@@ -266,6 +219,52 @@ state FAC_EDIT_ENABLED
 		SetInfoText("$sab_mcm_factionedit_toggle_enabled_desc")
 	endEvent
 endstate
+
+state FAC_EDIT_ISMERC
+    event OnSelectST(string state_id)
+        if JMap.hasKey(jEditedFactionData, "IsMercenary")
+            jMap.removeKey(jEditedFactionData, "IsMercenary")
+        else
+            JMap.setInt(jEditedFactionData, "IsMercenary", 1)
+        endif
+
+        SetToggleOptionValueST(jMap.hasKey(jEditedFactionData, "IsMercenary"))
+	endEvent
+
+    event OnDefaultST(string state_id)
+        jMap.removeKey(jEditedFactionData, "IsMercenary")
+        SetToggleOptionValueST(jMap.hasKey(jEditedFactionData, "IsMercenary"))
+    endevent
+
+	event OnHighlightST(string state_id)
+        MainPage.ToggleQuickHotkey(true)
+		SetInfoText("$sab_mcm_factionedit_toggle_mercenary_desc")
+	endEvent
+endstate
+
+
+state FAC_EDIT_TAKELOCS
+    event OnSelectST(string state_id)
+        if JMap.hasKey(jEditedFactionData, "CannotTakeLocations")
+            jMap.removeKey(jEditedFactionData, "CannotTakeLocations")
+        else
+            JMap.setInt(jEditedFactionData, "CannotTakeLocations", 1)
+        endif
+
+        SetToggleOptionValueST(jMap.hasKey(jEditedFactionData, "CannotTakeLocations"))
+	endEvent
+
+    event OnDefaultST(string state_id)
+        jMap.removeKey(jEditedFactionData, "CannotTakeLocations")
+        SetToggleOptionValueST(jMap.hasKey(jEditedFactionData, "CannotTakeLocations"))
+    endevent
+
+	event OnHighlightST(string state_id)
+        MainPage.ToggleQuickHotkey(true)
+		SetInfoText("$sab_mcm_factionedit_toggle_takelocs_desc")
+	endEvent
+endstate
+
 
 state FAC_EDIT_GOLD
 	event OnSliderOpenST(string state_id)

@@ -9,6 +9,8 @@ SAB_FactionScript Property PlayerFaction Auto Hidden
 Faction Property VanillaPlayerFaction Auto
 
 SAB_SpawnerScript Property SpawnerScript Auto
+SAB_UnitsUpdater Property UnitsUpdater Auto
+SAB_FactionDataHandler Property FactionDataHandler Auto
 
 Message Property HowManyUnitsMsg Auto
 Form Property Gold001 Auto
@@ -28,7 +30,7 @@ Function Initialize()
 	JValue.retain(jRecentRecruitersArray, "ShoutAndBlade")
 EndFunction
 
-Function OpenPurchaseFactionRecruitsMenu(Actor recruiter)
+Function OpenPurchaseMyFactionRecruitsMenu(Actor recruiter)
 	; cancel procedure if we're not in any faction
 	if PlayerFaction == None
 		return
@@ -36,20 +38,35 @@ Function OpenPurchaseFactionRecruitsMenu(Actor recruiter)
 
 	int recruitIndex = jMap.getInt(PlayerFaction.jFactionData, "RecruitUnitIndex")
 
-	OpenPurchaseUnitsMenu(recruitIndex, recruiter)
+	OpenPurchaseUnitsMenu(recruitIndex, recruiter, 1.0)
 EndFunction
 
-Function OpenPurchaseUnitsMenu(int unitIndex = -1, Actor recruiter)
+Function OpenPurchaseMercRecruitsMenu(Actor recruiter)
+	; find out which faction the recruiter is part of
+	SAB_FactionScript recruiterFac = FactionDataHandler.GetActorSabFaction(recruiter)
+
+	if recruiterFac == None
+		return
+	endif
+
+	int recruitIndex = jMap.getInt(recruiterFac.jFactionData, "RecruitUnitIndex")
+
+	int spentGold = OpenPurchaseUnitsMenu(recruitIndex, recruiter, JDB.solveFlt(".ShoutAndBlade.playerOptions.mercPriceMultiplier", 3.5))
+	recruiterFac.AddGold(spentGold)
+EndFunction
+
+; returns gold spent
+int Function OpenPurchaseUnitsMenu(int unitIndex = -1, Actor recruiter, float priceMult = 1.0)
 
 	if unitIndex == -1
-		return
+		return 0
 	endif
 
 	int freeUnitSlots = PlayerCommanderScript.GetMaxOwnedUnitsAmount() - PlayerCommanderScript.totalOwnedUnitsAmount
 
 	if freeUnitSlots <= 0
 		Debug.Notification("You have reached your unit count limit! Level up to be able to recruit more.")
-		return
+		return 0
 	endif
 
 	int numUnitsAvailable = utility.RandomInt(JDB.solveInt(".ShoutAndBlade.playerOptions.minUnitsAvailablePerRecruiter", 8), JDB.solveInt(".ShoutAndBlade.playerOptions.maxUnitsAvailablePerRecruiter", 25))
@@ -61,7 +78,7 @@ Function OpenPurchaseUnitsMenu(int unitIndex = -1, Actor recruiter)
 
 	; figure out purchased unit's cost
 	int jRecruitObj = jArray.getObj(SpawnerScript.UnitDataHandler.jSABUnitDatasArray, unitIndex)
-	int goldCostPerRec = jMap.getInt(jRecruitObj, "GoldCost", 10)
+	int goldCostPerRec = (jMap.getInt(jRecruitObj, "GoldCost", 10) * priceMult) as int
 
 	;opens "how many units?" box, with options ranging from none to 5, depending on how much gold player has
 	;the last option makes the menu open again, incrementing the desired number by 5 (5 plus the new choice)
@@ -100,6 +117,8 @@ Function OpenPurchaseUnitsMenu(int unitIndex = -1, Actor recruiter)
 			recruiter.AddToFaction(SAB_RecentRecruitersFaction)
 			jArray.addForm(jRecentRecruitersArray, recruiter)
 		endif
+
+		return goldCostPerRec * numberOfUnitsToPurchase
 	endif
 	
 endFunction
@@ -130,10 +149,6 @@ ReferenceAlias Function SpawnPlayerUnit(int unitIndex, ObjectReference spawnLoca
 		return None
 	endif
 
-	if PlayerFaction == None
-		return None
-	endif
-
 	if unitIndex < 0
 		debug.Trace("spawn unit for container: invalid unit index!")
 		return None
@@ -146,7 +161,7 @@ ReferenceAlias Function SpawnPlayerUnit(int unitIndex, ObjectReference spawnLoca
 		return None
 	endif
 
-	int unitIndexInUnitUpdater = PlayerFaction.UnitUpdater.UnitUpdater.RegisterAliasForUpdates(unitAlias as SAB_UnitScript, -1)
+	int unitIndexInUnitUpdater = UnitsUpdater.UnitUpdater.RegisterAliasForUpdates(unitAlias as SAB_UnitScript, -1)
 
 	if unitIndexInUnitUpdater == -1
 		debug.Trace("spawn unit for container: unitIndexInUnitUpdater is -1!")
@@ -157,7 +172,7 @@ ReferenceAlias Function SpawnPlayerUnit(int unitIndex, ObjectReference spawnLoca
 
 	if spawnedUnit == None
 		debug.Trace("spawn unit for container: got none as spawnedUnit, aborting!")
-		PlayerFaction.UnitUpdater.UnitUpdater.UnregisterAliasFromUpdates(unitIndexInUnitUpdater)
+		UnitsUpdater.UnitUpdater.UnregisterAliasFromUpdates(unitIndexInUnitUpdater)
 		return None
 	endif
 

@@ -76,6 +76,14 @@ bool function IsFactionEnabled()
 	return jMap.hasKey(jFactionData, "enabled")
 endfunction
 
+bool function IsFactionMercenary()
+	return jMap.hasKey(jFactionData, "IsMercenary")
+endfunction
+
+bool function CanFactionTakeLocations()
+	return !jMap.hasKey(jFactionData, "CannotTakeLocations")
+endfunction
+
 ; sets mutual faction relations. Doesn't edit json files, only alters the current game's relations
 ; 0 - Neutral
 ; 1 - Enemy
@@ -148,8 +156,7 @@ bool Function RunUpdate(float daysPassed)
 			if daysPassed - gameTimeOfLastGoldAward >= goldInterval
 				int numAwardsObtained = ((daysPassed - gameTimeOfLastGoldAward) / goldInterval) as int
 				int goldPerAward = CalculateTotalGoldAward()
-				int currentGold = jMap.getInt(jFactionData, "AvailableGold", JDB.solveInt(".ShoutAndBlade.factionOptions.initialGold", SAB_FactionDataHandler.GetDefaultFactionGold()))
-				jMap.setInt(jFactionData, "AvailableGold", currentGold + (goldPerAward * numAwardsObtained))
+				AddGold(goldPerAward * numAwardsObtained)
 				gameTimeOfLastGoldAward = daysPassed
 			endif
 
@@ -723,6 +730,10 @@ ReferenceAlias Function TrySpawnCommander(float curGameTime, bool onlySpawnIfHas
 		return None
 	endif
 
+	If IsFactionMercenary()
+		cmderUnit.AddToFaction(DiplomacyDataHandler.FactionDataHandler.MercDealerFaction)
+	EndIf
+
 	cmderAlias.ForceRefTo(cmderUnit)
 	(cmderAlias as SAB_CommanderScript).Setup(self, curGameTime)
 
@@ -773,6 +784,10 @@ ReferenceAlias Function SpawnUnitForTroopContainer(SAB_TroopContainerScript troo
 		return None
 	endif
 
+	If IsFactionMercenary()
+		spawnedUnit.AddToFaction(DiplomacyDataHandler.FactionDataHandler.MercDealerFaction)
+	EndIf
+
 	unitAlias.ForceRefTo(spawnedUnit)
 	(unitAlias as SAB_UnitScript).Setup(unitIndex, troopContainer, unitIndexInUnitUpdater, containerSetupTime)
 
@@ -790,10 +805,13 @@ Function GetGoldFromDespawningCommander(int jCmderArmyMap)
 
 	armyGold += cmderSpawnCost
 
-	int currentGold = jMap.getInt(jFactionData, "AvailableGold", JDB.solveInt(".ShoutAndBlade.factionOptions.initialGold", SAB_FactionDataHandler.GetDefaultFactionGold()))
-
 	debug.Trace("faction got " + armyGold + " gold back from a despawning cmder")
-	jMap.setInt(jFactionData, "AvailableGold", currentGold + armyGold)
+	AddGold(armyGold)
+EndFunction
+
+Function AddGold(int goldAmount)
+	int currentGold = jMap.getInt(jFactionData, "AvailableGold", JDB.solveInt(".ShoutAndBlade.factionOptions.initialGold", SAB_FactionDataHandler.GetDefaultFactionGold()))
+	jMap.setInt(jFactionData, "AvailableGold", currentGold + goldAmount)
 EndFunction
 
 
