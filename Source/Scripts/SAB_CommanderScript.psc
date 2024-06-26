@@ -500,7 +500,7 @@ Event OnLocationChange(Location akOldLoc, Location akNewLoc)
 EndEvent
 
 Event OnPackageEnd(Package akOldPackage)
-	; this is kind of reliable, but the cmder has to ge to the exact point, so we should probably run other, more "relaxed", checks
+	; this is kind of reliable, but the cmder has to get to the exact point, so we should probably run other, more "relaxed", checks
 	factionScript.ValidateCmderReachedDestination(self, CmderDestinationType)
 EndEvent
 
@@ -629,6 +629,15 @@ bool Function TryGiveCmderPositionToOurUnit()
 	return false
 EndFunction
 
+; true if we're not "pure" mercenaries (pure mercenaries shouldn't care about anything location-related)
+bool Function CanSpawnBesiegingUnits()
+	if !factionScript.CanFactionTakeLocations() && factionScript.IsFactionMercenary()
+		return false
+	endif
+
+	return true
+endfunction
+
 int Function GetMaxOwnedUnitsAmount()
 	return JDB.solveInt(".ShoutAndBlade.cmderOptions.maxOwnedUnits", 30)
 EndFunction
@@ -674,6 +683,10 @@ EndFunction
 
 ; returns max units per cmder that is inside the location
 int Function GetMaxBesiegingUnitsAmount()
+	if !CanSpawnBesiegingUnits()
+		return 0
+	endif
+
 	int nearbyCmders = CloseByUpdater.CmderUpdater.numActives
 
 	if TargetLocationScript != None

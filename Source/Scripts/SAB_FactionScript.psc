@@ -435,6 +435,20 @@ bool Function ValidateCmderReachedDestination(SAB_CommanderScript commander, str
 		; assign the location to the cmder, and then they'll figure out what to do when updating
 		; Debug.Trace("commander has arrived and has been assigned the loc script!")
 		commander.RegisterAsNearLocation(targetLocScript)
+
+		if targetLocScript.factionScript != self && !CanFactionTakeLocations()
+			; if we can't take locs,
+			; go away from this loc if it's being contested
+			if targetLocScript.IsBeingContested()
+				if cmderDestType == "a" || cmderDestType == "A"
+					gameTimeOfLastDestinationChange_A = 0.0
+				elseif cmderDestType == "b" || cmderDestType == "B"
+					gameTimeOfLastDestinationChange_B = 0.0
+				elseif cmderDestType == "c" || cmderDestType == "C"
+					gameTimeOfLastDestinationChange_C = 0.0
+				endif
+			endif
+		endif
 		return true
 	endif
 
