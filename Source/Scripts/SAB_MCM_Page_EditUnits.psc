@@ -163,6 +163,22 @@ Function SetupEditUnitsPage()
         AddMenuOptionST("UNITEDIT_RACE___RaceHighElf", "$sab_mcm_unitedit_race_hif", GetEditedUnitRaceStatus(jEditedUnitData, "RaceHighElf"))
         AddMenuOptionST("UNITEDIT_RACE___RaceWoodElf", "$sab_mcm_unitedit_race_wof", GetEditedUnitRaceStatus(jEditedUnitData, "RaceWoodElf"))
     
+        ; race addons
+        ; TODO add pagination if too many
+        int jRaceAddonsMap = MainPage.MainQuest.UnitDataHandler.jRaceAddonsMap
+
+        if jValue.isExists(jRaceAddonsMap)
+            int jUnitAddonRacesMap = jMap.getObj(jEditedUnitData, "jUnitRaceAddonsMap")
+            string addonRaceId = JMap.nextKey(jRaceAddonsMap, previousKey="", endKey="")
+            while addonRaceId != ""
+                SAB_UnitRaceAddon addonData = JMap.getForm(jRaceAddonsMap, addonRaceId) as SAB_UnitRaceAddon
+
+                AddMenuOptionST("UNITEDIT_ADDON_RACE___" + addonRaceId, addonData.RaceDisplayName, GetEditedUnitAddonRaceStatus(jUnitAddonRacesMap, addonRaceId))
+
+                addonRaceId = JMap.nextKey(jRaceAddonsMap, addonRaceId, endKey="")
+            endwhile
+        endif
+
     elseif displayedRightSideMenu == 2
 
         AddHeaderOption("$sab_mcm_unitedit_header_upgrade_options")
@@ -571,6 +587,28 @@ state UNITEDIT_RACE
 
 endstate
 
+state UNITEDIT_ADDON_RACE
+
+    event OnMenuOpenST(string state_id)
+        SetupEditedUnitAddonRaceMenuOnOpen(currentFieldBeingEdited)
+    endEvent
+    
+    event OnMenuAcceptST(string state_id, int index)
+        SetEditedUnitAddonRaceMenuValue(currentFieldBeingEdited, index)
+    endEvent
+
+    event OnDefaultST(string state_id)
+        SetEditedUnitAddonRaceMenuValue(currentFieldBeingEdited, 0)
+    endEvent
+
+    event OnHighlightST(string state_id)
+        MainPage.ToggleQuickHotkey(true)
+        currentFieldBeingEdited = state_id
+		SetInfoText("$sab_mcm_unitedit_race_generic_desc")
+	endEvent
+
+endstate
+
 
 state UNITEDIT_UPGRADES_MENU_PAGE
 	event OnSliderOpenST(string state_id)
@@ -771,6 +809,24 @@ Function SetupEditedUnitRaceMenuOnOpen(string jUnitMapKey)
     SetMenuDialogOptions(unitRaceEditOptions)
 EndFunction
 
+; sets up an allowed addon race/gender menu
+Function SetupEditedUnitAddonRaceMenuOnOpen(string raceId)
+    currentFieldBeingEdited = raceId
+
+    int jUnitRaceAddonsMap = jMap.getObj(jEditedUnitData, "jUnitRaceAddonsMap")
+    if !JValue.isExists(jUnitRaceAddonsMap)
+        jUnitRaceAddonsMap = jMap.object()
+        jMap.setObj(jEditedUnitData, "jUnitRaceAddonsMap", jUnitRaceAddonsMap)
+    endif
+
+    int curValue = jMap.getInt(jUnitRaceAddonsMap, raceId)
+
+    SetMenuDialogStartIndex(curValue)
+    SetMenuDialogDefaultIndex(0)
+    SetMenuDialogOptions(unitRaceEditOptions)
+
+EndFunction
+
 Function SetEditedUnitSliderValue(string jUnitMapKey, float value, string formatString = "{0}")
     JMap.setFlt(jEditedUnitData, jUnitMapKey, value)
     ; JMap.setFlt(SAB_MCM.SAB_Main.UnitDataHandler.jTestGuyData, jUnitMapKey, value)
@@ -790,12 +846,45 @@ Function SetEditedUnitRaceMenuValue(string jUnitMapKey, int value)
     SetMenuOptionValueST(unitRaceEditOptions[value])
 EndFunction
 
+Function SetEditedUnitAddonRaceMenuValue(string raceId, int value)
+    int jUnitRaceAddonsMap = jMap.getObj(jEditedUnitData, "jUnitRaceAddonsMap")
+
+    if !JValue.isExists(jUnitRaceAddonsMap)
+        jUnitRaceAddonsMap = jMap.object()
+        jMap.setObj(jEditedUnitData, "jUnitRaceAddonsMap", jUnitRaceAddonsMap)
+    endif
+
+    jMap.setInt(jUnitRaceAddonsMap, raceId, value)
+
+    MainPage.MainQuest.UnitDataHandler.SetupRaceGendersLvlActorAccordingToUnitData \ 
+        (jEditedUnitData, MainPage.MainQuest.UnitDataHandler.SAB_UnitAllowedRacesGenders.GetAt(editedUnitIndex) as LeveledActor)
+
+    SetMenuOptionValueST(unitRaceEditOptions[value])
+EndFunction
 
 ; returns the text equivalent to the target race/gender status ("male only" for 1, for example).
 ; Returns "None" for 0 and invalid values
 string Function GetEditedUnitRaceStatus(int jUnitData, string raceKey)
 
     int raceStatus = JMap.getInt(jUnitData, raceKey, 0)
+
+    if raceStatus >= 0 && raceStatus < unitRaceEditOptions.Length
+        return unitRaceEditOptions[raceStatus]
+    endif
+
+    return "$sab_mcm_unitedit_race_option_none"
+
+endfunction
+
+; returns the text equivalent to the target race/gender status ("male only" for 1, for example).
+; Returns "None" for 0 and invalid values
+string Function GetEditedUnitAddonRaceStatus(int jUnitAddonRacesMap, string raceId)
+
+    if !JValue.isExists(jUnitAddonRacesMap)
+        return "$sab_mcm_unitedit_race_option_none"
+    endif
+
+    int raceStatus = JMap.getInt(jUnitAddonRacesMap, raceId, 0)
 
     if raceStatus >= 0 && raceStatus < unitRaceEditOptions.Length
         return unitRaceEditOptions[raceStatus]

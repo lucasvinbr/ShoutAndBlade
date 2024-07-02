@@ -111,31 +111,46 @@ Function SetupRaceGendersLvlActorAccordingToUnitData(int jUnitData, LeveledActor
 
     int addedEntries = 0
 
-    addedEntries = addedEntries + AddRaceGenderToLvlActorAccordingToUnitDataKey \
-     (jUnitData, lvlActor, "RaceBreton", SAB_LooksList_Breton_M, SAB_LooksList_Breton_F)
-    addedEntries = addedEntries + AddRaceGenderToLvlActorAccordingToUnitDataKey \
-     (jUnitData, lvlActor, "RaceImperial", SAB_LooksList_Imperial_M, SAB_LooksList_Imperial_F)
-    addedEntries = addedEntries + AddRaceGenderToLvlActorAccordingToUnitDataKey \ 
-     (jUnitData, lvlActor, "RaceNord", SAB_LooksList_Nord_M, SAB_LooksList_Nord_F)
-    addedEntries = addedEntries + AddRaceGenderToLvlActorAccordingToUnitDataKey \
-     (jUnitData, lvlActor, "RaceRedguard", SAB_LooksList_Redguard_M, SAB_LooksList_Redguard_F)
-    addedEntries = addedEntries + AddRaceGenderToLvlActorAccordingToUnitDataKey \
-     (jUnitData, lvlActor, "RaceDarkElf", SAB_LooksList_DarkElf_M, SAB_LooksList_DarkElf_F)
-    addedEntries = addedEntries + AddRaceGenderToLvlActorAccordingToUnitDataKey \
-     (jUnitData, lvlActor, "RaceHighElf", SAB_LooksList_HighElf_M, SAB_LooksList_HighElf_F)
-    addedEntries = addedEntries + AddRaceGenderToLvlActorAccordingToUnitDataKey \ 
-     (jUnitData, lvlActor, "RaceWoodElf", SAB_LooksList_WoodElf_M, SAB_LooksList_WoodElf_F)
-    addedEntries = addedEntries + AddRaceGenderToLvlActorAccordingToUnitDataKey \
-     (jUnitData, lvlActor, "RaceArgonian", SAB_LooksList_Argonian_M, SAB_LooksList_Argonian_F)
-    addedEntries = addedEntries + AddRaceGenderToLvlActorAccordingToUnitDataKey \
-     (jUnitData, lvlActor, "RaceKhajiit", SAB_LooksList_Khajiit_M, SAB_LooksList_Khajiit_F)
-    addedEntries = addedEntries + AddRaceGenderToLvlActorAccordingToUnitDataKey \
-     (jUnitData, lvlActor, "RaceOrc", SAB_LooksList_Orc_M, SAB_LooksList_Orc_F)
+    addedEntries = addedEntries + AddRaceGenderToLvlActorAccordingToValue \
+     (JMap.getInt(jUnitData, "RaceBreton", 0), lvlActor, SAB_LooksList_Breton_M, SAB_LooksList_Breton_F)
+    addedEntries = addedEntries + AddRaceGenderToLvlActorAccordingToValue \
+     (JMap.getInt(jUnitData, "RaceImperial", 0), lvlActor, SAB_LooksList_Imperial_M, SAB_LooksList_Imperial_F)
+    addedEntries = addedEntries + AddRaceGenderToLvlActorAccordingToValue \ 
+     (JMap.getInt(jUnitData, "RaceNord", 0), lvlActor, SAB_LooksList_Nord_M, SAB_LooksList_Nord_F)
+    addedEntries = addedEntries + AddRaceGenderToLvlActorAccordingToValue \
+     (JMap.getInt(jUnitData, "RaceRedguard", 0), lvlActor, SAB_LooksList_Redguard_M, SAB_LooksList_Redguard_F)
+    addedEntries = addedEntries + AddRaceGenderToLvlActorAccordingToValue \
+     (JMap.getInt(jUnitData, "RaceDarkElf", 0), lvlActor, SAB_LooksList_DarkElf_M, SAB_LooksList_DarkElf_F)
+    addedEntries = addedEntries + AddRaceGenderToLvlActorAccordingToValue \
+     (JMap.getInt(jUnitData, "RaceHighElf", 0), lvlActor, SAB_LooksList_HighElf_M, SAB_LooksList_HighElf_F)
+    addedEntries = addedEntries + AddRaceGenderToLvlActorAccordingToValue \ 
+     (JMap.getInt(jUnitData, "RaceWoodElf", 0), lvlActor, SAB_LooksList_WoodElf_M, SAB_LooksList_WoodElf_F)
+    addedEntries = addedEntries + AddRaceGenderToLvlActorAccordingToValue \
+     (JMap.getInt(jUnitData, "RaceArgonian", 0), lvlActor, SAB_LooksList_Argonian_M, SAB_LooksList_Argonian_F)
+    addedEntries = addedEntries + AddRaceGenderToLvlActorAccordingToValue \
+     (JMap.getInt(jUnitData, "RaceKhajiit", 0), lvlActor, SAB_LooksList_Khajiit_M, SAB_LooksList_Khajiit_F)
+    addedEntries = addedEntries + AddRaceGenderToLvlActorAccordingToValue \
+     (JMap.getInt(jUnitData, "RaceOrc", 0), lvlActor, SAB_LooksList_Orc_M, SAB_LooksList_Orc_F)
 
-    int jRaceAddonsArr = jMap.getObj(jUnitData, "jRaceAddonsArray")
+    int jUnitRaceAddonsMap = jMap.getObj(jUnitData, "jUnitRaceAddonsMap")
 
-    if jRaceAddonsArr != 0
-        ; TODO for each race addon entry here, check if entry isn't 0, then add addon's leveled actors
+    if jUnitRaceAddonsMap != 0
+        ; for each race addon entry here, check if entry isn't 0, then add addon's leveled actors
+        string raceEntryId = JMap.nextKey(jUnitRaceAddonsMap, previousKey="", endKey="")
+        while raceEntryId != ""
+            int pickedGenders = jMap.getInt(jUnitRaceAddonsMap, raceEntryId)
+
+            If pickedGenders != 0
+                SAB_UnitRaceAddon addonData = JMap.getForm(jUnitRaceAddonsMap, raceEntryId) as SAB_UnitRaceAddon
+
+                if addonData
+                    addedEntries = addedEntries + AddRaceGenderToLvlActorAccordingToValue \
+                        (pickedGenders, lvlActor, addonData.LooksList_Male, addonData.LooksList_Female)
+                endif
+            EndIf
+
+            raceEntryId = JMap.nextKey(jUnitRaceAddonsMap, raceEntryId, endKey="")
+        endwhile
     endif
 
     if addedEntries == 0
@@ -148,8 +163,7 @@ Function SetupRaceGendersLvlActorAccordingToUnitData(int jUnitData, LeveledActor
 EndFunction
 
 ;returns number of lvlActors added to the target LvlActor
-int Function AddRaceGenderToLvlActorAccordingToUnitDataKey(int jUnitData, LeveledActor lvlActor, string dataKey, LeveledActor male, LeveledActor female)
-    int raceGenderValue = JMap.getInt(jUnitData, dataKey, 0)
+int Function AddRaceGenderToLvlActorAccordingToValue(int raceGenderValue, LeveledActor lvlActor, LeveledActor male, LeveledActor female)
 
     ;0 is "none", 1 is "male only", 2 is "female only", 3 is "both"
     if raceGenderValue == 0
@@ -387,6 +401,6 @@ EndFunction
 ; int RaceKhajiit
 ; int RaceOrc
 
-; an array of jMaps. Each entry in the array indicates an addon race/gender used by this unit,
-; with two fields: "raceId" and "allowedGenders". "allowedGenders" uses the same rules as the vanilla races
-; int jRaceAddonsArray
+; a jMap. Each entry in the map indicates an addon race/gender used by this unit. each map entry uses the addon's race id as key,
+; and the entry value is the allowed gender, using the same values as the vanilla races (0 for none, 1 for male only etc)
+; int jUnitRaceAddonsMap

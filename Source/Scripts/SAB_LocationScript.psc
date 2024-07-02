@@ -65,7 +65,7 @@ Function Setup(SAB_FactionScript factionScriptRef, float curGameTime = 0.0)
 	parent.Setup(factionScriptRef, curGameTime)
 
 	if jKnownVacantNearbyCmderSlots == -1 || jKnownVacantNearbyCmderSlots == 0
-		NearbyCommanders = new SAB_CommanderScript[32]
+		NearbyCommanders = new SAB_CommanderScript[128]
 		jKnownVacantNearbyCmderSlots = jArray.object()
 		JValue.retain(jKnownVacantNearbyCmderSlots, "ShoutAndBlade")
 	endif
@@ -347,7 +347,7 @@ int Function RegisterCommanderInNearbyList(SAB_CommanderScript cmderScript, int 
 			jArray.eraseInteger(jKnownVacantNearbyCmderSlots, vacantIndex)
 		endif
 	else 
-		if vacantIndex >= 32
+		if vacantIndex >= 128
 			; there are no holes and all entries are filled!
 			; abort
 			debug.Trace("loc " + GetLocName() + " is full of nearby cmders!")
@@ -423,17 +423,27 @@ Function UnregisterCommanderFromNearbyList(int cmderIndexInNearbies)
 EndFunction
 
 bool function IsCommanderInNearbyList(SAB_CommanderScript cmderScript)
+	return GetCommanderIndexInNearbyList(cmderScript) != -1
+endfunction
+
+; returns -1 if not found
+int function GetCommanderIndexInNearbyList(SAB_CommanderScript cmderScript)
+	if cmderScript == None
+		return -1
+	endif
+
 	int i = topFilledNearbyCmderIndex
 	While (i >= 0)
 		if NearbyCommanders[i] == cmderScript
-			return true
+			return i
 		endif
 
 		i -= 1
 	EndWhile
 
-	return false
+	return -1
 endfunction
+
 
 int Function GetTopNearbyCmderIndex()
 	return topFilledNearbyCmderIndex

@@ -6,6 +6,9 @@ SAB_UnitDataHandler Property UnitHandlerScript Auto
 String Property RaceUniqueID Auto
 { an ID, used to store the addon's data in the main SAB units handler. Should be unique among all race addons, so don't make it too generic}
 
+String Property RaceDisplayName Auto
+{ the name of the race, used in SAB menus }
+
 LeveledActor Property LooksList_Male Auto
 { leveled actor with all male appearance variations of this race }
 LeveledActor Property LooksList_Female Auto

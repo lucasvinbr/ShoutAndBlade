@@ -231,6 +231,13 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 						While (i >= 0)
 							SAB_CommanderScript otherCmder = TargetLocationScript.NearbyCommanders[i]
 							If otherCmder != None && otherCmder != self && otherCmder.factionScript.CanFactionTakeLocations()
+								if otherCmder.GetIndexInNearbyLoc() != i
+									; somehow, the indexes have desynced.
+									; removing the index on the loc's side should be enough
+									otherCmder.UnregisterAsNearLocation_NoIndexChange(TargetLocationScript)
+									Debug.Trace("SAB: removed desynced nearby cmder index in " + factionScript.GetFactionName())
+								endif
+
 								if !diploHandler.AreFactionsInGoodStanding(factionScript, otherCmder.factionScript)
 									DoAutocalcBattle(otherCmder)
 									return true
@@ -329,7 +336,7 @@ EndFunction
 
 ; sets our index in loc nearbies back to -1
 Function UnregisterAsNearLocation(SAB_LocationScript loc)
-	if TargetLocationScript == None
+	if loc == None
 		return
 	endif
 
@@ -338,6 +345,21 @@ Function UnregisterAsNearLocation(SAB_LocationScript loc)
 	endif
 	
 	indexInLocNearbiesArray = -1
+EndFunction
+
+; tries to find this cmder in the loc's nearbies array, and removes it if found.
+; should only be used to clean up weird situations
+Function UnregisterAsNearLocation_NoIndexChange(SAB_LocationScript loc)
+	if loc == None
+		return
+	endif
+
+	int cmderIndexInLoc = loc.GetCommanderIndexInNearbyList(self)
+
+	if cmderIndexInLoc >= 0
+		loc.UnregisterCommanderFromNearbyList(cmderIndexInLoc)
+	endif
+	
 EndFunction
 
 
@@ -575,13 +597,15 @@ bool Function IsValid()
 	return false
 EndFunction
 
+int Function GetIndexInNearbyLoc()
+	return indexInLocNearbiesArray
+EndFunction
+
 ; clears the alias and stops updates
 Function ClearCmderData()
 	; debug.Trace("commander: clear cmder data!")
 
-	if TargetLocationScript != None
-		UnregisterAsNearLocation(TargetLocationScript)
-	endif
+	UnregisterAsNearLocation(TargetLocationScript)
 
 	ToggleNearbyUpdates(false)
 	ToggleUpdates(false)
