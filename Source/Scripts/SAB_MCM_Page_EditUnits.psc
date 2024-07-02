@@ -171,9 +171,9 @@ Function SetupEditUnitsPage()
             int jUnitAddonRacesMap = jMap.getObj(jEditedUnitData, "jUnitRaceAddonsMap")
             string addonRaceId = JMap.nextKey(jRaceAddonsMap, previousKey="", endKey="")
             while addonRaceId != ""
-                SAB_UnitRaceAddon addonData = JMap.getForm(jRaceAddonsMap, addonRaceId) as SAB_UnitRaceAddon
+                int jAddonData = JMap.getObj(jRaceAddonsMap, addonRaceId)
 
-                AddMenuOptionST("UNITEDIT_ADDON_RACE___" + addonRaceId, addonData.RaceDisplayName, GetEditedUnitAddonRaceStatus(jUnitAddonRacesMap, addonRaceId))
+                AddMenuOptionST("UNITEDIT_ADDON_RACE___" + addonRaceId, jMap.getStr(jAddonData, "displayName", "NONAME - " + addonRaceId), GetEditedUnitAddonRaceStatus(jUnitAddonRacesMap, addonRaceId))
 
                 addonRaceId = JMap.nextKey(jRaceAddonsMap, addonRaceId, endKey="")
             endwhile
@@ -855,6 +855,10 @@ Function SetEditedUnitAddonRaceMenuValue(string raceId, int value)
     endif
 
     jMap.setInt(jUnitRaceAddonsMap, raceId, value)
+
+    If value == 0
+        jMap.removeKey(jUnitRaceAddonsMap, raceId)
+    EndIf
 
     MainPage.MainQuest.UnitDataHandler.SetupRaceGendersLvlActorAccordingToUnitData \ 
         (jEditedUnitData, MainPage.MainQuest.UnitDataHandler.SAB_UnitAllowedRacesGenders.GetAt(editedUnitIndex) as LeveledActor)

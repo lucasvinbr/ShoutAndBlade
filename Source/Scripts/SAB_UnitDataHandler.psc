@@ -42,7 +42,11 @@ int Property jSABUnitDatasArray Auto Hidden
 ; a unit data jMap just for testing
 int Property jTestGuyData Auto Hidden
 
-; a jMap of jMaps, each one defining a race addon, each one with its unique id as key
+; a jMap of jMaps, each one defining a race addon, each one with its unique id as key.
+; entries: 
+; displayName - String
+; male - leveledActor form
+; female - leveledActor form
 int Property jRaceAddonsMap Auto Hidden
 
 LeveledActor Property SAB_UnitLooks_TestGuy Auto
@@ -141,11 +145,13 @@ Function SetupRaceGendersLvlActorAccordingToUnitData(int jUnitData, LeveledActor
             int pickedGenders = jMap.getInt(jUnitRaceAddonsMap, raceEntryId)
 
             If pickedGenders != 0
-                SAB_UnitRaceAddon addonData = JMap.getForm(jUnitRaceAddonsMap, raceEntryId) as SAB_UnitRaceAddon
+                int jRaceAddonData = JMap.getObj(jRaceAddonsMap, raceEntryId)
 
-                if addonData
+                if jRaceAddonData != 0
+                    LeveledActor addonMale = jMap.getForm(jRaceAddonData, "male") as LeveledActor
+                    LeveledActor addonFemale = jMap.getForm(jRaceAddonData, "female") as LeveledActor
                     addedEntries = addedEntries + AddRaceGenderToLvlActorAccordingToValue \
-                        (pickedGenders, lvlActor, addonData.LooksList_Male, addonData.LooksList_Female)
+                        (pickedGenders, lvlActor, addonMale, addonFemale)
                 endif
             EndIf
 
@@ -302,6 +308,7 @@ Function AddNewRaceFromAddon(SAB_UnitRaceAddon addon)
     endif
 
     int jRaceAddonObj = jMap.object()
+    jMap.setStr(jRaceAddonObj, "displayName", addon.RaceDisplayName)
     jMap.setForm(jRaceAddonObj, "male", addon.LooksList_Male)
     jMap.setForm(jRaceAddonObj, "female", addon.LooksList_Female)
 
