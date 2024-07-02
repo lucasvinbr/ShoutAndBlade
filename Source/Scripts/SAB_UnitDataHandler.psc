@@ -42,9 +42,14 @@ int Property jSABUnitDatasArray Auto Hidden
 ; a unit data jMap just for testing
 int Property jTestGuyData Auto Hidden
 
+; a jMap of jMaps, each one defining a race addon, each one with its unique id as key
+int Property jRaceAddonsMap Auto Hidden
+
 LeveledActor Property SAB_UnitLooks_TestGuy Auto
 LeveledItem Property SAB_UnitGear_TestGuy Auto
 LeveledItem Property SAB_UnitDuplicateItems_TestGuy Auto
+
+bool isBusyAddingNewRace = false
 
 Function InitializeJData()
     jSABUnitDatasArray = JArray.objectWithSize(512)
@@ -52,6 +57,11 @@ Function InitializeJData()
 
     jTestGuyData = JMap.object()
     JValue.retain(jTestGuyData, "ShoutAndBlade")
+
+EndFunction
+
+bool Function IsDoneSettingUp()
+    return jValue.isExists(jSABUnitDatasArray)
 EndFunction
 
 ; makes sure the unitDatasArray has 512 elements
@@ -121,6 +131,12 @@ Function SetupRaceGendersLvlActorAccordingToUnitData(int jUnitData, LeveledActor
      (jUnitData, lvlActor, "RaceKhajiit", SAB_LooksList_Khajiit_M, SAB_LooksList_Khajiit_F)
     addedEntries = addedEntries + AddRaceGenderToLvlActorAccordingToUnitDataKey \
      (jUnitData, lvlActor, "RaceOrc", SAB_LooksList_Orc_M, SAB_LooksList_Orc_F)
+
+    int jRaceAddonsArr = jMap.getObj(jUnitData, "jRaceAddonsArray")
+
+    if jRaceAddonsArr != 0
+        ; TODO for each race addon entry here, check if entry isn't 0, then add addon's leveled actors
+    endif
 
     if addedEntries == 0
         ; if no entries have been selected,
@@ -257,6 +273,30 @@ Function CopyUnitDataFromAnotherIndex(int indexToCopyTo, int indexToCopyFrom)
         SAB_UnitGearSets.GetAt(indexToCopyTo) as LeveledItem, SAB_UnitDuplicateItemSets.GetAt(indexToCopyTo) as LeveledItem)
 EndFunction
 
+Function AddNewRaceFromAddon(SAB_UnitRaceAddon addon)
+
+    while isBusyAddingNewRace
+        Debug.Trace("SAB queued new addon race registration is waiting")
+        Utility.Wait(0.1)
+    endwhile
+
+    isBusyAddingNewRace = true
+
+    if !JValue.isExists(jRaceAddonsMap)
+        jRaceAddonsMap = JMap.object()
+        JValue.retain(jRaceAddonsMap, "ShoutAndBlade")
+    endif
+
+    int jRaceAddonObj = jMap.object()
+    jMap.setForm(jRaceAddonObj, "male", addon.LooksList_Male)
+    jMap.setForm(jRaceAddonObj, "female", addon.LooksList_Female)
+
+    jMap.setObj(jRaceAddonsMap, addon.RaceUniqueID, jRaceAddonObj)
+
+    isBusyAddingNewRace = false
+    
+EndFunction
+
 ; expects a map of "unit index - amount" ints.
 ; returns the sum of all units' autocalc power values
 float Function GetTotalAutocalcPowerFromArmy(int jArmyMap)
@@ -346,3 +386,7 @@ EndFunction
 ; int RaceArgonian
 ; int RaceKhajiit
 ; int RaceOrc
+
+; an array of jMaps. Each entry in the array indicates an addon race/gender used by this unit,
+; with two fields: "raceId" and "allowedGenders". "allowedGenders" uses the same rules as the vanilla races
+; int jRaceAddonsArray
