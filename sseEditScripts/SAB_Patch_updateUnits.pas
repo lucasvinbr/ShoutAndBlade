@@ -65,25 +65,25 @@ begin
 	curEditedUnit := LinksTo(ElementByIndex(ElementByPath(allUnitsList, 'FormIDs'), i));
 
 	//copy AI data from unit00
-	UpdateUnitElement('AIDT', baseNpc, curEditedUnit);
+	//UpdateUnitElement('AIDT', baseNpc, curEditedUnit);
 
 	//copy configuration data from unit00
 	UpdateUnitElement('ACBS', baseNpc, curEditedUnit);
 
 	//copy combat style from unit00
-	UpdateUnitElement('ZNAM', baseNpc, curEditedUnit);
+	//UpdateUnitElement('ZNAM', baseNpc, curEditedUnit);
 	
 	//copy override package lists from unit00
-	UpdateUnitElement('SPOR', baseNpc, curEditedUnit);
-	UpdateUnitElement('OCOR', baseNpc, curEditedUnit);
-	UpdateUnitElement('ECOR', baseNpc, curEditedUnit);
+	//UpdateUnitElement('SPOR', baseNpc, curEditedUnit);
+	//UpdateUnitElement('OCOR', baseNpc, curEditedUnit);
+	//UpdateUnitElement('ECOR', baseNpc, curEditedUnit);
 	
 	//copy default package list from unit00
-	UpdateUnitElement('DPLT', baseNpc, curEditedUnit);
+	//UpdateUnitElement('DPLT', baseNpc, curEditedUnit);
 	
 	//copy main packages from unit00
-	curEditedElement := Add(curEditedUnit, 'Packages', false);
-	ElementAssign(curEditedElement, LowInteger, ElementByPath(baseNpc, 'Packages'), false);
+	//curEditedElement := Add(curEditedUnit, 'Packages', false);
+	//ElementAssign(curEditedElement, LowInteger, ElementByPath(baseNpc, 'Packages'), false);
 
 	log('updated unit ' + unitIndex);
   end;
