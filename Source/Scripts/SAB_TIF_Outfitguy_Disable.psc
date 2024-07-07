@@ -6,6 +6,7 @@ Scriptname SAB_TIF_Outfitguy_Disable Extends TopicInfo Hidden
 Function Fragment_0(ObjectReference akSpeakerRef)
 Actor akSpeaker = akSpeakerRef as Actor
 ;BEGIN CODE
+akSpeaker.SetPlayerTeammate(false, false)
 akSpeakerRef.Disable(true)
 ;END CODE
 EndFunction
