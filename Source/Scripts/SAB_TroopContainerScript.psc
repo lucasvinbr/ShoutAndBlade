@@ -447,10 +447,10 @@ EndFunction
 
 ; Override this if your default follow rank shouldn't be -1 (-1 means the unit should sandbox. Other indexes should follow the respective cmders)
 ReferenceAlias Function SpawnUnitAtLocationWithDefaultFollowRank(int unitIndex, ObjectReference targetLocation)
-	return SpawnUnitAtLocation(unitIndex, targetLocation, -1)
+	return SpawnUnitAtLocation(unitIndex, targetLocation, -1, IsOnAlert())
 EndFunction
 
-ReferenceAlias Function SpawnUnitAtLocation(int unitIndex, ObjectReference targetLocation, int followRank)
+ReferenceAlias Function SpawnUnitAtLocation(int unitIndex, ObjectReference targetLocation, int followRank, bool spawnAlerted)
 	ReferenceAlias spawnedUnit = factionScript.SpawnUnitForTroopContainer(self, unitIndex, targetLocation, gameTimeOfLastSetup, followRank)
 
 	if spawnedUnit != None
@@ -471,6 +471,12 @@ ReferenceAlias Function SpawnUnitAtLocation(int unitIndex, ObjectReference targe
 		; debug.Trace("unit of index " + unitIndex + " has spawned...")
 		; debug.Trace("curspawnedamount of " + unitIndex + " is now " + (currentSpawnedAmount + 1))
 		; debug.Trace("spawnedUnitsAmount is now " + spawnedUnitsAmount)
+
+		; set unit to be alerted if container is on alert
+		if (spawnAlerted)
+			Actor unitActor = spawnedUnit.GetReference() as Actor
+			unitActor.SetAlert(true)
+		endif
 
 		return spawnedUnit
 	endif
@@ -637,6 +643,12 @@ EndFunction
 Function HandleAutocalcDefeat()
 	Debug.Trace("HandleAutocalcDefeat: Override me!")
 EndFunction
+
+; override this!
+; if true, units spawning from this container should spawn ready for combat
+bool Function IsOnAlert()
+	return false
+endfunction
 
 ; returns the maximum amount of units this container should be able to own
 int Function GetMaxOwnedUnitsAmount()

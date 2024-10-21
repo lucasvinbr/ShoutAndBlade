@@ -380,42 +380,18 @@ EndFunction
 
 
 ReferenceAlias Function SpawnUnitAtLocationWithDefaultFollowRank(int unitIndex, ObjectReference targetLocation)
-	return SpawnUnitAtLocation(unitIndex, targetLocation, CmderFollowFactionRank)
-EndFunction
-
-ReferenceAlias Function SpawnUnitAtLocation(int unitIndex, ObjectReference targetLocation, int followRank)
-	ReferenceAlias spawnedUnit = factionScript.SpawnUnitForTroopContainer(self, unitIndex, targetLocation, gameTimeOfLastSetup, followRank)
-
-	if spawnedUnit != None
-		; add spawned unit index to spawneds list
-		int currentSpawnedAmount = jIntMap.getInt(jSpawnedUnitsMap, unitIndex)
-		jIntMap.setInt(jSpawnedUnitsMap, unitIndex, currentSpawnedAmount + 1)
-
-		; decrement spawnables amount
-		int currentSpawnableAmount = jIntMap.getInt(jSpawnOptionsMap, unitIndex)
-		jIntMap.setInt(jSpawnOptionsMap, unitIndex, currentSpawnableAmount - 1)
-
-		if currentSpawnableAmount - 1 <= 0
-			jIntMap.removeKey(jSpawnOptionsMap, unitIndex)
-		endif
-
-		spawnedUnitsAmount += 1
-
-		return spawnedUnit
-	endif
-
-	return None
+	return SpawnUnitAtLocation(unitIndex, targetLocation, CmderFollowFactionRank, IsOnAlert())
 EndFunction
 
 
 ; like spawnRandomUnitAtPos, but spawns are limited by the max besieging units instead
-Function SpawnBesiegingUnitAtPos(ObjectReference targetLocation, int followRank)
+Function SpawnBesiegingUnitAtPos(ObjectReference targetLocation, int followRank, bool spawnAlerted)
 
 	if spawnedUnitsAmount < GetMaxBesiegingUnitsAmount()
 		int indexToSpawn = GetUnitIndexToSpawn()
 
 		if indexToSpawn >= 0
-			SpawnUnitAtLocation(indexToSpawn, targetLocation, followRank)
+			ReferenceAlias spawnedUnit = SpawnUnitAtLocation(indexToSpawn, targetLocation, followRank, spawnAlerted)
 		endif
 		
 	endif
@@ -423,7 +399,7 @@ Function SpawnBesiegingUnitAtPos(ObjectReference targetLocation, int followRank)
 EndFunction
 
 ; like SpawnUnitBatchAtLocation, but spawns are limited by the max besieging units instead, and may not follow the cmder
-Function SpawnBesiegingUnitBatchAtLocation(ObjectReference spawnLocation, int followRank)
+Function SpawnBesiegingUnitBatchAtLocation(ObjectReference spawnLocation, int followRank, bool spawnAlerted)
 	int maxBatchSize = 8
 	int spawnedCount = 0
 
@@ -433,7 +409,7 @@ Function SpawnBesiegingUnitBatchAtLocation(ObjectReference spawnLocation, int fo
 		int unitIndexToSpawn = GetUnitIndexToSpawn()
 
 		if unitIndexToSpawn >= 0
-			SpawnUnitAtLocation(unitIndexToSpawn, spawnLocation, followRank)
+			SpawnUnitAtLocation(unitIndexToSpawn, spawnLocation, followRank, spawnAlerted)
 			spawnedCount += 1
 		else 
 			; stop spawning, we're out of spawnable units
@@ -723,3 +699,8 @@ int Function GetMaxBesiegingUnitsAmount()
 
 	return JDB.solveInt(".ShoutAndBlade.cmderOptions.maxSpawnsWhenBesieging", 8)
 EndFunction
+
+; if true, units spawning from this container should spawn ready for combat
+bool Function IsOnAlert()
+	return (meActor.IsDead() || meActor.IsInCombat())
+endfunction

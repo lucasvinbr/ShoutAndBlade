@@ -84,17 +84,18 @@ Actor Function SpawnUnit( ObjectReference LocationRef, Faction ownerFaction, int
 	endif
 
 	Actor createdActor = LocationRef.PlaceActorAtMe(unitActorBase)
-	CustomizeActorAccordingToData(createdActor, jUnitDataMap)
 
 	if ownerFaction
 		createdActor.AddToFaction(ownerFaction)
-		createdActor.SetCrimeFaction(ownerFaction)
+		;createdActor.SetCrimeFaction(ownerFaction)
 	endif
 
 	if cmderFollowIndex > -1
 		createdActor.AddToFaction(SAB_CommanderRanksFaction)
 		createdActor.SetFactionRank(SAB_CommanderRanksFaction, cmderFollowIndex)
 	endif
+
+	CustomizeActorAccordingToData(createdActor, jUnitDataMap)
 
 	; debug.StopStackProfiling()
 

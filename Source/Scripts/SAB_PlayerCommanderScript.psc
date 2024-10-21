@@ -110,10 +110,10 @@ ObjectReference Function GetSpawnLocationForUnit()
 EndFunction
 
 ReferenceAlias Function SpawnUnitAtLocationWithDefaultFollowRank(int unitIndex, ObjectReference targetLocation)
-	return SpawnUnitAtLocation(unitIndex, targetLocation, 0)
+	return SpawnUnitAtLocation(unitIndex, targetLocation, 0, IsOnAlert())
 EndFunction
 
-ReferenceAlias Function SpawnUnitAtLocation(int unitIndex, ObjectReference targetLocation, int followRank)
+ReferenceAlias Function SpawnUnitAtLocation(int unitIndex, ObjectReference targetLocation, int followRank, bool spawnAlerted)
 	ReferenceAlias spawnedUnit = PlayerDataHandler.SpawnPlayerUnit(unitIndex, targetLocation, gameTimeOfLastSetup)
 
 	if spawnedUnit != None
@@ -132,6 +132,12 @@ ReferenceAlias Function SpawnUnitAtLocation(int unitIndex, ObjectReference targe
 		(spawnedUnit.GetReference() as Actor).SetPlayerTeammate(true, true)
 
 		spawnedUnitsAmount += 1
+
+		; set unit to be alerted if cmder is dead or in combat
+		if (spawnAlerted)
+			Actor unitActor = spawnedUnit.GetReference() as Actor
+			unitActor.SetAlert(true)
+		endif
 
 		return spawnedUnit
 	endif
@@ -279,3 +285,7 @@ int Function GetMaxBesiegingUnitsAmount()
 	return GetMaxSpawnedUnitsAmount()
 EndFunction
 
+; if true, units spawning from this container should spawn ready for combat
+bool Function IsOnAlert()
+	return playerActor.IsInCombat()
+endfunction

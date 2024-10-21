@@ -298,10 +298,10 @@ bool function RunCloseByUpdate()
 
 			if InteractingCommander != None && InteractingCommander.IsValid()
 				if IsBeingContested()
-					InteractingCommander.SpawnBesiegingUnitBatchAtLocation(GetSpawnLocationForUnit(), InteractingCommander.CmderFollowFactionRank)
+					InteractingCommander.SpawnBesiegingUnitBatchAtLocation(GetSpawnLocationForUnit(), -1, true)
 				else
 					; "ambient units", just to populate the location
-					InteractingCommander.SpawnBesiegingUnitAtPos(GetSpawnLocationForUnit(), -1)
+					InteractingCommander.SpawnBesiegingUnitAtPos(GetSpawnLocationForUnit(), -1, false)
 				endif
 			endif
 
@@ -632,3 +632,8 @@ string Function GetLocName()
 		return ThisLocation.GetName()
 	endif
 EndFunction
+
+; if true, units spawning from this container should spawn ready for combat
+bool Function IsOnAlert()
+	return IsBeingContested()
+endfunction

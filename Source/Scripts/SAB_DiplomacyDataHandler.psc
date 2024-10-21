@@ -44,7 +44,7 @@ Event OnUpdate()
         endif
     endif
     
-    RegisterForSingleUpdate(1.0)
+    RegisterForSingleUpdate(10.0)
 EndEvent
 
 

@@ -160,6 +160,9 @@ Function ClearAliasData()
 	unitIndex = -1
 	gameTimeOwnerContainerWasSetup = 0.0
 	parent.ClearAliasData()
+	if(meActor != None)
+		meActor.SetPlayerTeammate(false, false)
+	endif
 	meActor = None
 EndFunction
 
