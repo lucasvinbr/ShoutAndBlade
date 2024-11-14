@@ -16,6 +16,8 @@ int Property jSABPlayerRelationsMap Auto Hidden
 ; keys are faction indexes, values are pending kills
 int jPendingUnitKillsMap = -1
 
+bool isGlobalReactToPlayerKillRunning = false
+
 Function InitializeJData()
     jSABFactionRelationsMap = JIntMap.object()
     JValue.retain(jSABFactionRelationsMap, "ShoutAndBlade")
@@ -27,6 +29,10 @@ EndFunction
 
 Event OnUpdate()
 	
+    if isGlobalReactToPlayerKillRunning
+        return
+    endif
+
     if jIntMap.count(jPendingUnitKillsMap) > 0
         int facKey = JIntMap.getNthKey(jPendingUnitKillsMap, 0)
         ; run fac relations updates due to player killing units, one at a time
@@ -471,7 +477,8 @@ EndFunction
 ; enemies of the killed become closer to player
 Function GlobalReactToPlayerKillingUnit(int killedUnitFacIndex, int killedUnitAmount)
 
-    debug.Trace("global react to unit kills start! killedFac: "+ killedUnitFacIndex +", killedAmount: " + killedUnitAmount)
+    isGlobalReactToPlayerKillRunning = true
+    debug.Trace("global react to unit kills START! killedFac: "+ killedUnitFacIndex +", killedAmount: " + killedUnitAmount)
 
     SAB_FactionScript[] facQuests = FactionDataHandler.SAB_FactionQuests
 
@@ -500,6 +507,9 @@ Function GlobalReactToPlayerKillingUnit(int killedUnitFacIndex, int killedUnitAm
             endif
         endif
     EndWhile
+
+    isGlobalReactToPlayerKillRunning = false
+    debug.Trace("global react to unit kills END! killedFac: "+ killedUnitFacIndex +", killedAmount: " + killedUnitAmount)
 EndFunction
 
 ; killed and allies of the killed get angry at player.
