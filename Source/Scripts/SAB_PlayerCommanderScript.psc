@@ -274,11 +274,18 @@ EndFunction
 int Function GetMaxSpawnedUnitsAmount()
 	int nearbyCmders = CloseByUpdater.CmderUpdater.numActives
 
+	int baseCombatMax = JDB.solveInt(".ShoutAndBlade.cmderOptions.maxSpawnsInCombat", 8)
+
 	if nearbyCmders >= JDB.solveInt(".ShoutAndBlade.cmderOptions.nearbyCmdersLimit", 5)
-		return JDB.solveInt(".ShoutAndBlade.cmderOptions.combatSpawnsDividend", 20) / nearbyCmders
+		
+		int limitedMax = JDB.solveInt(".ShoutAndBlade.cmderOptions.combatSpawnsDividend", 20) / nearbyCmders
+
+		if limitedMax < baseCombatMax
+			return limitedMax
+		endif
 	endif
 
-	return JDB.solveInt(".ShoutAndBlade.cmderOptions.maxSpawnsInCombat", 8)
+	return baseCombatMax
 EndFunction
 
 int Function GetMaxBesiegingUnitsAmount()

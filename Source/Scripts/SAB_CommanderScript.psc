@@ -660,20 +660,22 @@ int Function GetMaxSpawnedUnitsAmount()
 	endif
 
 	if meActor.IsInCombat() || meActor.IsDead()
+		int baseCombatMax = JDB.solveInt(".ShoutAndBlade.cmderOptions.maxSpawnsInCombat", 8)
+
 		if nearbyCmders >= JDB.solveInt(".ShoutAndBlade.cmderOptions.nearbyCmdersLimit", 5)
 			
 			; debug.Trace("Cmder GetMaxSpawnedUnitsAmount: in combat and above nearbyCmdersLimit. MaxAmount: " + \
 			; 				(JDB.solveInt(".ShoutAndBlade.cmderOptions.combatSpawnsDividend", 20) / nearbyCmders))
-			int numSpawns = JDB.solveInt(".ShoutAndBlade.cmderOptions.combatSpawnsDividend", 20) / nearbyCmders
-			; if numSpawns < 1
-			; 	numSpawns = 1
-			; endif
-			return numSpawns
+			int limitedMax = JDB.solveInt(".ShoutAndBlade.cmderOptions.combatSpawnsDividend", 20) / nearbyCmders
+
+			if limitedMax < baseCombatMax
+				return limitedMax
+			endif
 		endif
 
 		; debug.Trace("Cmder GetMaxSpawnedUnitsAmount: in combat. MaxAmount: " + \
 		; 					(JDB.solveInt(".ShoutAndBlade.cmderOptions.maxSpawnsInCombat", 8)))
-		return JDB.solveInt(".ShoutAndBlade.cmderOptions.maxSpawnsInCombat", 8)
+		return baseCombatMax
 	else
 		; debug.Trace("Cmder GetMaxSpawnedUnitsAmount: peaceful. MaxAmount: " + \
 		; 					(JDB.solveInt(".ShoutAndBlade.cmderOptions.maxSpawnsOutsideCombat", 6)))
@@ -693,11 +695,16 @@ int Function GetMaxBesiegingUnitsAmount()
 		nearbyCmders += TargetLocationScript.GetTopNearbyCmderIndex()
 	endif
 
+	int baseMax = JDB.solveInt(".ShoutAndBlade.cmderOptions.maxSpawnsWhenBesieging", 8)
+
 	if nearbyCmders >= JDB.solveInt(".ShoutAndBlade.cmderOptions.nearbyCmdersLimit", 5)
-		return JDB.solveInt(".ShoutAndBlade.cmderOptions.combatSpawnsDividend", 20) / nearbyCmders
+		int limitedMax = JDB.solveInt(".ShoutAndBlade.cmderOptions.combatSpawnsDividend", 20) / nearbyCmders
+		if limitedMax < baseMax
+			return limitedMax
+		endif
 	endif
 
-	return JDB.solveInt(".ShoutAndBlade.cmderOptions.maxSpawnsWhenBesieging", 8)
+	return baseMax
 EndFunction
 
 ; if true, units spawning from this container should spawn ready for combat
