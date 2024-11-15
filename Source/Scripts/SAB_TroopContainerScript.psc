@@ -395,7 +395,10 @@ Function SpawnUnitBatch()
 		int unitIndexToSpawn = GetUnitIndexToSpawn()
 
 		if unitIndexToSpawn >= 0
-			SpawnUnitAtLocationWithDefaultFollowRank(unitIndexToSpawn, spawnLocation)
+			if SpawnUnitAtLocationWithDefaultFollowRank(unitIndexToSpawn, spawnLocation) == None
+				; stop spawning, the spawn failed (maybe too many units of our fac are around already)
+				spawnedCount = maxBatchSize
+			endif
 			spawnedCount += 1
 		else 
 			; stop spawning, we're out of spawnable units
@@ -419,7 +422,10 @@ Function SpawnUnitBatchAtLocation(ObjectReference spawnLocation)
 		int unitIndexToSpawn = GetUnitIndexToSpawn()
 
 		if unitIndexToSpawn >= 0
-			SpawnUnitAtLocationWithDefaultFollowRank(unitIndexToSpawn, spawnLocation)
+			if SpawnUnitAtLocationWithDefaultFollowRank(unitIndexToSpawn, spawnLocation) == None
+				; stop spawning, the spawn failed (too many of our fac around?)
+				spawnedCount = maxBatchSize 
+			endif
 			spawnedCount += 1
 		else 
 			; stop spawning, we're out of spawnable units

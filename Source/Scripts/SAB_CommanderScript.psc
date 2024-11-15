@@ -409,7 +409,10 @@ Function SpawnBesiegingUnitBatchAtLocation(ObjectReference spawnLocation, int fo
 		int unitIndexToSpawn = GetUnitIndexToSpawn()
 
 		if unitIndexToSpawn >= 0
-			SpawnUnitAtLocation(unitIndexToSpawn, spawnLocation, followRank, spawnAlerted)
+			if SpawnUnitAtLocation(unitIndexToSpawn, spawnLocation, followRank, spawnAlerted) == None
+				; stop spawning, it failed for some reason, so better stop for now
+				spawnedCount = maxBatchSize 
+			endif
 			spawnedCount += 1
 		else 
 			; stop spawning, we're out of spawnable units
