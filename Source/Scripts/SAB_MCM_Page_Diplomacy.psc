@@ -132,6 +132,11 @@ endstate
 
 state RELPLAYER_DISPLAY
 
+    event OnSelectST(string state_id)
+        editedFactionIndex = -1
+        ForcePageReset()
+	endEvent
+
 	event OnHighlightST(string state_id)
         MainPage.ToggleQuickHotkey(true)
 		SetInfoText("$sab_mcm_diplomacy_player_entry_desc")

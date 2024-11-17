@@ -17,9 +17,7 @@ event OnInit()
 endevent
 
 Event OnPageInit()
-
     editedFactionIdentifiersArray = new string[101]
-
 EndEvent
 
 Event OnVersionUpdate(Int a_version)
@@ -32,10 +30,20 @@ Event OnPageDraw()
 EndEvent
 
 
-
 ;---------------------------------------------------------------------------------------------------------
 ; PAGE STUFF
 ;---------------------------------------------------------------------------------------------------------
+
+string[] Function GetLocAsDestOptionsArray()
+    
+    string[] setLocAsDestOptions = new string[4]
+    setLocAsDestOptions[0] = "$sab_mcm_myfaction_set_loc_as_dest_cancel"
+    setLocAsDestOptions[1] = "$sab_mcm_myfaction_set_loc_as_dest_a"
+    setLocAsDestOptions[2] = "$sab_mcm_myfaction_set_loc_as_dest_b"
+    setLocAsDestOptions[3] = "$sab_mcm_myfaction_set_loc_as_dest_c"
+    return setLocAsDestOptions
+
+EndFunction
 
 Function SetupPage()
 
@@ -95,7 +103,11 @@ Function SetupPage()
             if locIndex >= 0
                 string locName = locHandler.Locations[locIndex].GetLocName()
 
-                AddTextOptionST("PLYR_CUR_FAC_OWNEDLIST___" + locName, locName, "")
+                if playerControlsFacOrders
+                    AddMenuOptionST("PLYR_CUR_FAC_OWNEDLIST_PICKABLE___" + locIndex, locName, "")
+                else
+                    AddTextOptionST("PLYR_CUR_FAC_OWNEDLIST___" + locName, locName, "")
+                endif
             endif
             
         EndWhile
@@ -118,7 +130,12 @@ Function SetupPage()
                     reason = "$sab_mcm_myfaction_defend_underattack"
                 endif
 
-                AddTextOptionST("PLYR_CUR_FAC_DEFTARGET___" + locName, locName, reason)
+                if playerControlsFacOrders
+                    AddMenuOptionST("PLYR_CUR_FAC_DEFTARGET_PICKABLE___" + locIndex, locName, reason)
+                else
+                    AddTextOptionST("PLYR_CUR_FAC_DEFTARGET___" + locName, locName, reason)
+                endif
+                
             endif
             
         EndWhile
@@ -140,9 +157,18 @@ Function SetupPage()
             int locIndex = jArray.getInt(jAttackTargetsArray, i, -1)
             
             if locIndex >= 0
-                string locName = locHandler.Locations[locIndex].GetLocName()
+                SAB_LocationScript atkTargetLocScript = locHandler.Locations[locIndex]
+                string locName = atkTargetLocScript.GetLocName()
                 if jArray.findStr(jAlreadyAddedTargetsArray, locName) == -1
-                    AddTargetLocationInfo(locHandler.Locations[locIndex], "PLYR_CUR_FAC_ATKTARGET___" + locName, locName, false)
+                    
+                    if playerControlsFacOrders
+                        AddMenuOptionST("PLYR_CUR_FAC_ATKTARGET_PICKABLE___" + locIndex, locName, GetLocationNameForOurDests(atkTargetLocScript))
+                    else
+                        AddTextOptionST("PLYR_CUR_FAC_ATKTARGET___" + locName, locName, GetLocationNameForOurDests(atkTargetLocScript))
+                    endif
+                    
+                    AddTextOptionST("PLYR_CUR_FAC_ATKTARGET___" + locName + "_owner", "$sab_mcm_myfaction_targetloc_owner", atkTargetLocScript.GetOwnerFactionName())
+                    AddToggleOptionST("PLYR_CUR_FAC_ATKTARGET___" + locName + "_iscontested", "$sab_mcm_myfaction_targetloc_iscontested", atkTargetLocScript.IsBeingContested(), OPTION_FLAG_DISABLED)
                     jArray.addStr(jAlreadyAddedTargetsArray, locName)
                 endif
             endif
@@ -182,6 +208,30 @@ string Function GetLocationNameForOurDests(SAB_LocationScript locScript)
     endif
 EndFunction
 
+Function MenuSetFacDest(string state_id, int index)
+    ; find loc by index, then set target dest in fac script
+    SAB_LocationDataHandler locHandler = MainPage.MainQuest.LocationDataHandler
+    int curLocIndex = state_id as int
+    SAB_LocationScript targetLoc = locHandler.Locations[curLocIndex]
+
+    string pickedDestType = "cancel"
+    if index == 1
+        pickedDestType = "a"
+    elseif index == 2
+        pickedDestType = "b"
+    elseif index == 3
+        pickedDestType = "c"
+    endif
+
+    If pickedDestType == "cancel"
+        return
+    EndIf
+
+    SAB_FactionScript facScript = MainPage.MainQuest.FactionDataHandler.SAB_FactionQuests[playerFactionIndex]
+    facScript.PlayerSetFacDestination(pickedDestType, targetLoc)
+
+    ForcePageReset()
+EndFunction
 
 state PLYR_CUR_FAC_DEST
     event OnMenuOpenST(string state_id)
@@ -256,10 +306,68 @@ state PLYR_CUR_FAC_ATKTARGET
 	endEvent
 endstate
 
+state PLYR_CUR_FAC_ATKTARGET_PICKABLE
+    event OnMenuOpenST(string state_id)
+		SetMenuDialogDefaultIndex(0)
+        SetMenuDialogStartIndex(0)
+		SetMenuDialogOptions(GetLocAsDestOptionsArray())
+	endEvent
+
+	event OnMenuAcceptST(string state_id, int index)
+		MenuSetFacDest(state_id, index)
+	endEvent
+
+	event OnHighlightST(string state_id)
+        MainPage.ToggleQuickHotkey(true)
+		SetInfoText("$sab_mcm_myfaction_attacktargets_pickable_desc")
+	endEvent
+endstate
+
 state PLYR_CUR_FAC_DEFTARGET
 	event OnHighlightST(string state_id)
         MainPage.ToggleQuickHotkey(true)
 		SetInfoText("$sab_mcm_myfaction_defensetargets_desc")
+	endEvent
+endstate
+
+state PLYR_CUR_FAC_DEFTARGET_PICKABLE
+    event OnMenuOpenST(string state_id)
+		SetMenuDialogDefaultIndex(0)
+        SetMenuDialogStartIndex(0)
+		SetMenuDialogOptions(GetLocAsDestOptionsArray())
+	endEvent
+
+	event OnMenuAcceptST(string state_id, int index)
+		MenuSetFacDest(state_id, index)
+	endEvent
+
+	event OnHighlightST(string state_id)
+        MainPage.ToggleQuickHotkey(true)
+		SetInfoText("$sab_mcm_myfaction_defensetargets_pickable_desc")
+	endEvent
+endstate
+
+state PLYR_CUR_FAC_OWNEDLIST
+	event OnHighlightST(string state_id)
+        MainPage.ToggleQuickHotkey(true)
+		SetInfoText("$sab_mcm_myfaction_ownedloc_desc")
+	endEvent
+endstate
+
+state PLYR_CUR_FAC_OWNEDLIST_PICKABLE
+    event OnMenuOpenST(string state_id)
+		SetMenuDialogDefaultIndex(0)
+        SetMenuDialogStartIndex(0)
+		SetMenuDialogOptions(GetLocAsDestOptionsArray())
+	endEvent
+
+	event OnMenuAcceptST(string state_id, int index)
+		MenuSetFacDest(state_id, index)
+	endEvent
+
+	event OnHighlightST(string state_id)
+        MainPage.ToggleQuickHotkey(true)
+		SetInfoText("$sab_mcm_myfaction_ownedloc_pickable_desc")
 	endEvent
 endstate
 
