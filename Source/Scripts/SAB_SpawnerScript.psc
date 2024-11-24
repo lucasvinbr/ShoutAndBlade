@@ -46,6 +46,7 @@ Actor Function SpawnCustomizationGuy( int jUnitDataMap, int unitIndex )
 	; teammates can wear stuff given by the player.
 	; we need this to make the changes visible immediately instead of only when spawning the outfit guy again
 	spawnedCustomizationGuy.SetPlayerTeammate(true, false)
+	spawnedCustomizationGuy.AllowPCDialogue(true)
 
 	OutfitGuyAlias.ForceRefTo(spawnedCustomizationGuy)
 	(OutfitGuyAlias as SAB_OutfitGuyStorage).SetupStorage \
@@ -96,6 +97,8 @@ Actor Function SpawnUnit( ObjectReference LocationRef, Faction ownerFaction, int
 	endif
 
 	CustomizeActorAccordingToData(createdActor, jUnitDataMap)
+
+	createdActor.AllowPCDialogue(true)
 
 	; debug.StopStackProfiling()
 
