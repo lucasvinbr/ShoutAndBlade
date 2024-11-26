@@ -79,7 +79,7 @@ Function SetupPage()
 
         int jFacDataMap = jArray.getObj(jFactionDatasArray, i)
 
-        if jFacDataMap != 0 && jMap.hasKey(jFacDataMap, "enabled")
+        if jFacDataMap != 0 && i != editedFactionIndex && jMap.hasKey(jFacDataMap, "enabled")
             string facName = jMap.getStr(jFacDataMap, "name", "Faction")
 
             float relationValue = 0.0

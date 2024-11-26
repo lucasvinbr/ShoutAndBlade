@@ -8,6 +8,7 @@ Faction[] Property VanillaFactions Auto
 {array containing vanilla factions of which we can edit relations with the mod factions}
 
 Faction Property MercDealerFaction Auto
+{Faction used in dialogue checks, to define if a faction can sell mercenaries or not}
 
 string[] Property VanillaFactionDisplayNames Auto
 {array contaning the names used for each faction of the vanillaFactions array. The names must be in the same order as the factions array!}

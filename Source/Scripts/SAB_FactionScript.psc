@@ -331,17 +331,19 @@ int Function FindAttackTargets()
 	else 
 		; we don't have any location!
 		; look for neutral ones for an easier target
-		i = LocationDataHandler.NextLocationIndex
 
-		while i > 0
-			i -= 1
-			
-			SAB_LocationScript locScript = locScripts[i]
+		if CanFactionTakeLocations()
+			i = LocationDataHandler.NextLocationIndex
+			while i > 0
+				i -= 1
+				
+				SAB_LocationScript locScript = locScripts[i]
 
-			if locScript.isEnabled == true && locScript.factionScript == None
-				JArray.addInt(jPossibleAttackTargets, i)
-			endif
-		endwhile
+				if locScript.isEnabled == true && locScript.factionScript == None
+					JArray.addInt(jPossibleAttackTargets, i)
+				endif
+			endwhile
+		endif
 	endif
 
 

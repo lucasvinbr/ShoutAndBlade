@@ -431,10 +431,12 @@ Function UpdateConfidenceLevel()
 		return
 	endif
 
+	SAB_LocationScript mydest = GetMyDestinationScript()
+
 	if factionScript.IsFactionMercenary() && !factionScript.CanFactionTakeLocations()
 		; always be confident if we're an usually neutral faction
 		meActor.SetFactionRank(SAB_CmderConfidenceFaction, 1)
-	elseif GetMyDestinationScript() != None && GetMyDestinationScript().factionScript == None
+	elseif mydest != None && mydest.factionScript == None && !mydest.IsBeingContested()
 		; always be confident if our destination is a neutral zone... we should get there before others do!
 		meActor.SetFactionRank(SAB_CmderConfidenceFaction, 1)
 	else
@@ -632,7 +634,7 @@ bool Function TryGiveCmderPositionToOurUnit()
 	return false
 EndFunction
 
-; true if we're not "pure" mercenaries (pure mercenaries shouldn't care about anything location-related)
+; true if we're not "pure" mercenaries (pure mercenaries shouldn't get involved in anything location-related)
 bool Function CanSpawnBesiegingUnits()
 	if !factionScript.CanFactionTakeLocations() && factionScript.IsFactionMercenary()
 		return false
