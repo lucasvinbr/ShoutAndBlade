@@ -398,7 +398,7 @@ Function UnregisterCommanderFromNearbyList(int cmderIndexInNearbies)
 			SAB_CommanderScript topRef = NearbyCommanders[topFilledNearbyCmderIndex]
 
 			While topHoleIndex != -1 || (topFilledNearbyCmderIndex >= 0 && !topRef)
-				debug.Trace("found hole at the top of a loc's nearby cmders! decrementing topFilledNearbyCmderIndex")
+				; debug.Trace("found hole at the top of a loc's nearby cmders! decrementing topFilledNearbyCmderIndex")
 				jArray.eraseInteger(jKnownVacantNearbyCmderSlots, topFilledNearbyCmderIndex)
 				topFilledNearbyCmderIndex -= 1
 

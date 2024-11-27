@@ -152,7 +152,7 @@ Function UnregisterAliasFromUpdates(int aliasIndex)
 			SAB_UpdatedReferenceAlias topRef = GetUpdatedAliasAtIndex(topFilledIndex)
 
 			While topHoleIndex != -1 || (topFilledIndex >= 0 && !topRef)
-				debug.Trace("found hole at the top of an aliasupdater! decrementing topFilledIndex")
+				; debug.Trace("found hole at the top of an aliasupdater! decrementing topFilledIndex")
 				jArray.eraseInteger(jKnownVacantSlots, topFilledIndex)
 				topFilledIndex -= 1
 
