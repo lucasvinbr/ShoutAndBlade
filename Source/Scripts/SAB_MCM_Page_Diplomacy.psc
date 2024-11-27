@@ -6,6 +6,7 @@ SAB_MCM Property MainPage Auto
 string[] editedFactionIdentifiersArray
 int editedFactionIndex = -1
 int jEditedFactionData = 0
+bool showOnlyFacsWithLocs = false
 
 event OnInit()
     RegisterModule("$sab_mcm_diplomacy", 4)
@@ -39,9 +40,10 @@ Function SetupPage()
         return
     endif
 
-    SetCursorFillMode(TOP_TO_BOTTOM)
+    SetCursorFillMode(LEFT_TO_RIGHT)
 
     int jFactionDatasArray = MainPage.MainQuest.FactionDataHandler.jSABFactionDatasArray
+    SAB_FactionScript[] factions = MainPage.MainQuest.FactionDataHandler.SAB_FactionQuests
 
     if editedFactionIndex >= 0
         jEditedFactionData = jArray.getObj(jFactionDatasArray, editedFactionIndex)
@@ -59,6 +61,9 @@ Function SetupPage()
     endif
 
 
+    AddToggleOptionST("TOGGLE_DISPLAY_ONLY_WITH_LOCS", "$sab_mcm_diplomacy_toggle_only_locs", showOnlyFacsWithLocs)
+
+    AddEmptyOption()
     AddEmptyOption()
 
     SAB_DiplomacyDataHandler DiplomacyHandler = MainPage.MainQuest.DiplomacyHandler
@@ -68,8 +73,8 @@ Function SetupPage()
     endif
 
     AddEmptyOption()
-
-    SetCursorFillMode(LEFT_TO_RIGHT)
+    AddEmptyOption()
+    AddEmptyOption()
 
     int i = JArray.count(jFactionDatasArray)
     int validFacsCount = 0
@@ -80,18 +85,23 @@ Function SetupPage()
         int jFacDataMap = jArray.getObj(jFactionDatasArray, i)
 
         if jFacDataMap != 0 && i != editedFactionIndex && jMap.hasKey(jFacDataMap, "enabled")
-            string facName = jMap.getStr(jFacDataMap, "name", "Faction")
 
-            float relationValue = 0.0
+            SAB_FactionScript facScript = factions[i]
 
-            if editedFactionIndex >= 0
-                relationValue = DiplomacyHandler.GetRelationBetweenFacs(editedFactionIndex, i)
-            else
-                relationValue = DiplomacyHandler.GetPlayerRelationWithFac(i)
-            endif
+            if !showOnlyFacsWithLocs || jValue.count(facScript.jOwnedLocationIndexesArray) > 0
+                string facName = jMap.getStr(jFacDataMap, "name", "Faction")
+
+                float relationValue = 0.0
     
-            AddTextOptionST("REL_DISPLAY___" + i, facName, relationValue)
-            validFacsCount += 1
+                if editedFactionIndex >= 0
+                    relationValue = DiplomacyHandler.GetRelationBetweenFacs(editedFactionIndex, i)
+                else
+                    relationValue = DiplomacyHandler.GetPlayerRelationWithFac(i)
+                endif
+        
+                AddTextOptionST("REL_DISPLAY___" + i, facName, relationValue)
+                validFacsCount += 1
+            endif
         endif
         
     endwhile
@@ -234,4 +244,23 @@ state FAC_EDIT_CUR_FAC
 		SetInfoText("$sab_mcm_factionedit_menu_currentfac_desc")
 	endEvent
     
+endstate
+
+state TOGGLE_DISPLAY_ONLY_WITH_LOCS
+    event OnSelectST(string state_id)
+        showOnlyFacsWithLocs = !showOnlyFacsWithLocs
+        SetToggleOptionValueST(showOnlyFacsWithLocs)
+        ForcePageReset()
+	endEvent
+
+    event OnDefaultST(string state_id)
+        showOnlyFacsWithLocs = false
+        SetToggleOptionValueST(showOnlyFacsWithLocs)
+        ForcePageReset()
+    endevent
+
+	event OnHighlightST(string state_id)
+        MainPage.ToggleQuickHotkey(true)
+		SetInfoText("$sab_mcm_diplomacy_toggle_only_locs_desc")
+	endEvent
 endstate
