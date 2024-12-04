@@ -128,6 +128,11 @@ Function CustomizeActorAccordingToData(Actor targetActor, int jUnitData)
 	targetActor.SetActorValue("TwoHanded", JMap.getFlt(jUnitData, "SkillTwoHanded", 15.0) * skillMult)
 	targetActor.SetActorValue("Marksman", JMap.getFlt(jUnitData, "SkillMarksman", 15.0) * skillMult)
 
+	targetActor.SetActorValue("Alteration", JMap.getFlt(jUnitData, "SkillAlteration", 5.0) * skillMult)
+	targetActor.SetActorValue("Conjuration", JMap.getFlt(jUnitData, "SkillConjuration", 5.0) * skillMult)
+	targetActor.SetActorValue("Destruction", JMap.getFlt(jUnitData, "SkillDestruction", 5.0) * skillMult)
+	targetActor.SetActorValue("Illusion", JMap.getFlt(jUnitData, "SkillIllusion", 5.0) * skillMult)
+
 	if jMap.getInt(jUnitData, "IsRanged", 0) != 0
 		targetActor.AddToFaction(SAB_RangedUnitsFaction)
 	endif

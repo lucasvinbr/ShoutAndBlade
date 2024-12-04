@@ -70,6 +70,8 @@ Function SetupPage()
 
     if editedFactionIndex >= 0
         AddTextOptionST("RELPLAYER_DISPLAY", "$sab_mcm_diplomacy_player_entry", DiplomacyHandler.GetPlayerRelationWithFac(editedFactionIndex))
+    else
+        AddEmptyOption()
     endif
 
     AddEmptyOption()

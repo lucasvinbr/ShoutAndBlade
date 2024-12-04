@@ -148,6 +148,10 @@ Function SetupEditUnitsPage()
         AddSliderOptionST("UNITEDIT_SKL___SkillLightArmor", "$sab_mcm_unitedit_slider_lightarmor", JMap.getFlt(jEditedUnitData, "SkillLightArmor", 15.0))
         AddSliderOptionST("UNITEDIT_SKL___SkillHeavyArmor", "$sab_mcm_unitedit_slider_heavyarmor", JMap.getFlt(jEditedUnitData, "SkillHeavyArmor", 15.0))
         AddSliderOptionST("UNITEDIT_SKL___SkillBlock", "$sab_mcm_unitedit_slider_block", JMap.getFlt(jEditedUnitData, "SkillBlock", 15.0))
+        AddSliderOptionST("UNITEDIT_SKL___SkillDestruction", "$sab_mcm_unitedit_slider_destruction", JMap.getFlt(jEditedUnitData, "SkillDestruction", 5.0))
+        AddSliderOptionST("UNITEDIT_SKL___SkillAlteration", "$sab_mcm_unitedit_slider_alteration", JMap.getFlt(jEditedUnitData, "SkillAlteration", 5.0))
+        AddSliderOptionST("UNITEDIT_SKL___SkillConjuration", "$sab_mcm_unitedit_slider_conjuration", JMap.getFlt(jEditedUnitData, "SkillConjuration", 5.0))
+        AddSliderOptionST("UNITEDIT_SKL___SkillIllusion", "$sab_mcm_unitedit_slider_illusion", JMap.getFlt(jEditedUnitData, "SkillIllusion", 5.0))
 
     elseif displayedRightSideMenu == 1
 
@@ -472,6 +476,14 @@ state UNITEDIT_SKL
             return "$sab_mcm_unitedit_slider_heavyarmor_desc"
         elseif stateId == "SkillBlock"
             return "$sab_mcm_unitedit_slider_block_desc"
+        elseif stateId == "SkillDestruction"
+            return "$sab_mcm_unitedit_slider_destruction_desc"
+        elseif stateId == "SkillAlteration"
+            return "$sab_mcm_unitedit_slider_alteration_desc"
+        elseif stateId == "SkillConjuration"
+            return "$sab_mcm_unitedit_slider_conjuration_desc"
+        elseif stateId == "SkillIllusion"
+            return "$sab_mcm_unitedit_slider_illusion_desc"
         endif
     endfunction
 
