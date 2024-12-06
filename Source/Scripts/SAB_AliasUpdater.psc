@@ -1,12 +1,9 @@
 scriptname SAB_AliasUpdater extends Quest
 { updater for aliases the player can see, like nearby commanders }
 
-; we need two arrays because of the 128 elements limit
-; ...ok, we've expanded to 512
-SAB_UpdatedReferenceAlias[] SAB_ActiveElementsOne
-SAB_UpdatedReferenceAlias[] SAB_ActiveElementsTwo
-SAB_UpdatedReferenceAlias[] SAB_ActiveElementsThree
-SAB_UpdatedReferenceAlias[] SAB_ActiveElementsFour
+; we need more arrays because of the 128 elements limit.
+; each entry of this array is an object which has a SAB_UpdatedReferenceAlias array inside it
+SAB_RefAliasContainer[] SAB_ActiveElementsContainers
 
 int updatedAliasIndex = -1
 
@@ -24,12 +21,12 @@ bool editingIndexes = false
 
 int Property numActives = 0 Auto Hidden
 
+Activator Property SAB_AliasContainerObject Auto
+ObjectReference Property AliasContainerSpawnPoint Auto
+
 function Initialize()
 	debug.Trace("alias updater: initialize!")
-	SAB_ActiveElementsOne = new SAB_UpdatedReferenceAlias[128]
-	SAB_ActiveElementsTwo = new SAB_UpdatedReferenceAlias[128]
-	SAB_ActiveElementsThree = new SAB_UpdatedReferenceAlias[128]
-	SAB_ActiveElementsFour = new SAB_UpdatedReferenceAlias[128]
+	SAB_ActiveElementsContainers = new SAB_RefAliasContainer[128]
 	jKnownVacantSlots = jArray.object()
 	JValue.retain(jKnownVacantSlots, "ShoutAndBlade")
 endfunction
@@ -95,7 +92,7 @@ int Function RegisterAliasForUpdates(SAB_UpdatedReferenceAlias updatedScript, in
 			jArray.eraseInteger(jKnownVacantSlots, vacantIndex)
 		endif
 	else 
-		if vacantIndex >= 512
+		if vacantIndex >= 128 * 128
 			; there are no holes and all entries are filled!
 			; abort
 			debug.Trace("alias updater " + GetName() + " is full!")
@@ -180,44 +177,37 @@ int Function GetTopIndex()
 	return topFilledIndex
 EndFunction
 
-; gets one of the arrays of aliases. 0 for elements one, 1 for elements two... 3 or anything else for elements four
-SAB_UpdatedReferenceAlias[] Function GetAliasesArray(int arrayNumber)
-	if arrayNumber == 0
-		return SAB_ActiveElementsOne
-	elseif arrayNumber == 1
-		return SAB_ActiveElementsTwo
-	elseif arrayNumber == 2
-		return SAB_ActiveElementsThree
-	else
-		return SAB_ActiveElementsFour
-	endif
+; gets (creates, if necessary) one of the containers for arrays of aliases. 0 for elements one, 1 for elements two... 3 or anything else for elements four
+SAB_RefAliasContainer Function GetOrCreateAliasContainerAtIndex(int arrayIndex)
+	If SAB_ActiveElementsContainers[arrayIndex] == None
+		SAB_RefAliasContainer newContainer = (AliasContainerSpawnPoint.PlaceAtMe(SAB_AliasContainerObject) as Form) as SAB_RefAliasContainer
+
+		newContainer.Initialize()
+
+		SAB_ActiveElementsContainers[arrayIndex] = newContainer
+	EndIf
+
+	return SAB_ActiveElementsContainers[arrayIndex]
 EndFunction
 
-; picks the right alias and array to look at, considering the 128 element limit per array
+; gets one of the arrays of aliases. 0 for elements one, 1 for elements two... 3 or anything else for elements four
+SAB_UpdatedReferenceAlias[] Function GetAliasesArray(int arrayNumber)
+	return GetOrCreateAliasContainerAtIndex(arrayNumber).GetElementsArray()
+EndFunction
+
+; picks the right alias to look at, considering the 128 element limit per array
 SAB_UpdatedReferenceAlias Function GetUpdatedAliasAtIndex(int index)
 	int indexInArray = index % 128
-	if index <= 127
-		return SAB_ActiveElementsOne[indexInArray]
-	elseif index <= 255
-		return SAB_ActiveElementsTwo[indexInArray]
-	elseif index <= 383
-		return SAB_ActiveElementsThree[indexInArray]
-	else
-		return SAB_ActiveElementsFour[indexInArray]
-	endif
+	int dividedIndex = index / 128
+
+	return GetOrCreateAliasContainerAtIndex(dividedIndex).GetElementsArray()[indexInArray]
 EndFunction
 
 ; picks the right array to look at, considering the 128 element limit per array
 SAB_UpdatedReferenceAlias[] Function GetUpdatedAliasArrayAtIndex(int index)
-	if index <= 127
-		return SAB_ActiveElementsOne
-	elseif index <= 255
-		return SAB_ActiveElementsTwo
-	elseif index <= 383
-		return SAB_ActiveElementsThree
-	else
-		return SAB_ActiveElementsFour
-	endif
+	int dividedIndex = index / 128
+
+	return GetOrCreateAliasContainerAtIndex(dividedIndex).GetElementsArray()
 EndFunction
 
 Function DebugPrintVacantSlotsInfo()
