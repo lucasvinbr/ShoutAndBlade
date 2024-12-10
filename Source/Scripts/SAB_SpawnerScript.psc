@@ -16,6 +16,8 @@ Faction Property SAB_CommanderRanksFaction Auto
 Faction Property SAB_RangedUnitsFaction Auto
 { Faction all units considered "ranged" should belong to }
 
+bool customizationGuyFollowsPlayer = false
+
 Actor spawnedCustomizationGuy
 
 Function HideCustomizationGuy()
@@ -25,6 +27,25 @@ Function HideCustomizationGuy()
 	endif
 
 	spawnedCustomizationGuy = None
+EndFunction
+
+Function SetCustomizationGuyFollowsPlayer(bool shouldFollow)
+	customizationGuyFollowsPlayer = shouldFollow
+	UpdateCustomizationGuyFollowFaction()
+EndFunction
+
+Function UpdateCustomizationGuyFollowFaction()
+	if spawnedCustomizationGuy != None
+		; recycling the commander ranks faction...
+		; here it's rank 0 or no rank for no follow, rank 1 or above to follow
+		spawnedCustomizationGuy.AddToFaction(SAB_CommanderRanksFaction)
+		if customizationGuyFollowsPlayer
+			spawnedCustomizationGuy.SetFactionRank(SAB_CommanderRanksFaction, 1)
+		else
+			spawnedCustomizationGuy.SetFactionRank(SAB_CommanderRanksFaction, 0)
+		endif
+		
+	endif
 EndFunction
 
 Actor Function SpawnCustomizationGuy( int jUnitDataMap, int unitIndex )
@@ -53,6 +74,8 @@ Actor Function SpawnCustomizationGuy( int jUnitDataMap, int unitIndex )
 		(UnitDataHandler.SAB_UnitGearSets.GetAt(unitIndex) as LeveledItem, \
 		UnitDataHandler.SAB_UnitDuplicateItemSets.GetAt(unitIndex) as LeveledItem, \
 		 jUnitDataMap)
+
+	UpdateCustomizationGuyFollowFaction()
 
 	return spawnedCustomizationGuy
 	

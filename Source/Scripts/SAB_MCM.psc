@@ -146,13 +146,13 @@ event OnPageDraw()
     AddEmptyOption()
     AddEmptyOption()
 
-    AddHeaderOption("$sab_mcm_options_header_bodycleaneroptions")
+    AddHeaderOption("$sab_mcm_options_header_miscoptions")
     AddEmptyOption()
 
     AddSliderOptionST("OPTIONS_MULTIPLIER___healthMagickaMultiplier", "$sab_mcm_options_slider_unit_healthmagickamultiplier", JDB.solveFlt(".ShoutAndBlade.generalOptions.healthMagickaMultiplier", 1.0), "{1}")
     AddSliderOptionST("OPTIONS_MULTIPLIER___skillsMultiplier", "$sab_mcm_options_slider_unit_skillsmultiplier", JDB.solveFlt(".ShoutAndBlade.generalOptions.skillsMultiplier", 1.0), "{1}")
     AddSliderOptionST("OPTIONS_UNITS___maxDeadBodies", "$sab_mcm_options_slider_unit_maxdeadbodies", JDB.solveInt(".ShoutAndBlade.generalOptions.maxDeadBodies", 12))
-
+    AddToggleOptionST("OPTIONS_GENERAL_TOGGLE___outfitterFollowsPlayer", "$sab_mcm_options_toggle_general_outfitter_follows", JDB.solveInt(".ShoutAndBlade.generalOptions.outfitterFollowsPlayer", 0) >= 1, 0)
     
 endevent
 
@@ -971,6 +971,44 @@ state OPTIONS_DIPLO_TOGGLE
             SetInfoText("$sab_mcm_options_toggle_diplo_change_messagebox_desc")
         elseif state_id == "showRelChangeNotify"
             SetInfoText("$sab_mcm_options_toggle_diplo_change_notify_desc")
+        endif
+	endEvent
+endstate
+
+state OPTIONS_GENERAL_TOGGLE
+    event OnSelectST(string state_id)
+        int curValue = JDB.solveInt(".ShoutAndBlade.generalOptions." + state_id, 0)
+
+        if curValue != 0
+            curValue = 0
+        else
+            curValue = 1
+        endif
+
+        JDB.solveIntSetter(".ShoutAndBlade.generalOptions." + state_id, curValue, true)
+
+        SetToggleOptionValueST(curValue != 0)
+
+        If state_id == "outfitterFollowsPlayer"
+            MainQuest.SpawnerScript.SetCustomizationGuyFollowsPlayer(curValue != 0)
+        EndIf
+	endEvent
+
+    event OnDefaultST(string state_id)
+        int curValue = 0
+        JDB.solveIntSetter(".ShoutAndBlade.generalOptions." + state_id, curValue, true)
+        SetToggleOptionValueST(curValue != 0)
+
+        If state_id == "outfitterFollowsPlayer"
+            MainQuest.SpawnerScript.SetCustomizationGuyFollowsPlayer(curValue != 0)
+        EndIf
+    endevent
+
+	event OnHighlightST(string state_id)
+        ToggleQuickHotkey(true)
+        
+		if state_id == "outfitterFollowsPlayer"
+            SetInfoText("$sab_mcm_options_toggle_general_outfitter_follows_desc")
         endif
 	endEvent
 endstate
