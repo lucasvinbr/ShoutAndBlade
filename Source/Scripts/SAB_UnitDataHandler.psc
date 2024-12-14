@@ -262,7 +262,7 @@ int Function GetUnitIndexByUnitName(string name)
 EndFunction
 
 ; fills a 128-sized string array with unit IDs accompanied by their names.
-; can get either the first or the second "page" of 128 units
+; page defines which "step" of 128 units will be returned from the 512 unit options
 Function SetupStringArrayWithUnitIdentifiers(string[] stringArray, int page)
     int startingIndex = page * 128
     int endingIndex = (page + 1) * 128
@@ -281,6 +281,32 @@ Function SetupStringArrayWithUnitIdentifiers(string[] stringArray, int page)
 
         i += 1
     endwhile
+EndFunction
+
+; returns a 128-sized string array with unit IDs accompanied by their names.
+; page defines which "step" of 128 units will be returned from the 512 unit options
+string[] Function GetStringArrayWithUnitIdentifiers(int page)
+    int startingIndex = page * 128
+    int endingIndex = (page + 1) * 128
+
+    int i = startingIndex
+    int i_clamped
+
+    string[] stringArray = new string[128]
+
+    while(i < endingIndex)
+
+        int jUnitData = jArray.getObj(jSABUnitDatasArray, i)
+        string unitName = jMap.getStr(jUnitData, "Name", "Recruit")
+
+        i_clamped = i % 128
+
+        stringArray[i_clamped] = ((i + 1) as string) + " - " + unitName
+
+        i += 1
+    endwhile
+
+    return stringArray
 EndFunction
 
 Function CopyUnitDataFromAnotherIndex(int indexToCopyTo, int indexToCopyFrom)

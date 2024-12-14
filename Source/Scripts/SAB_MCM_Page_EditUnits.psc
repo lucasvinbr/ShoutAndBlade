@@ -5,9 +5,6 @@ SAB_MCM Property MainPage Auto
 Faction Property SAB_TestFaction_1 Auto
 Faction Property SAB_TestFaction_2 Auto
 
-; since we want more than 128 custom units, we need two arrays (0 or 1 here)
-int editedUnitsMenuPage = 0
-
 int editedUnitIndex = 0
 int jEditedUnitData = 0
 
@@ -105,7 +102,7 @@ Function SetupEditUnitsPage()
     endif
     
     AddHeaderOption("$sab_mcm_unitedit_header_selectunit")
-    AddSliderOptionST("UNITEDIT_MENU_PAGE", "$sab_mcm_unitedit_slider_menupage", editedUnitsMenuPage + 1)
+    AddSliderOptionST("UNITEDIT_MENU_PAGE", "$sab_mcm_unitedit_slider_menupage", MainPage.editedUnitsMenuPage + 1)
     AddMenuOptionST("UNITEDIT_CUR_UNIT", "$sab_mcm_unitedit_menu_currentunit", \
         ((editedUnitIndex + 1) as string) + " - " + JMap.getStr(jEditedUnitData, "Name", "Recruit"))
     
@@ -219,20 +216,20 @@ EndFunction
 
 state UNITEDIT_MENU_PAGE
 	event OnSliderOpenST(string state_id)
-		SetSliderDialogStartValue(editedUnitsMenuPage + 1)
+		SetSliderDialogStartValue(MainPage.editedUnitsMenuPage + 1)
 		SetSliderDialogDefaultValue(1)
 		SetSliderDialogRange(1, 4) ; 512 units
 		SetSliderDialogInterval(1)
 	endEvent
 
 	event OnSliderAcceptST(string state_id, float value)
-		editedUnitsMenuPage = (value as int) - 1
-		SetSliderOptionValueST(editedUnitsMenuPage + 1)
+		MainPage.editedUnitsMenuPage = (value as int) - 1
+		SetSliderOptionValueST(MainPage.editedUnitsMenuPage + 1)
 	endEvent
 
 	event OnDefaultST(string state_id)
-		editedUnitsMenuPage = 0
-		SetSliderOptionValueST(editedUnitsMenuPage + 1)
+		MainPage.editedUnitsMenuPage = 0
+		SetSliderOptionValueST(MainPage.editedUnitsMenuPage + 1)
 	endEvent
 
 	event OnHighlightST(string state_id)
@@ -247,19 +244,19 @@ state UNITEDIT_CUR_UNIT
 	event OnMenuOpenST(string state_id)
 		SetMenuDialogStartIndex(editedUnitIndex % 128)
 		SetMenuDialogDefaultIndex(0)
-        MainPage.MainQuest.UnitDataHandler.SetupStringArrayWithUnitIdentifiers(editedUnitIdentifiersArray, editedUnitsMenuPage)
+        MainPage.MainQuest.UnitDataHandler.SetupStringArrayWithUnitIdentifiers(editedUnitIdentifiersArray, MainPage.editedUnitsMenuPage)
 		SetMenuDialogOptions(editedUnitIdentifiersArray)
 	endEvent
 
 	event OnMenuAcceptST(string state_id, int index)
-        int trueIndex = index + editedUnitsMenuPage * 128
+        int trueIndex = index + MainPage.editedUnitsMenuPage * 128
 		editedUnitIndex = trueIndex
 		SetMenuOptionValueST(trueIndex)
         ForcePageReset()
 	endEvent
 
 	event OnDefaultST(string state_id)
-		editedUnitIndex = 0 + editedUnitsMenuPage * 128
+		editedUnitIndex = 0 + MainPage.editedUnitsMenuPage * 128
 		SetMenuOptionValueST(editedUnitIndex)
         ForcePageReset()
 	endEvent
@@ -397,13 +394,13 @@ state UNITEDIT_COPY_ANOTHER_UNIT
 	event OnMenuOpenST(string state_id)
 		SetMenuDialogStartIndex(editedUnitIndex % 128)
 		SetMenuDialogDefaultIndex(0)
-        MainPage.MainQuest.UnitDataHandler.SetupStringArrayWithUnitIdentifiers(editedUnitIdentifiersArray, editedUnitsMenuPage)
+        MainPage.MainQuest.UnitDataHandler.SetupStringArrayWithUnitIdentifiers(editedUnitIdentifiersArray, MainPage.editedUnitsMenuPage)
 		SetMenuDialogOptions(editedUnitIdentifiersArray)
 	endEvent
 
 	event OnMenuAcceptST(string state_id, int index)
         if ShowMessage("$sab_mcm_unitedit_popup_msg_confirm_unitcopy")
-            int trueIndex = index + editedUnitsMenuPage * 128
+            int trueIndex = index + MainPage.editedUnitsMenuPage * 128
             MainPage.MainQuest.UnitDataHandler.CopyUnitDataFromAnotherIndex(editedUnitIndex, trueIndex)
             SetMenuOptionValueST(trueIndex)
             ForcePageReset()

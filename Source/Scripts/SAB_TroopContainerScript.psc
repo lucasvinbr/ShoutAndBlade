@@ -133,6 +133,24 @@ Function AddUnitsOfType(int unitTypeIndex, int amount)
 	totalOwnedUnitsAmount += amount
 EndFunction
 
+; clears the container, then adds all units from the provided jIntMap
+Function SetOwnedUnits(int jUnitsMap)
+	JIntMap.clear(jOwnedUnitsMap)
+	totalOwnedUnitsAmount = 0
+	currentAutocalcPower = 0.0
+	
+	int unitmapKey = JIntMap.nextKey(jUnitsMap, -1, -1)
+	while unitmapKey != -1
+		int unitAmount = JIntMap.getInt(jUnitsMap, unitmapKey, 0)
+
+		If unitAmount > 0
+			AddUnitsOfType(unitmapKey, unitAmount)
+		EndIf
+
+		unitmapKey = JIntMap.nextKey(jUnitsMap, unitmapKey, -1)
+	endwhile
+
+EndFunction
 
 ; if we don't have too many units already, attempts to get some more basic recruits with the faction gold
 Function TryRecruitUnits()

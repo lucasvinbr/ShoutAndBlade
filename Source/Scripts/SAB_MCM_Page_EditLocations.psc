@@ -7,6 +7,7 @@ string[] editedFactionIdentifiersArray
 string[] editedLocationIdentifiersArray
 int editedLocationIndex = 0
 int jLocationsDataMap
+int unitToAddToStartingGarr = 0
 SAB_LocationScript editedLocationScript
 
 
@@ -91,6 +92,78 @@ Function SetupPage()
     
     AddSliderOptionST("LOC_EDIT_MULTIPLIER___GoldReward", "$sab_mcm_locationedit_slider_gold_award_mult", editedLocationScript.GoldRewardMultiplier, "{1}")
     AddSliderOptionST("LOC_EDIT_MULTIPLIER___GarrisonSize", "$sab_mcm_locationedit_slider_garrison_size_mult", editedLocationScript.GarrisonSizeMultiplier, "{1}")
+
+    
+
+    ; set up a list of the current loc units.
+    ; show a message if there are no units
+    AddHeaderOption("$sab_mcm_locationedit_header_curgarrison")
+    int jUnitDatasArray = MainPage.MainQuest.UnitDataHandler.jSABUnitDatasArray
+    int jLocUnitsMap = editedLocationScript.jOwnedUnitsMap
+    int nextUnitIndex = JIntMap.nextKey(jLocUnitsMap, -1, -1)
+    bool atLeastOneUnitEntry = false
+    while nextUnitIndex != -1
+        int nextUnitCount = jIntMap.getInt(jLocUnitsMap, nextUnitIndex)
+        if nextUnitCount > 0
+            int jUnitData = JArray.getObj(jUnitDatasArray, nextUnitIndex)
+            if jUnitData != 0
+                AddTextOptionST("LOC_CURTROOP___" + nextUnitIndex, nextUnitCount + " " + JMap.getStr(jUnitData, "Name", "Recruit"), "")
+                atLeastOneUnitEntry = true
+            endif
+        endif
+
+        nextUnitIndex = JIntMap.nextKey(jLocUnitsMap, nextUnitIndex, -1)
+    endwhile
+
+    if !atLeastOneUnitEntry
+        AddTextOptionST("EMPTY_LOC_PLACEHOLDER___CUR", " - ", "")
+    endif
+
+    AddEmptyOption()
+    ; set up a list of the STARTING loc units.
+    ; show a message if there are no units
+    AddHeaderOption("$sab_mcm_locationedit_header_startgarrison")
+
+    if editedLocationScript.jStartingUnitsMap == 0
+        editedLocationScript.jStartingUnitsMap = jIntMap.object()
+        JValue.retain(editedLocationScript.jStartingUnitsMap, "ShoutAndBlade")
+    endif
+
+    jLocUnitsMap = editedLocationScript.jStartingUnitsMap
+    nextUnitIndex = JIntMap.nextKey(jLocUnitsMap, -1, -1)
+    atLeastOneUnitEntry = false
+    while nextUnitIndex != -1
+        int nextUnitCount = jIntMap.getInt(jLocUnitsMap, nextUnitIndex)
+        if nextUnitCount > 0
+            int jUnitData = JArray.getObj(jUnitDatasArray, nextUnitIndex)
+            if jUnitData != 0
+                AddSliderOptionST("LOC_STARTINGTROOP___" + nextUnitIndex, JMap.getStr(jUnitData, "Name", "Recruit"), nextUnitCount)
+                atLeastOneUnitEntry = true
+            endif
+        endif
+
+        nextUnitIndex = JIntMap.nextKey(jLocUnitsMap, nextUnitIndex, -1)
+    endwhile
+
+    if !atLeastOneUnitEntry
+        AddTextOptionST("EMPTY_LOC_PLACEHOLDER___STARTING", " - ", "")
+    endif
+
+    AddEmptyOption()
+    ; options for editing starting/cur garrison:
+    ; - add units to starting garrison
+    ; - set cur garrison to starting garrison
+    AddHeaderOption("$sab_mcm_locationedit_header_editstartgarrison")
+    AddSliderOptionST("LOC_EDIT_UNIT_MENU_PAGE___STARTGARRISON", "$sab_mcm_unitedit_slider_menupage", MainPage.editedUnitsMenuPage + 1)
+    AddMenuOptionST("LOC_EDIT_UNIT_RECRUIT_MENU", "$sab_mcm_locationedit_menu_garrunit", \
+        MainPage.GetMCMUnitDisplayByUnitIndex(unitToAddToStartingGarr))
+    AddSliderOptionST("LOC_EDIT_UNIT_GARR_SLIDER", "$sab_mcm_locationedit_slider_garrunit_add", 0, "")
+
+    AddEmptyOption()
+
+    AddTextOptionST("LOC_EDIT_SET_TO_STARTGARR", "$sab_mcm_locationedit_button_set_to_startgarr", "")
+    AddEmptyOption()
+    AddTextOptionST("LOC_EDIT_SET_STARTGARR_TO_CUR", "$sab_mcm_locationedit_button_set_startgarr_to_cur", "")
 
     SetCursorPosition(1)
 
@@ -393,11 +466,177 @@ state LOC_RECALC_NEARBY
 endstate
 
 
+state LOC_CURTROOP
+
+	event OnHighlightST(string state_id)
+        MainPage.ToggleQuickHotkey(true)
+        SetInfoText("$sab_mcm_locationedit_garrison_entry_desc")
+	endEvent
+
+endstate
+
+state EMPTY_LOC_PLACEHOLDER
+    event OnHighlightST(string state_id)
+        MainPage.ToggleQuickHotkey(true)
+	endEvent
+endstate
+
+state LOC_STARTINGTROOP
+
+    event OnSliderOpenST(string state_id)
+        int pickedUnit = state_id as int
+        int jStartUnitsMap = editedLocationScript.jStartingUnitsMap
+        int curUnitCount = jIntMap.getInt(jStartUnitsMap, pickedUnit)
+
+		SetSliderDialogStartValue(0)
+		SetSliderDialogDefaultValue(0)
+		SetSliderDialogRange(0, 150)
+		SetSliderDialogInterval(1)
+	endEvent
+
+	event OnSliderAcceptST(string state_id, float value)
+        int pickedUnit = state_id as int
+        int pickedValue = value as int
+        int jStartUnitsMap = editedLocationScript.jStartingUnitsMap
+        If pickedValue > 0
+            JIntMap.setInt(jStartUnitsMap, pickedUnit, pickedValue)
+        else
+            JIntMap.removeKey(jStartUnitsMap, pickedUnit)
+        endif
+
+        ForcePageReset()
+	endEvent
+
+	event OnHighlightST(string state_id)
+        MainPage.ToggleQuickHotkey(true)
+        SetInfoText("$sab_mcm_locationedit_slider_garrunit_desc")
+	endEvent
+
+endstate
+
+state LOC_EDIT_UNIT_MENU_PAGE
+	event OnSliderOpenST(string state_id)
+		SetSliderDialogStartValue(MainPage.editedUnitsMenuPage + 1)
+		SetSliderDialogDefaultValue(1)
+		SetSliderDialogRange(1, 4) ; 512 units
+		SetSliderDialogInterval(1)
+	endEvent
+
+	event OnSliderAcceptST(string state_id, float value)
+		MainPage.editedUnitsMenuPage = (value as int) - 1
+		SetSliderOptionValueST(MainPage.editedUnitsMenuPage + 1)
+	endEvent
+
+	event OnDefaultST(string state_id)
+		MainPage.editedUnitsMenuPage = 0
+		SetSliderOptionValueST(MainPage.editedUnitsMenuPage + 1)
+	endEvent
+
+	event OnHighlightST(string state_id)
+        MainPage.ToggleQuickHotkey(true)
+		SetInfoText("$sab_mcm_unitedit_slider_menupage_desc")
+	endEvent
+endState
+
+state LOC_EDIT_UNIT_RECRUIT_MENU
+
+	event OnMenuOpenST(string state_id)
+		SetMenuDialogStartIndex(unitToAddToStartingGarr % 128)
+		SetMenuDialogDefaultIndex(0)
+		SetMenuDialogOptions(MainPage.MainQuest.UnitDataHandler.GetStringArrayWithUnitIdentifiers(MainPage.editedUnitsMenuPage))
+	endEvent
+
+	event OnMenuAcceptST(string state_id, int index)
+        int trueIndex = index + MainPage.editedUnitsMenuPage * 128
+		unitToAddToStartingGarr = trueIndex
+		SetMenuOptionValueST(MainPage.GetMCMUnitDisplayByUnitIndex(trueIndex))
+	endEvent
+
+	event OnDefaultST(string state_id)
+		unitToAddToStartingGarr = 0
+		SetMenuOptionValueST(MainPage.GetMCMUnitDisplayByUnitIndex(0))
+	endEvent
+
+	event OnHighlightST(string state_id)
+        MainPage.ToggleQuickHotkey(true)
+		SetInfoText("$sab_mcm_locationedit_menu_garrunit_desc")
+	endEvent
+    
+endstate
+
+state LOC_EDIT_UNIT_GARR_SLIDER
+
+    event OnSliderOpenST(string state_id)
+        int pickedUnit = unitToAddToStartingGarr
+        int jStartUnitsMap = editedLocationScript.jStartingUnitsMap
+
+		SetSliderDialogStartValue(0)
+		SetSliderDialogDefaultValue(0)
+		SetSliderDialogRange(0, 150)
+		SetSliderDialogInterval(1)
+	endEvent
+
+	event OnSliderAcceptST(string state_id, float value)
+        int pickedUnit = unitToAddToStartingGarr
+        int pickedValue = value as int
+        int jStartUnitsMap = editedLocationScript.jStartingUnitsMap
+        int curUnitCount = jIntMap.getInt(jStartUnitsMap, pickedUnit, 0)
+        If pickedValue > 0
+            JIntMap.setInt(jStartUnitsMap, pickedUnit, curUnitCount + pickedValue)
+        endif
+
+        ForcePageReset()
+	endEvent
+
+	event OnHighlightST(string state_id)
+        MainPage.ToggleQuickHotkey(true)
+        SetInfoText("$sab_mcm_locationedit_slider_garrunit_add_desc")
+	endEvent
+
+endstate
+
+state LOC_EDIT_SET_TO_STARTGARR
+    event OnSelectST(string state_id)
+        JIntMap.clear(editedLocationScript.jOwnedUnitsMap)
+        int jStartUnitsMap = editedLocationScript.jStartingUnitsMap
+        editedLocationScript.SetOwnedUnits(jStartUnitsMap)
+        ForcePageReset()
+	endEvent
+
+    event OnDefaultST(string state_id)
+        ; nothing
+    endevent
+
+	event OnHighlightST(string state_id)
+        MainPage.ToggleQuickHotkey(true)
+		SetInfoText("$sab_mcm_locationedit_button_set_to_startgarr_desc")
+	endEvent
+endstate 
+
+state LOC_EDIT_SET_STARTGARR_TO_CUR
+    event OnSelectST(string state_id)
+        int jStartUnitsMap = editedLocationScript.jStartingUnitsMap
+        JIntMap.addPairs(jStartUnitsMap, editedLocationScript.jOwnedUnitsMap, true)
+        ForcePageReset()
+	endEvent
+
+    event OnDefaultST(string state_id)
+        ; nothing
+    endevent
+
+	event OnHighlightST(string state_id)
+        MainPage.ToggleQuickHotkey(true)
+		SetInfoText("$sab_mcm_locationedit_button_set_startgarr_to_cur_desc")
+	endEvent
+endstate 
+
+
 state LOC_EDIT_SAVE
     event OnSelectST(string state_id)
         string filePath = JContainers.userDirectory() + "SAB/locationData.json"
         MainPage.MainQuest.LocationDataHandler.WriteCurrentLocOwnershipsToJmap()
         MainPage.MainQuest.LocationDataHandler.WriteCurrentLocNamesToJmap()
+        MainPage.MainQuest.LocationDataHandler.WriteCurrentLocStartGarrsToJmap()
         JValue.writeToFile(MainPage.MainQuest.LocationDataHandler.jLocationsConfigMap, filePath)
         ShowMessage("Save: " + filePath, false)
 	endEvent

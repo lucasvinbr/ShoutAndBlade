@@ -195,15 +195,15 @@ Function CalculateLocationDistances()
     ; fill the distances map with distances between each location
     while i < NextEnabledLocationIndex
         
-        debug.Trace(EnabledLocations[i])
+        ; debug.Trace(EnabledLocations[i])
         
         ObjectReference baseRef = EnabledLocations[i].GetReference()
-        debug.Trace(baseRef)
+        ; debug.Trace(baseRef)
 
         while !baseRef
             Utility.Wait(0.15)
             baseRef = EnabledLocations[i].GetReference()
-            debug.Trace(baseRef)
+            ; debug.Trace(baseRef)
         endwhile
         
         baseRef = EnabledLocations[i].GetDistanceCheckReference()
@@ -330,6 +330,8 @@ Function UpdateLocationsAccordingToJMap()
                         if ownerFacIndex < FactionDataHandler.SAB_FactionQuests.Length
                             if locScript.factionScript != FactionDataHandler.SAB_FactionQuests[ownerFacIndex]
                                 locScript.BeTakenByFaction(FactionDataHandler.SAB_FactionQuests[ownerFacIndex], true)
+
+                                locScript.SetOwnedUnits(jMap.getObj(jLocDataMap, "jStartingGarrison"))
                             endif
                         endif
                     else 
@@ -372,8 +374,6 @@ Function WriteCurrentLocOwnershipsToJmap()
         i += 1
     endwhile
 
-    return None
-
 EndFunction
 
 Function WriteCurrentLocNamesToJmap()
@@ -393,7 +393,24 @@ Function WriteCurrentLocNamesToJmap()
         i += 1
     endwhile
 
-    return None
+EndFunction
+
+Function WriteCurrentLocStartGarrsToJmap()
+    
+    int i = 0
+
+    while i < NextLocationIndex
+        int jLocDataMap = JMap.getObj(jLocationsConfigMap, Locations[i].GetLocId())
+
+        if jLocDataMap == 0
+            jLocDataMap = jMap.object()
+            jMap.setObj(jLocationsConfigMap, Locations[i].GetLocId(), jLocDataMap)
+        endif
+
+        jMap.setObj(jLocDataMap, "jStartingGarrison", Locations[i].jStartingUnitsMap)
+
+        i += 1
+    endwhile
 
 EndFunction
 
@@ -507,3 +524,6 @@ EndFunction
 ; float GarrisonSizeMultiplier
 ; float GoldRewardMultiplier
 ; int OwnerFactionIndex - -1 for neutral
+
+; a intMap. The keys for each entry are unit indexes
+; int jStartingGarrison

@@ -17,6 +17,9 @@ FormList Property SAB_ObjectsToUseAsSpawnsList Auto
 ObjectReference Property DefaultLocationsContentParent Auto
 { (Optional) The xmarker that should be the enable parent of all content that should be disabled when this location is taken by one of the SAB factions }
 
+; a map of "unit index - amount" ints describing the starting garrison of this location, the one that will be added when location data is loaded
+int property jStartingUnitsMap auto Hidden
+
 int Property jNearbyLocationsArray Auto Hidden
 { a jArray filled with the locationDataHandler indexes of locations near this one }
 
@@ -89,6 +92,11 @@ Function DisableLocation()
 EndFunction
 
 Function BeTakenByFaction(SAB_FactionScript factionScriptRef, bool notify = true)
+	if !factionScriptRef
+		BecomeNeutral(notify)
+		return
+	endif
+
 	jOwnedUnitsMap = jValue.releaseAndRetain(jOwnedUnitsMap, jIntMap.object(), "ShoutAndBlade")
 	jSpawnedUnitsMap = jValue.releaseAndRetain(jSpawnedUnitsMap, jIntMap.object(), "ShoutAndBlade")
 	jSpawnOptionsMap = jValue.releaseAndRetain(jSpawnOptionsMap, jIntMap.object(), "ShoutAndBlade")

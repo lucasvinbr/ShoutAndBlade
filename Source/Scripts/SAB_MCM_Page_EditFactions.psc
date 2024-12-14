@@ -2,9 +2,6 @@ scriptname SAB_MCM_Page_EditFactions extends nl_mcm_module
 
 SAB_MCM Property MainPage Auto
 
-; since we want more than 128 custom units, we need two arrays (0 or 1 here)
-int editedUnitsMenuPage = 0
-
 string[] editedFactionIdentifiersArray
 int editedFactionIndex = 0
 int jEditedFactionData = 0
@@ -85,12 +82,12 @@ Function SetupPage()
     AddTextOptionST("FAC_EDIT_CMDER_SPAWN", "$sab_mcm_factionedit_button_setcmderspawn", "")
 
     AddHeaderOption("$sab_mcm_factionedit_header_selectcmder")
-    AddSliderOptionST("FAC_EDIT_UNIT_MENU_PAGE___CMDER", "$sab_mcm_unitedit_slider_menupage", editedUnitsMenuPage + 1)
+    AddSliderOptionST("FAC_EDIT_UNIT_MENU_PAGE___CMDER", "$sab_mcm_unitedit_slider_menupage", MainPage.editedUnitsMenuPage + 1)
     AddMenuOptionST("FAC_EDIT_UNIT_CMDER_MENU", "$sab_mcm_factionedit_menu_cmderunit", \
         MainPage.GetMCMUnitDisplayByUnitIndex(JMap.getInt(jEditedFactionData, "CmderUnitIndex", 0)))
 
     AddHeaderOption("$sab_mcm_factionedit_header_selectrecruit")
-    AddSliderOptionST("FAC_EDIT_UNIT_MENU_PAGE___RECRUIT", "$sab_mcm_unitedit_slider_menupage", editedUnitsMenuPage + 1)
+    AddSliderOptionST("FAC_EDIT_UNIT_MENU_PAGE___RECRUIT", "$sab_mcm_unitedit_slider_menupage", MainPage.editedUnitsMenuPage + 1)
     AddMenuOptionST("FAC_EDIT_UNIT_RECRUIT_MENU", "$sab_mcm_factionedit_menu_recruitunit", \
         MainPage.GetMCMUnitDisplayByUnitIndex(JMap.getInt(jEditedFactionData, "RecruitUnitIndex", 0)))
 
@@ -108,20 +105,20 @@ EndFunction
 
 state FAC_EDIT_UNIT_MENU_PAGE
 	event OnSliderOpenST(string state_id)
-		SetSliderDialogStartValue(editedUnitsMenuPage + 1)
+		SetSliderDialogStartValue(MainPage.editedUnitsMenuPage + 1)
 		SetSliderDialogDefaultValue(1)
 		SetSliderDialogRange(1, 4) ; 512 units
 		SetSliderDialogInterval(1)
 	endEvent
 
 	event OnSliderAcceptST(string state_id, float value)
-		editedUnitsMenuPage = (value as int) - 1
-		SetSliderOptionValueST(editedUnitsMenuPage + 1)
+		MainPage.editedUnitsMenuPage = (value as int) - 1
+		SetSliderOptionValueST(MainPage.editedUnitsMenuPage + 1)
 	endEvent
 
 	event OnDefaultST(string state_id)
-		editedUnitsMenuPage = 0
-		SetSliderOptionValueST(editedUnitsMenuPage + 1)
+		MainPage.editedUnitsMenuPage = 0
+		SetSliderOptionValueST(MainPage.editedUnitsMenuPage + 1)
 	endEvent
 
 	event OnHighlightST(string state_id)
@@ -315,12 +312,12 @@ state FAC_EDIT_UNIT_CMDER_MENU
 	event OnMenuOpenST(string state_id)
 		SetMenuDialogStartIndex(JMap.getInt(jEditedFactionData, "CmderUnitIndex", 0) % 128)
 		SetMenuDialogDefaultIndex(0)
-        MainPage.MainQuest.UnitDataHandler.SetupStringArrayWithUnitIdentifiers(editedUnitIdentifiersArray, editedUnitsMenuPage)
+        MainPage.MainQuest.UnitDataHandler.SetupStringArrayWithUnitIdentifiers(editedUnitIdentifiersArray, MainPage.editedUnitsMenuPage)
 		SetMenuDialogOptions(editedUnitIdentifiersArray)
 	endEvent
 
 	event OnMenuAcceptST(string state_id, int index)
-        int trueIndex = index + editedUnitsMenuPage * 128
+        int trueIndex = index + MainPage.editedUnitsMenuPage * 128
 		JMap.setInt(jEditedFactionData, "CmderUnitIndex", trueIndex)
 		SetMenuOptionValueST(MainPage.GetMCMUnitDisplayByUnitIndex(trueIndex))
 	endEvent
@@ -342,12 +339,12 @@ state FAC_EDIT_UNIT_RECRUIT_MENU
 	event OnMenuOpenST(string state_id)
 		SetMenuDialogStartIndex(JMap.getInt(jEditedFactionData, "RecruitUnitIndex", 0) % 128)
 		SetMenuDialogDefaultIndex(0)
-        MainPage.MainQuest.UnitDataHandler.SetupStringArrayWithUnitIdentifiers(editedUnitIdentifiersArray, editedUnitsMenuPage)
+        MainPage.MainQuest.UnitDataHandler.SetupStringArrayWithUnitIdentifiers(editedUnitIdentifiersArray, MainPage.editedUnitsMenuPage)
 		SetMenuDialogOptions(editedUnitIdentifiersArray)
 	endEvent
 
 	event OnMenuAcceptST(string state_id, int index)
-        int trueIndex = index + editedUnitsMenuPage * 128
+        int trueIndex = index + MainPage.editedUnitsMenuPage * 128
 		JMap.setInt(jEditedFactionData, "RecruitUnitIndex", trueIndex)
 		SetMenuOptionValueST(MainPage.GetMCMUnitDisplayByUnitIndex(trueIndex))
 	endEvent
@@ -465,13 +462,13 @@ state FAC_EDIT_TROOPLINE_ENTRY_UNIT
         int entryIndex = state_id as int
 		SetMenuDialogStartIndex(jArray.getInt(jEditedTroopLine, entryIndex, 0) % 128)
 		SetMenuDialogDefaultIndex(JMap.getInt(jEditedFactionData, "RecruitUnitIndex") % 128)
-        MainPage.MainQuest.UnitDataHandler.SetupStringArrayWithUnitIdentifiers(editedUnitIdentifiersArray, editedUnitsMenuPage)
+        MainPage.MainQuest.UnitDataHandler.SetupStringArrayWithUnitIdentifiers(editedUnitIdentifiersArray, MainPage.editedUnitsMenuPage)
 		SetMenuDialogOptions(editedUnitIdentifiersArray)
 	endEvent
 
 	event OnMenuAcceptST(string state_id, int index)
         int entryIndex = state_id as int
-        int trueIndex = index + editedUnitsMenuPage * 128
+        int trueIndex = index + MainPage.editedUnitsMenuPage * 128
 		jArray.setInt(jEditedTroopLine, entryIndex, trueIndex)
 		SetMenuOptionValueST(MainPage.GetMCMUnitDisplayByUnitIndex(trueIndex))
 	endEvent
