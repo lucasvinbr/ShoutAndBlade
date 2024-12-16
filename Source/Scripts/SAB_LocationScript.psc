@@ -270,7 +270,7 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 
 		; if we have enough units, upgrade. If we don't, recruit some more
 		if totalOwnedUnitsAmount >= GetMaxOwnedUnitsAmount() * 0.7
-			TryUpgradeUnits()
+			TryUpgradeUnits(true)
 		else 
 			TryRecruitUnits()
 		endif
@@ -645,3 +645,7 @@ EndFunction
 bool Function IsOnAlert()
 	return IsBeingContested()
 endfunction
+
+bool Function IsInitialized()
+	return jKnownVacantNearbyCmderSlots != -1
+EndFunction

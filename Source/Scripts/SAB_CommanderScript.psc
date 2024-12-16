@@ -125,7 +125,7 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 	
 					; if we have enough units, upgrade. If we don't, recruit some more
 					if totalOwnedUnitsAmount >= GetMaxOwnedUnitsAmount() * 0.7
-						TryUpgradeUnits()
+						TryUpgradeUnits(true)
 					else 
 						TryRecruitUnits()
 					endif
@@ -541,6 +541,12 @@ endEvent
 
 Function OwnedUnitHasDied(int unitIndex, float timeOwnerWasSetup)
 	parent.OwnedUnitHasDied(unitIndex, timeOwnerWasSetup)
+
+	float playerDistance = playerActor.GetDistance(meActor)
+	if playerDistance && playerDistance > GetIsNearbyDistance() && totalOwnedUnitsAmount <= 0
+		; delete the cmder immediately
+		HandleAutocalcDefeat()
+	endif
 	; UpdateConfidenceLevel()
 EndFunction
 
@@ -597,7 +603,7 @@ EndFunction
 ; tries to make one of our spawned living units become the new commander for this alias. returns true on success.
 bool Function TryGiveCmderPositionToOurUnit()
 
-	SAB_UnitScript unitToBecomeCmder = factionScript.GetASpawnedUnitFromCmder(self)
+	SAB_UnitScript unitToBecomeCmder = factionScript.GetASpawnedUnitFromContainer(self)
 
 	if unitToBecomeCmder != None
 

@@ -133,6 +133,66 @@ Function AddUnitsOfType(int unitTypeIndex, int amount)
 	totalOwnedUnitsAmount += amount
 EndFunction
 
+; tries to remove units from this container, even if they are currently spawned
+Function RemoveUnitsOfType(int unitTypeIndex, int amountToRemove)
+	if amountToRemove <= 0
+		return
+	endif
+	int spawnedsCount = JIntMap.getInt(jSpawnedUnitsMap, unitTypeIndex)
+	int reservesCount = JIntMap.getInt(jSpawnOptionsMap, unitTypeIndex)
+	
+	; debug.Trace("total unis " + (spawnedsCount + reservesCount))
+	; debug.Trace("we want to remove " + amountToRemove)
+
+	if	amountToRemove > spawnedsCount + reservesCount
+		amountToRemove = spawnedsCount + reservesCount
+	endif
+
+	; debug.Trace("clamped to " + amountToRemove)
+
+	; we try to only mess with the reserves if possible
+	if reservesCount > 0
+		int reservesToRemove = reservesCount
+		if amountToRemove < reservesToRemove
+			reservesToRemove = amountToRemove
+		endif
+
+		totalOwnedUnitsAmount -= reservesToRemove
+
+		int jUnitMap = jArray.getObj(GetUnitDataHandler().jSABUnitDatasArray, unitTypeIndex)
+		float unitPower = jMap.getFlt(jUnitMap, "AutocalcStrength", 1.0)
+
+		currentAutocalcPower -= unitPower
+
+		int currentStoredAmount = jIntMap.getInt(jOwnedUnitsMap, unitTypeIndex)
+		jIntMap.setInt(jOwnedUnitsMap, unitTypeIndex, currentStoredAmount - reservesToRemove)
+
+		if currentStoredAmount - reservesToRemove <= 0
+			jIntMap.removeKey(jOwnedUnitsMap, unitTypeIndex)
+		endif
+
+		int currentSpawnableAmount = jIntMap.getInt(jSpawnOptionsMap, unitTypeIndex)
+		jIntMap.setInt(jSpawnOptionsMap, unitTypeIndex, currentSpawnableAmount - reservesToRemove)
+
+		if currentSpawnableAmount - reservesToRemove <= 0
+			jIntMap.removeKey(jSpawnOptionsMap, unitTypeIndex)
+		endif
+
+		amountToRemove -= reservesToRemove
+	endif
+
+	; if there are more units to remove, we've got to search for them in the spawned units list and despawn them
+	while amountToRemove > 0
+		SAB_UnitScript unitToRemove = factionScript.GetSpawnedUnitOfTypeFromContainer(self, unitTypeIndex)
+
+		if unitToRemove != None
+			unitToRemove.DespawnAndDontReturnToContainer()
+		endif
+
+		amountToRemove -= 1 ; assume we removed successfully, or else we may keep checking forever
+	endwhile
+EndFunction
+
 ; clears the container, then adds all units from the provided jIntMap
 Function SetOwnedUnits(int jUnitsMap)
 	JIntMap.clear(jOwnedUnitsMap)
@@ -174,16 +234,17 @@ EndFunction
 
 
 ; attempts to get upgrades to one of the unit types we have, using the faction gold
-Function TryUpgradeUnits()
+Function TryUpgradeUnits(bool alsoConsiderSpawned = false)
 	; debug.Trace("troop container: try upgrade units!")
 
 	if factionScript == None
 		return
 	endif
 
-	; we should only upgrade units not currently spawned
-	; so if all units are spawned, no upgrades should be made
-	if spawnedUnitsAmount >= totalOwnedUnitsAmount
+	
+	if spawnedUnitsAmount >= totalOwnedUnitsAmount && !alsoConsiderSpawned
+		; we should only upgrade units not currently spawned
+		; so if all units are spawned, no upgrades should be made
 		return
 	endif
 
@@ -197,8 +258,14 @@ Function TryUpgradeUnits()
 	int spawnedUnitCount = jIntMap.getInt(jSpawnedUnitsMap, unitIndexToTrain)
 	int spawnableUnitCount = jIntMap.getInt(jSpawnOptionsMap, unitIndexToTrain)
 
+	int upgradeablesCount = ownedUnitCount - spawnedUnitCount
+
+	if alsoConsiderSpawned
+		upgradeablesCount = ownedUnitCount
+	endif
+
 	if ownedUnitCount > spawnedUnitCount
-		int jUpgradeResultMap = factionScript.TryUpgradeUnits(unitIndexToTrain, ownedUnitCount - spawnedUnitCount, availableExpPoints)
+		int jUpgradeResultMap = factionScript.TryUpgradeUnits(unitIndexToTrain, upgradeablesCount, availableExpPoints)
 
 		if jUpgradeResultMap != 0
 			availableExpPoints = jMap.getFlt(jUpgradeResultMap, "RemainingExp")
@@ -224,35 +291,13 @@ Function TryUpgradeUnits()
 						int newUnitIndex = jMap.getInt(jUpgradedUnitMap, "NewUnitIndex")
 
 						; add units to the new index and remove from the old one
-						int curNewUnitStoredAmount = jIntMap.getInt(jOwnedUnitsMap, newUnitIndex)
-						jIntMap.setInt(jOwnedUnitsMap, newUnitIndex, curNewUnitStoredAmount + upgradedAmount)
-						int curNewUnitSpawnableAmount = jIntMap.getInt(jSpawnOptionsMap, newUnitIndex)
-						jIntMap.setInt(jSpawnOptionsMap, newUnitIndex, curNewUnitSpawnableAmount + upgradedAmount)
-
-						ownedUnitCount -= upgradedAmount
-						jIntMap.setInt(jOwnedUnitsMap, unitIndexToTrain, ownedUnitCount)
-
-						spawnableUnitCount -= upgradedAmount
-						jIntMap.setInt(jSpawnOptionsMap, unitIndexToTrain, spawnableUnitCount)
-
-						autocalcPowerChange -= upgradedAmount * oldUnitPower
-						
-						int jNewUnitMap = jArray.getObj(jSABUnitDatasArray, newUnitIndex)
-						float newUnitPower = jMap.getFlt(jNewUnitMap, "AutocalcStrength", 1.0)
-
-						autocalcPowerChange += upgradedAmount * newUnitPower
+						AddUnitsOfType(newUnitIndex, upgradedAmount)
+    					RemoveUnitsOfType(unitIndexToTrain, upgradedAmount)
 
 					endif
 					
 				endwhile
 
-				if ownedUnitCount <= 0
-					jIntMap.removeKey(jOwnedUnitsMap, unitIndexToTrain)
-				endif
-
-				if spawnableUnitCount <= 0
-					jIntMap.removeKey(jSpawnOptionsMap, unitIndexToTrain)
-				endif
 			endif
 
 			jValue.release(jUpgradeResultMap)
@@ -329,8 +374,6 @@ Function TryTransferUnitsToAnotherContainer(SAB_TroopContainerScript otherContai
 	endif
 
 endFunction
-
-
 
 ; returns a valid random unit index from our spawnableUnits list, or -1 if it fails for some reason (no units available to spawn, for example)
 int Function GetUnitIndexToSpawn()
@@ -671,6 +714,18 @@ EndFunction
 ; override this!
 ; if true, units spawning from this container should spawn ready for combat
 bool Function IsOnAlert()
+	return false
+endfunction
+
+; true if player belongs to same faction, or a faction that's friendly/allied to the player.
+; false if enemy or neutral
+bool Function IsAllyOfPlayer()
+	if factionScript != None
+		if factionScript.IsPlayerPartOfThisFaction() || factionScript.DiplomacyDataHandler.IsFactionAllyOfPlayer(factionScript.GetFactionIndex())
+			return true
+		endif
+	endif
+
 	return false
 endfunction
 

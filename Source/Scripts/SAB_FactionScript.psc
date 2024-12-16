@@ -130,6 +130,10 @@ bool Function IsPlayerInControlOfThisFaction()
 	return playerIsControllingDestinations && playerHandler != None
 endfunction
 
+bool Function IsPlayerPartOfThisFaction()
+	return playerHandler != None
+EndFunction
+
 ; don't use this for the player! use AddPlayerToOurFaction in that case
 Function AddActorToOurFaction(Actor targetActor)
 	targetActor.AddToFaction(OurFaction)
@@ -906,8 +910,8 @@ ReferenceAlias Function GetFreeUnitAliasSlot()
 	return None
 endFunction
 
-; returns the first living unit we find that "belongs" to the cmder
-SAB_UnitScript Function GetASpawnedUnitFromCmder(SAB_CommanderScript cmder)
+; returns the first living unit we find that "belongs" to the troop container
+SAB_UnitScript Function GetASpawnedUnitFromContainer(SAB_TroopContainerScript troopcontainer)
 	;the alias ids used by units range from 28 to 127
 
 	int checkedAliasesCount = 0
@@ -921,7 +925,32 @@ SAB_UnitScript Function GetASpawnedUnitFromCmder(SAB_CommanderScript cmder)
 
 		SAB_UnitScript unitAlias = GetAlias(lastCheckedUnitAliasIndex) as SAB_UnitScript
 
-		if(unitAlias.GetOwnerContainer() == cmder && unitAlias.IsAlive())
+		if(unitAlias.GetOwnerContainer() == troopcontainer && unitAlias.IsAlive())
+			return unitAlias
+		endif
+
+		checkedAliasesCount += 1
+	EndWhile
+	
+	return None
+endFunction
+
+; returns the first living unit we find that "belongs" to the provided troop container
+SAB_UnitScript Function GetSpawnedUnitOfTypeFromContainer(SAB_TroopContainerScript troopcontainer, int unitTypeIndex)
+	;the alias ids used by units range from 28 to 127
+
+	int checkedAliasesCount = 0
+
+	While checkedAliasesCount < 100
+		lastCheckedUnitAliasIndex -= 1
+
+		if lastCheckedUnitAliasIndex < 28
+			lastCheckedUnitAliasIndex = 127
+		endif
+
+		SAB_UnitScript unitAlias = GetAlias(lastCheckedUnitAliasIndex) as SAB_UnitScript
+
+		if(unitAlias.GetOwnerContainer() == troopcontainer && unitAlias.IsAlive() && unitAlias.unitIndex == unitTypeIndex)
 			return unitAlias
 		endif
 
