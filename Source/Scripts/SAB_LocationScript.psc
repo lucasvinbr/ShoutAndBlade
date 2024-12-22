@@ -270,7 +270,7 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 
 		; if we have enough units, upgrade. If we don't, recruit some more
 		if totalOwnedUnitsAmount >= GetMaxOwnedUnitsAmount() * 0.7
-			TryUpgradeUnits(true)
+			TryUpgradeUnits(false)
 		else 
 			TryRecruitUnits()
 		endif

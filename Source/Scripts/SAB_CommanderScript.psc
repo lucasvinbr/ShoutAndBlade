@@ -125,7 +125,7 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 	
 					; if we have enough units, upgrade. If we don't, recruit some more
 					if totalOwnedUnitsAmount >= GetMaxOwnedUnitsAmount() * 0.7
-						TryUpgradeUnits(true)
+						TryUpgradeUnits(false)
 					else 
 						TryRecruitUnits()
 					endif
@@ -340,7 +340,7 @@ Function UnregisterAsNearLocation(SAB_LocationScript loc)
 		return
 	endif
 
-	if loc.NearbyCommanders[indexInLocNearbiesArray] == self
+	if indexInLocNearbiesArray >= 0 && loc.NearbyCommanders[indexInLocNearbiesArray] == self
 		loc.UnregisterCommanderFromNearbyList(indexInLocNearbiesArray)
 	endif
 	
@@ -542,11 +542,16 @@ endEvent
 Function OwnedUnitHasDied(int unitIndex, float timeOwnerWasSetup)
 	parent.OwnedUnitHasDied(unitIndex, timeOwnerWasSetup)
 
-	float playerDistance = playerActor.GetDistance(meActor)
-	if playerDistance && playerDistance > GetIsNearbyDistance() && totalOwnedUnitsAmount <= 0
-		; delete the cmder immediately
-		HandleAutocalcDefeat()
+	if IsValid()
+		float playerDistance = playerActor.GetDistance(meActor)
+		if playerDistance && playerDistance > GetIsNearbyDistance() && totalOwnedUnitsAmount <= 0
+			; delete the cmder immediately
+			HandleAutocalcDefeat()
+		endif
+	else
+		ClearCmderData()
 	endif
+	
 	; UpdateConfidenceLevel()
 EndFunction
 

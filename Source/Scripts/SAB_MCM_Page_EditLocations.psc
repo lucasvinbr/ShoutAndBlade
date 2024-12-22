@@ -125,8 +125,7 @@ Function SetupPage()
     AddHeaderOption("$sab_mcm_locationedit_header_startgarrison")
 
     if editedLocationScript.jStartingUnitsMap == 0
-        editedLocationScript.jStartingUnitsMap = jIntMap.object()
-        JValue.retain(editedLocationScript.jStartingUnitsMap, "ShoutAndBlade")
+        editedLocationScript.jStartingUnitsMap = jValue.releaseAndRetain(editedLocationScript.jStartingUnitsMap, jIntMap.object(), "ShoutAndBlade")
     endif
 
     jLocUnitsMap = editedLocationScript.jStartingUnitsMap
@@ -167,9 +166,13 @@ Function SetupPage()
 
     SetCursorPosition(1)
 
-    AddEmptyOption()
     AddTextOptionST("LOC_EDIT_SAVE", "$sab_mcm_locationedit_button_save", "")
     AddTextOptionST("LOC_EDIT_LOAD", "$sab_mcm_locationedit_button_load", "")
+
+    AddEmptyOption()
+
+    ; this isn't working as it should. New locations aren't registered in the addon's array
+    ;AddTextOptionST("LOC_RELOAD_ADDONS", "$sab_mcm_locationedit_button_reload_addons", "")
 
     AddEmptyOption()
 
@@ -488,7 +491,7 @@ state LOC_STARTINGTROOP
         int jStartUnitsMap = editedLocationScript.jStartingUnitsMap
         int curUnitCount = jIntMap.getInt(jStartUnitsMap, pickedUnit)
 
-		SetSliderDialogStartValue(0)
+		SetSliderDialogStartValue(curUnitCount)
 		SetSliderDialogDefaultValue(0)
 		SetSliderDialogRange(0, 150)
 		SetSliderDialogInterval(1)
@@ -679,5 +682,21 @@ state LOC_EDIT_LOAD
 	event OnHighlightST(string state_id)
         MainPage.ToggleQuickHotkey(true)
 		SetInfoText("$sab_mcm_factionedit_button_load_desc")
+	endEvent
+endstate
+
+
+state LOC_RELOAD_ADDONS
+    event OnSelectST(string state_id)
+        MainPage.MainQuest.LocationDataHandler.ReaddLocationsFromAddons()
+	endEvent
+
+    event OnDefaultST(string state_id)
+        ; nothing
+    endevent
+
+	event OnHighlightST(string state_id)
+        MainPage.ToggleQuickHotkey(true)
+		SetInfoText("$sab_mcm_locationedit_button_reload_addons_desc")
 	endEvent
 endstate
