@@ -6,12 +6,16 @@ SAB_LocationDataHandler Property LocationHandlerScript Auto
 SAB_LocationScript[] Property NewLocations Auto
 { all locations that will be added to the mod }
 
+int indexInRegisteredAddons = -1
+
 Function InitializeLocations()
     int i = 0
 
     ; set up locations
     while i < NewLocations.Length
-        NewLocations[i].Setup(NewLocations[i].factionScript)
+        if !NewLocations[i].IsInitialized()
+            NewLocations[i].Setup(NewLocations[i].factionScript)
+        endif
         
         i += 1
     endwhile
@@ -30,6 +34,20 @@ event OnInit()
 
     InitializeLocations()
 
-    LocationHandlerScript.AddNewLocationsFromAddon(self)
+    LocationHandlerScript.AddNewLocationsFromAddon(self, indexInRegisteredAddons)
 
 endevent
+
+Function ReaddLocations()
+    while !LocationHandlerScript.IsDoneSettingUp()
+        Utility.Wait(1.0)
+    endwhile
+
+    InitializeLocations()
+
+    LocationHandlerScript.AddNewLocationsFromAddon(self, indexInRegisteredAddons)
+EndFunction
+
+Function SetIndexInRegisteredAddons(int indexInRegAddons)
+    indexInRegisteredAddons = indexInRegAddons
+EndFunction

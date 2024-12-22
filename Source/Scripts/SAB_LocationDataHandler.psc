@@ -22,6 +22,8 @@ int Property NextEnabledLocationIndex = 0 Auto Hidden
 ; a jMap, mapped by location name, containing jMaps with some configurable data on locations
 int Property jLocationsConfigMap Auto Hidden
 
+SAB_LocationDataAddon[] registeredAddons
+
 Function Initialize()
     Locations = new SAB_LocationScript[128]
     EnabledLocations = new SAB_LocationScript[128]
@@ -43,11 +45,23 @@ event OnInit()
 endevent
 
 
-Function AddNewLocationsFromAddon(SAB_LocationDataAddon addon)
+Function AddNewLocationsFromAddon(SAB_LocationDataAddon addon, int addonIndex)
 
     if NextLocationIndex >= 128
         Debug.Trace("AddNewLocationsFromAddon: SAB Locations array is full! Aborting")
         return
+    endif
+
+    if addonIndex < 0
+        ; register addon in an array, so that we can call for a re-add of locations
+        int indexForAddon = GetNextIndexForLocationAddon()
+
+        if indexForAddon > 128
+            Debug.Trace("AddNewLocationsFromAddon: SAB Location Addons array is full! Aborting")
+            return
+        endif
+
+        addon.SetIndexInRegisteredAddons(indexForAddon)
     endif
 
     while isBusyAddingNewLocsToBaseArray
@@ -59,15 +73,21 @@ Function AddNewLocationsFromAddon(SAB_LocationDataAddon addon)
 
     SAB_LocationScript[] newLocations = addon.NewLocations
     int i = 0
+    bool hasMadeChanges = false
 
     ; set up locations
     while i != -1 && i < newLocations.Length
-        if newLocations[i]
-            Locations[NextLocationIndex] = newLocations[i]
-            
-            i += 1
-            NextLocationIndex += 1
+        SAB_LocationScript newLoc = newLocations[i]
+        if newLoc
+            If GetLocationIndexById(newLoc.GetLocId()) == -1
+                Locations[NextLocationIndex] = newLoc
+                hasMadeChanges = true
+                NextLocationIndex += 1
+                debug.Trace("SAB: added new location " + newLoc.GetLocName())
+            EndIf
 
+            i += 1
+            
             if NextLocationIndex >= 128
                 ; break! the locations array is full
                 i = -1
@@ -77,9 +97,22 @@ Function AddNewLocationsFromAddon(SAB_LocationDataAddon addon)
 
     isBusyAddingNewLocsToBaseArray = false
 
-    RebuildEnabledLocationsArray()
-    CalculateLocationDistances()
+    If hasMadeChanges
+        RebuildEnabledLocationsArray()
+        CalculateLocationDistances()
+    EndIf
     
+EndFunction
+
+Function ReaddLocationsFromAddons()
+    int topIndex = GetNextIndexForLocationAddon()
+    int i = 0
+
+    while i < topIndex
+        registeredAddons[i].ReaddLocations()
+
+        i += 1
+    endwhile
 EndFunction
 
 ; enables or disables the target location
@@ -344,6 +377,7 @@ Function UpdateLocationsAccordingToJMap()
                 locScript.GoldRewardMultiplier = jMap.getFlt(jLocDataMap, "GoldRewardMultiplier", 1.0)
                 locScript.GarrisonSizeMultiplier = jMap.getFlt(jLocDataMap, "GarrisonSizeMultiplier", 1.0)
                 locScript.OverrideDisplayName = jMap.getStr(jLocDataMap, "OverrideDisplayName")
+                locScript.jStartingUnitsMap = jValue.releaseAndRetain(locScript.jStartingUnitsMap, jMap.getObj(jLocDataMap, "jStartingGarrison"), "ShoutAndBlade")
 
             endif
         endif
@@ -516,6 +550,37 @@ SAB_LocationScript Function GetLocationById(string Id)
     return None
 EndFunction
 
+; returns location's index in the Locations array. -1 if not found
+int Function GetLocationIndexById(string Id)
+    int i = 0
+
+    while i < NextLocationIndex
+        if Locations[i].GetLocId() == Id
+            return i
+        endif
+        i += 1
+    endwhile
+
+    return -1
+EndFunction
+
+
+int Function GetNextIndexForLocationAddon()
+    int i = 0
+
+    if registeredAddons.Length <= 0
+        registeredAddons = new SAB_LocationDataAddon[128]
+    endif
+
+    while i < 128
+        if registeredAddons[i] == None
+            return i
+        endif
+        i += 1
+    endwhile
+
+    return 0
+EndFunction
 
 ; locationData jmap entries:
 
