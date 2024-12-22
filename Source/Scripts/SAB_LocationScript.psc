@@ -11,6 +11,10 @@ ObjectReference[] Property ExternalSpawnPoints Auto
 ObjectReference[] Property InternalSpawnPoints Auto
 { (Optional) Array of objects that should be used as spawn points when inside any of the location's interiorCells. SAB_ObjectsToUseAsSpawnsList will be used instead if not set }
 
+ObjectReference[] Property ExtraIsNearbyOutsideMarkers Auto
+{ (Optional) usually, we only check against the object reference filling this alias to see if the player is nearby but not inside the loc, but this might not be enough if the location is too big.
+  You can add additional markers for the "is nearby but not inside" checking here}
+
 FormList Property SAB_ObjectsToUseAsSpawnsList Auto
 { (Auto-fill) Formlist with objects like xmarkers, that should generally serve as "good enough" spawn points }
 
@@ -27,7 +31,7 @@ ObjectReference Property MoveDestination Auto
 { this is the destination commanders will head to. It can be inside the location itself }
 
 Location Property ThisLocation Auto
-{ this should be set to the interior location, where moveDestination is }
+{ this should be set to the interior location, where moveDestination probably is }
 
 string Property OverrideDisplayName = "" Auto
 { overrides the name of the location when displayed in the mod's menus and notifications. This is also editable by the users via the menus }
@@ -246,13 +250,10 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 	endif
 	
 
-	float distToPlayer = playerActor.GetDistance(GetReference())
-	; debug.Trace("dist to player from location of faction " + jMap.getStr(factionScript.jFactionData, "name", "NEUTRAL") + ": " + distToPlayer)
-
 	; is player in this location's interior or exterior? Does this location have an interior?
 	playerIsInside = IsRefInThisLocationsInteriors(playerActor)
 
-	ToggleNearbyUpdates(distToPlayer <= 8100.0 || playerIsInside) ; TODO make this configurable
+	ToggleNearbyUpdates(playerIsInside || IsRefNearbyOutside(playerActor)) 
 	; debug.Trace(GetLocName() + ": player is inside? " + playerIsInside)
 
 	if !isNearby && !playerIsInside
@@ -506,6 +507,48 @@ bool Function CanAutocalcNow()
 	return !isNearby
 EndFunction
 
+; checks if the target reference is outisde but close enough.
+; Does the actual checks! no caching
+bool Function IsRefNearbyOutside(ObjectReference targetRef, float nearbyDistance = 8100.0)
+	float distToRef = targetRef.GetDistance(GetReference())
+
+	If (distToRef < nearbyDistance)
+		return true
+	EndIf
+
+	int i = ExtraIsNearbyOutsideMarkers.Length
+
+	While i > 0
+		i -= 1
+
+		distToRef = targetRef.GetDistance(ExtraIsNearbyOutsideMarkers[i])
+		If (distToRef < nearbyDistance)
+			return true
+		EndIf
+	EndWhile
+
+	return false
+EndFunction
+
+ObjectReference Function GetClosestOutsideSpawnMarkerFromRef(ObjectReference targetRef)
+	float smallestDist = targetRef.GetDistance(GetReference())
+	ObjectReference closestMarker = GetReference()
+
+	int i = ExtraIsNearbyOutsideMarkers.Length
+
+	While i > 0
+		i -= 1
+
+		float distToNewRef = targetRef.GetDistance(ExtraIsNearbyOutsideMarkers[i])
+		If (distToNewRef < smallestDist)
+			smallestDist = distToNewRef
+			closestMarker = ExtraIsNearbyOutsideMarkers[i]
+		EndIf
+	EndWhile
+
+	return closestMarker
+EndFunction
+
 bool Function IsReferenceCloseEnoughForAutocalc(ObjectReference targetRef)
 
 	if IsRefInThisLocationsInteriors(targetRef)
@@ -519,19 +562,16 @@ bool Function IsReferenceCloseEnoughForAutocalc(ObjectReference targetRef)
 			return true
 		endif
 	else
-		float distToLoc = GetReference().GetDistance(targetRef)
-		; debug.Trace("dist to loc from actor: " + distToLoc)
-		if distToLoc <= 1800.0
+		if IsRefNearbyOutside(targetRef, 1800.0)
 			return true
 		else
-			distToLoc = MoveDestination.GetDistance(targetRef)
+			float distToLoc = MoveDestination.GetDistance(targetRef)
 			; debug.Trace("dist to loc movedest from actor: " + distToLoc)
 			if distToLoc <= 1800.0
 				return true
 			endif
 		endif
 	endif
-	
 
 	return false
 EndFunction
@@ -572,12 +612,13 @@ ObjectReference Function GetSpawnLocationForUnit()
 		if ExternalSpawnPoints.Length > 0
 			return ExternalSpawnPoints[Utility.RandomInt(0, ExternalSpawnPoints.Length - 1)]
 		else 
-			return Game.FindRandomReferenceOfAnyTypeInListFromRef(SAB_ObjectsToUseAsSpawnsList, GetReference(), 4000)
+			return Game.FindRandomReferenceOfAnyTypeInListFromRef(SAB_ObjectsToUseAsSpawnsList, GetClosestOutsideSpawnMarkerFromRef(playerActor), 4000)
 		endif
 	endif
 EndFunction
 
-; returns DistCalculationReference if it's set, GetReference() otherwise
+; returns DistCalculationReference if it's set, GetReference() otherwise. 
+; Used for caching of a location's closest locs
 ObjectReference Function GetDistanceCheckReference()
 	if DistCalculationReference
 		return DistCalculationReference
