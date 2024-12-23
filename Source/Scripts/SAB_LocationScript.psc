@@ -201,8 +201,18 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 		return false
 	endif
 
+	If isUpdating
+		return false
+	EndIf
+
+	isUpdating = true
+
 	if updateIndex == 1 && gameTimeOfLastSetup != 0.0
-		return RunCloseByUpdate()
+		bool hasUpdated = RunCloseByUpdate()
+
+		isUpdating = false
+		
+		return hasUpdated
 	endif
 
 	if curGameTime != 0.0
@@ -279,6 +289,7 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 	
 	; Utility.Wait(0.01)
 
+	isUpdating = false
 	return true
 endfunction
 

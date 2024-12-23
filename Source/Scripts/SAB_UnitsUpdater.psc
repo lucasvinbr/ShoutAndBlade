@@ -5,23 +5,15 @@ SAB_AliasUpdater Property UnitUpdater Auto
 
 function Initialize()
 	debug.Trace("unit updater: initialize!")
-	UnitUpdater.Initialize()
+	; unit alias updater is attached to this quest as well, so there's no need to register for updates there
+	UnitUpdater.Initialize(false)
 	RegisterForSingleUpdate(1.0)
 endfunction
 
 
 Event OnUpdate()
-	; debug.Trace("unit updater: start loop!")
-
-	; while true
-		;debug.Trace("unit updater loop begin")
-		
-		UnitUpdater.RunUpdate(0.0, 0)
-
-		; Utility.Wait(0.35)
-
-		;debug.Trace("unit updater loop end")
-	; endwhile
-	RegisterForSingleUpdate(0.05)
+	; nothing here for now! 
+	; We're just calling update to update other scripts attached to this quest as well
+	RegisterForSingleUpdate(0.1)
 
 EndEvent

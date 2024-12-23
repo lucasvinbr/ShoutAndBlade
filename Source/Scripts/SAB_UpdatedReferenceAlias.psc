@@ -4,6 +4,8 @@ scriptname SAB_UpdatedReferenceAlias extends ReferenceAlias
 SAB_AliasUpdater Property AliasUpdater Auto
 int Property indexInUpdater = -1 Auto Hidden
 
+bool Property isUpdating = false Auto Hidden
+
 
 bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 	Debug.Trace("updated ref alias: override me!")

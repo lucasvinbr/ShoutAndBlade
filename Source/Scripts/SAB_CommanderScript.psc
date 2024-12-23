@@ -89,6 +89,12 @@ endfunction
 
 bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 
+	If isUpdating
+		return false
+	EndIf
+
+	isUpdating = true
+
 	if updateIndex == 1
 		; testing running the big update on nearby updates as well
 		RunCloseByUpdate()
@@ -100,6 +106,8 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 			meActor.Disable()
 			meActor.Delete()
 			meActor = None
+
+			isUpdating = false
 			return true
 		endif
 
@@ -138,6 +146,8 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 	if !meActor
 		debug.Trace("WARNING: attempted to update commander which had an invalid (maybe None?) reference!")
 		ClearCmderData()
+
+		isUpdating = false
 		return true
 	endif
 
@@ -155,6 +165,8 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 		if ClearAliasIfOutOfTroops()
 			CrowdReducer.AddDeadBody(meActor)
 			meActor = None
+
+			isUpdating = false
 			return true
 		else
 			; we check against the current "nearby" distance here,
@@ -167,11 +179,15 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 				meActor.Disable()
 				meActor.Delete()
 				meActor = None
+
+				isUpdating = false
 				return true
 			else
 				; the player is near our dead body and we still have troops.
 				; try to make one of our units "inherit" our position and become the new commander
 				if TryGiveCmderPositionToOurUnit()
+
+					isUpdating = false
 					return true
 				endif
 			endif
@@ -240,6 +256,8 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 
 								if !diploHandler.AreFactionsInGoodStanding(factionScript, otherCmder.factionScript)
 									DoAutocalcBattle(otherCmder)
+
+									isUpdating = false
 									return true
 								endif
 							EndIf
@@ -253,6 +271,8 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 							if TargetLocationScript.CanAutocalcNow() && locIsHostileToUs
 								diploHandler.GlobalReactToLocationAttacked(ourFacIndex, locFaction.GetFactionIndex())
 								DoAutocalcBattle(TargetLocationScript)
+
+								isUpdating = false
 								return true
 							endif
 						else
@@ -306,6 +326,7 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 		endif
 	endif
 
+	isUpdating = false
 	return true
 endfunction
 

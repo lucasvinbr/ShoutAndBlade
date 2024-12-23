@@ -58,8 +58,18 @@ EndFunction
 
 bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 
+	If isUpdating
+		return false
+	EndIf
+
+	isUpdating = true
+
 	if updateIndex == 1
-		return RunCloseByUpdate()
+		bool hasUpdated = RunCloseByUpdate()
+
+		isUpdating = false
+		
+		return hasUpdated
 	endif
 
 	if curGameTime != 0.0 && gameTimeOfLastExpAward == 0.0
@@ -93,6 +103,7 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 	
 	; TODO auto-upgrade check
 
+	isUpdating = false
 	return true
 endfunction
 

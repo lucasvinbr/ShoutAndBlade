@@ -6,28 +6,19 @@ SAB_AliasUpdater Property LocationUpdater Auto
 
 function Initialize()
 	debug.Trace("spawners updater: initialize!")
-	CmderUpdater.Initialize()
-	LocationUpdater.Initialize()
+	CmderUpdater.updateTypeIndex = 1
+	LocationUpdater.updateTypeIndex = 1
+	; cmder updater is attached to this quest as well, so there's no need to register for updates there
+	CmderUpdater.Initialize(false)
+	LocationUpdater.Initialize(true)
 	RegisterForSingleUpdate(1.0)
 endfunction
 
 
 Event OnUpdate()
-	; debug.Trace("spawners updater: start loop!")
 
-	; while true
-		;debug.Trace("spawners updater loop begin")
-		
-		CmderUpdater.RunUpdate(0.0, 1)
-
-		Utility.Wait(0.01)
-
-		LocationUpdater.RunUpdate(0.0, 1)
-
-		; Utility.Wait(0.08)
-
-		;debug.Trace("spawners updater loop end")
-	; endwhile
-	RegisterForSingleUpdate(0.01)
+	; nothing here for now! 
+	; We're just calling update to update other scripts attached to this quest as well
+	RegisterForSingleUpdate(0.2)
 
 EndEvent

@@ -15,42 +15,30 @@ bool hasUpdatedFaction = false
 function Initialize(SAB_FactionScript[] factionScriptsArray)
 	debug.Trace("background updater: initialize!")
 	SAB_FactionScripts = factionScriptsArray
-	BackgroundCmderUpdater.Initialize()
-	BackgroundLocationUpdater.Initialize()
+	BackgroundCmderUpdater.GameDaysPassed = GameDaysPassed
+	BackgroundLocationUpdater.GameDaysPassed = GameDaysPassed
+	; both updaters are not attached to this quest, so both have to be updated separately
+	BackgroundCmderUpdater.Initialize(true)
+	BackgroundLocationUpdater.Initialize(true)
 	RegisterForSingleUpdate(1.0)
 endfunction
 
 
 Event OnUpdate()
-	;  debug.Trace("background updater: start loop!")
 
-	; while true
-		; debug.Trace("background updater loop begin")
+	UpdateCurrentInstanceGlobal(GameDaysPassed)
+	float daysPassed = GameDaysPassed.GetValue()
 
-		UpdateCurrentInstanceGlobal(GameDaysPassed)
-		float daysPassed = GameDaysPassed.GetValue()
+	hasUpdatedFaction = false
 
-		hasUpdatedFaction = false
+	while !hasUpdatedFaction && updatedFactionIndex >= 0
+		hasUpdatedFaction = SAB_FactionScripts[updatedFactionIndex].RunUpdate(daysPassed)
+		updatedFactionIndex -= 1
+	endwhile
 
-		while !hasUpdatedFaction && updatedFactionIndex >= 0
-			hasUpdatedFaction = SAB_FactionScripts[updatedFactionIndex].RunUpdate(daysPassed)
-			updatedFactionIndex -= 1
-		endwhile
-
-		if updatedFactionIndex < 0
-			updatedFactionIndex = SAB_FactionScripts.Length - 1
-		endif
-		
-		Utility.Wait(0.01)
-
-		BackgroundCmderUpdater.RunUpdate(daysPassed, 0)
-
-		Utility.Wait(0.01)
-
-		BackgroundLocationUpdater.RunUpdate(daysPassed, 0)
-
-		; debug.Trace("background updater loop end")
-	; endwhile
-
+	if updatedFactionIndex < 0
+		updatedFactionIndex = SAB_FactionScripts.Length - 1
+	endif
+	
 	RegisterForSingleUpdate(0.01)
 EndEvent

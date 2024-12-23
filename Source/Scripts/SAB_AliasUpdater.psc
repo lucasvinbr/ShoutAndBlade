@@ -1,5 +1,5 @@
 scriptname SAB_AliasUpdater extends Quest
-{ updater for aliases the player can see, like nearby commanders }
+{ updater for reference aliases, like commanders and locations. Can store a lot of them! }
 
 ; we need more arrays because of the 128 elements limit.
 ; each entry of this array is an object which has a SAB_UpdatedReferenceAlias array inside it
@@ -23,38 +23,73 @@ int Property numActives = 0 Auto Hidden
 
 Activator Property SAB_AliasContainerObject Auto
 ObjectReference Property AliasContainerSpawnPoint Auto
+GlobalVariable Property GameDaysPassed Auto Hidden
+int Property updateTypeIndex = 0 Auto Hidden
 
-function Initialize()
-	debug.Trace("alias updater: initialize!")
+bool autoUpdates = false
+
+int numUpdatesRunning = 0
+int updatesLimit = 8
+
+; sets up the alias updater to make it work correctly, optionally telling it to update itself
+function Initialize(bool autoRunUpdates = false)
+	debug.Trace("alias updater: initialize! auto updates? " + autoRunUpdates)
 	SAB_ActiveElementsContainers = new SAB_RefAliasContainer[128]
 	jKnownVacantSlots = jArray.object()
 	JValue.retain(jKnownVacantSlots, "ShoutAndBlade")
+
+	if autoRunUpdates
+		autoUpdates = true
+		RegisterForSingleUpdate(1.0)
+	endif
 endfunction
 
+Event OnUpdate()
+	float daysPassed = 0.0
+	if GameDaysPassed != None
+		UpdateCurrentInstanceGlobal(GameDaysPassed)
+		daysPassed = GameDaysPassed.GetValue()
+	endif
 
+	RunUpdate(daysPassed, updateTypeIndex)
+
+	if autoUpdates
+		RegisterForSingleUpdate(0.01)
+	endif
+EndEvent
 
 function RunUpdate(float curGameTime = 0.0, int updateIndexToUse = 0)
 	; debug.Trace("alias updater: start loop!")
+
+	if numUpdatesRunning > updatesLimit
+		return
+	endif
+
+	numUpdatesRunning += 1
 
 	hasUpdatedAnElement = false
 
 	while !hasUpdatedAnElement && updatedAliasIndex >= 0
 
 		SAB_UpdatedReferenceAlias aliasToUpdate = GetUpdatedAliasAtIndex(updatedAliasIndex)
+
+		; decrement before updating, 
+		; to make sure the next update doesn't run on the same index if it's too fast
+		updatedAliasIndex -= 1
+
 		if aliasToUpdate != None
 			hasUpdatedAnElement = aliasToUpdate.RunUpdate(curGameTime, updateIndexToUse)
 		endif
 		; if hasUpdatedAnElement
 		; 	debug.Trace(GetName() + " - updated alias with index " + updatedAliasIndex)
 		; endif
-
-		updatedAliasIndex -= 1
 	endwhile
 
 	if updatedAliasIndex < 0
 		updatedAliasIndex = topFilledIndex
 	endif
 
+	numUpdatesRunning -= 1
 	; debug.Trace("alias updater loop end")
 
 endFunction

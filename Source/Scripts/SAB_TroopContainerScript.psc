@@ -92,8 +92,18 @@ EndFunction
 
 bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 
+	If isUpdating
+		return false
+	EndIf
+
+	isUpdating = true
+
 	if updateIndex == 1
-		return RunCloseByUpdate()
+		bool hasUpdated = RunCloseByUpdate()
+
+		isUpdating = false
+		
+		return hasUpdated
 	endif
 
 	if curGameTime != 0.0 && gameTimeOfLastExpAward == 0.0
@@ -102,10 +112,11 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 		gameTimeOfLastUnitUpgrade = curGameTime
 		gameTimeOfLastSetup = curGameTime
 	endif
-	
+	isUpdating = false
 endfunction
 
 bool function RunCloseByUpdate()
+
 	;debug.Trace("real time updating commander!")
 	if spawnedUnitsAmount < GetMaxSpawnedUnitsAmount()
 		; spawn random units from "storage"
@@ -662,6 +673,10 @@ EndFunction
 ; removes some of our units based on the power of the enemy
 Function TakeAutocalcDamage(float enemyPower, int jSABUnitDatasArrayCached = -1)
 	
+	if factionScript == None
+		return
+	endif
+
 	int i = jIntMap.count(jOwnedUnitsMap)
 
 	if jSABUnitDatasArrayCached == -1

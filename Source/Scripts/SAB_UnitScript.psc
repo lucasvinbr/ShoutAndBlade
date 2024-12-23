@@ -32,6 +32,12 @@ Function Setup(int thisUnitIndex, SAB_TroopContainerScript containerRef, int ind
 EndFunction
 
 bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
+	if isUpdating
+		return false
+	endif
+
+	isUpdating = true
+
 	if !meActor
 		; the unit went poof!
 		; if we get to the update before knowing what happened here,
@@ -49,10 +55,12 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 			ClearAliasData()
 		endif
 		
+		isUpdating = false
 		return true
 	endif
 
 	if meActor == None
+		isUpdating = false
 		return false
 	endif
 
@@ -62,6 +70,7 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 			HandleDeath()
 		endif
 		
+		isUpdating = false
 		return true
 	endif
 
@@ -70,6 +79,8 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 	if distToPlayer > GetIsNearbyDistance()
 		; debug.Trace("unit: too far, despawn!")
 		Despawn()
+
+		isUpdating = false
 		return true
 	endif
 
@@ -86,6 +97,7 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 	; 	endif
 	; endif
 
+	isUpdating = false
 	return true
 EndFunction
 
