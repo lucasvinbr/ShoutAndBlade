@@ -129,9 +129,12 @@ Function SetupPage()
             int locIndex = jArray.getInt(facScript.jOwnedLocationIndexesArray, i, -1)
             
             if locIndex >= 0
-                string locName = locHandler.Locations[locIndex].GetLocName()
+                SAB_LocationScript locScript = locHandler.GetLocationByIndex(locIndex)
+                if locScript != None
+                    string locName = locScript.GetLocName()
 
-                AddTextOptionST("PLYR_CUR_FAC_OWNEDLIST___" + locName, locName, "")
+                    AddTextOptionST("PLYR_CUR_FAC_OWNEDLIST___" + locName, locName, "")
+                endif
             endif
             
         EndWhile

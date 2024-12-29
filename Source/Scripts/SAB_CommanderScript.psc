@@ -389,7 +389,7 @@ ObjectReference Function GetSpawnLocationForUnit()
 
 	if meActor.IsInCombat()
 		spawnLocation = Game.FindRandomReferenceOfAnyTypeInListFromRef\
-			(factionScript.LocationDataHandler.Locations[0].SAB_ObjectsToUseAsSpawnsList, meActor, 1500)
+			(factionScript.LocationDataHandler.SAB_ObjectsToUseAsSpawnsList, meActor, 1500)
 
 		if spawnLocation == None
 			spawnLocation = factionScript.UnitSpawnPoint.GetReference()

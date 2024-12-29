@@ -88,8 +88,9 @@ EndFunction
 Function SetupLocationStatistics()
     SetCursorFillMode(LEFT_TO_RIGHT)
     SAB_UnitDataHandler unitDataHandler = MainPage.MainQuest.UnitDataHandler
-    SAB_LocationScript[] locs = MainPage.MainQuest.LocationDataHandler.Locations
-    int locIndex = locs.Length
+    SAB_LocationDataHandler locHandler = MainPage.MainQuest.LocationDataHandler
+
+    int locIndex = locHandler.NextLocationIndex + 1
     int slotsPerEntry = 6
     int entriesPerPage = Math.Floor(110 / slotsPerEntry)
 
@@ -97,7 +98,7 @@ Function SetupLocationStatistics()
     if isReloadingCurInfoSet
         while locIndex > 0
             locIndex -= 1
-            SAB_LocationScript locScript = locs[locIndex]
+            SAB_LocationScript locScript = locHandler.GetLocationByIndex(locIndex)
             if locScript != None && locScript.isEnabled
                 int jNewEntryMap = jMap.object()
                 jArray.addObj(jdisplayedDataArray, jNewEntryMap)

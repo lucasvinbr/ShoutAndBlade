@@ -99,9 +99,10 @@ Function SetupPage()
             i -= 1
 
             int locIndex = jArray.getInt(facScript.jOwnedLocationIndexesArray, i, -1)
+            SAB_LocationScript locScript = locHandler.GetLocationByIndex(locIndex)
             
-            if locIndex >= 0
-                string locName = locHandler.Locations[locIndex].GetLocName()
+            if locIndex >= 0 && locScript != None
+                string locName = locScript.GetLocName()
 
                 if playerControlsFacOrders
                     AddMenuOptionST("PLYR_CUR_FAC_OWNEDLIST_PICKABLE___" + locIndex, locName, "")
@@ -122,11 +123,12 @@ Function SetupPage()
             i -= 1
 
             int locIndex = jArray.getInt(jDefenseTargetsArray, i, -1)
+            SAB_LocationScript locScript = locHandler.GetLocationByIndex(locIndex)
             
-            if locIndex >= 0
-                string locName = locHandler.Locations[locIndex].GetLocName()
+            if locIndex >= 0 && locScript != None
+                string locName = locScript.GetLocName()
                 string reason = "$sab_mcm_myfaction_defend_smallgarrison"
-                if locHandler.Locations[locIndex].IsBeingContested()
+                if locScript.IsBeingContested()
                     reason = "$sab_mcm_myfaction_defend_underattack"
                 endif
 
@@ -155,9 +157,9 @@ Function SetupPage()
             i -= 1
 
             int locIndex = jArray.getInt(jAttackTargetsArray, i, -1)
+            SAB_LocationScript atkTargetLocScript = locHandler.GetLocationByIndex(locIndex)
             
-            if locIndex >= 0
-                SAB_LocationScript atkTargetLocScript = locHandler.Locations[locIndex]
+            if locIndex >= 0 && atkTargetLocScript != None
                 string locName = atkTargetLocScript.GetLocName()
                 if jArray.findStr(jAlreadyAddedTargetsArray, locName) == -1
                     
@@ -212,7 +214,7 @@ Function MenuSetFacDest(string state_id, int index)
     ; find loc by index, then set target dest in fac script
     SAB_LocationDataHandler locHandler = MainPage.MainQuest.LocationDataHandler
     int curLocIndex = state_id as int
-    SAB_LocationScript targetLoc = locHandler.Locations[curLocIndex]
+    SAB_LocationScript targetLoc = locHandler.GetLocationByIndex(curLocIndex)
 
     string pickedDestType = "cancel"
     if index == 1
@@ -263,7 +265,7 @@ state PLYR_CUR_FAC_DEST
 	event OnMenuAcceptST(string state_id, int index)
 		; find loc by index, then set target dest in fac script
         SAB_LocationDataHandler locHandler = MainPage.MainQuest.LocationDataHandler
-        SAB_LocationScript targetLoc = locHandler.EnabledLocations[index]
+        SAB_LocationScript targetLoc = locHandler.GetEnabledLocationByIndex(index)
 
         SAB_FactionScript facScript = MainPage.MainQuest.FactionDataHandler.SAB_FactionQuests[playerFactionIndex]
         facScript.PlayerSetFacDestination(state_id, targetLoc)

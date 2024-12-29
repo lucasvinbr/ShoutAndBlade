@@ -73,7 +73,7 @@ Function SetupPage()
 
     jLocationsDataMap = locHandler.jLocationsConfigMap
 
-    editedLocationScript = locHandler.Locations[editedLocationIndex]
+    editedLocationScript = locHandler.GetLocationByIndex(editedLocationIndex)
 
     AddMenuOptionST("LOC_EDIT_CUR_LOC", "$sab_mcm_locationedit_menu_currentloc", editedLocationScript.GetLocName())
 
@@ -185,8 +185,11 @@ Function SetupPage()
         int locIndex = jArray.getInt(jNearbyLocsArray, i, -1)
             
         if locIndex >= 0
-            string locName = locHandler.Locations[locIndex].GetLocName()
-            AddTextOptionST("LOC_NEARBY___" + locName, "$sab_mcm_locationedit_nearbyloc", locName)
+            SAB_LocationScript locScript = locHandler.GetLocationByIndex(locIndex)
+            if locScript != None
+                string locName = locScript.GetLocName()
+                AddTextOptionST("LOC_NEARBY___" + locName, "$sab_mcm_locationedit_nearbyloc", locName)
+            endif
         endif
     EndWhile
 

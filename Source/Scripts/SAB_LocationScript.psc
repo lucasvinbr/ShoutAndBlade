@@ -114,14 +114,7 @@ Function BeTakenByFaction(SAB_FactionScript factionScriptRef, bool notify = true
 	gameTimeOfLastUnitUpgrade = 0.0
 	gameTimeOfLastSetup = 0.0
 
-	int i = 0
-	while i < InteriorCells.Length
-		InteriorCells[i].SetFactionOwner(factionScriptRef.OurFaction)
-		; make neutral/hostile locations private, to make the units attack the player if they don't leave
-		InteriorCells[i].SetPublic(factionScriptRef.DiplomacyDataHandler.IsFactionAllyOfPlayer(factionScriptRef.GetFactionIndex()))
-
-		i += 1
-	endwhile
+	UpdateInteriorsTrespassingStatus()
 
 	if notify
 		Debug.Trace(GetLocName() + " has been taken by the " + jMap.getStr(factionScript.jFactionData, "name", "Faction"))
@@ -143,10 +136,30 @@ Function BecomeNeutral(bool notify = true)
 	endif
 	factionScript = None
 
+	UpdateInteriorsTrespassingStatus()
+EndFunction
+
+; sets interior cells' faction owner and whether they're public or not 
+; (public if friend of player, or no faction here)
+Function UpdateInteriorsTrespassingStatus()
+	bool hasOwner = factionScript != None
+	Faction ownerFac = None
+
+	If hasOwner
+		ownerFac = factionScript.OurFaction
+	EndIf
+
 	int i = 0
 	while i < InteriorCells.Length
-		InteriorCells[i].SetFactionOwner(None)
-		InteriorCells[i].SetPublic(true)
+		InteriorCells[i].SetFactionOwner(ownerFac)
+
+		If hasOwner
+			; make neutral/hostile owned locations private, 
+			; to make the units attack the player if they don't leave
+			InteriorCells[i].SetPublic(factionScript.DiplomacyDataHandler.IsFactionAllyOfPlayer(factionScript.GetFactionIndex()))	
+		else
+			InteriorCells[i].SetPublic(true)
+		endif
 
 		i += 1
 	endwhile

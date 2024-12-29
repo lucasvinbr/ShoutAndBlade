@@ -95,7 +95,10 @@ function RunUpdate(float curGameTime = 0.0, int updateIndexToUse = 0)
 endFunction
 
 
-; returns the alias's index in the active aliases array, or -1 if we failed to find a vacant index
+; returns the alias's index in the active aliases array, or -1 if we failed to find a vacant index.
+; current index should be -1. 
+; If it's something else, that means the alias already has an index, and shouldn't be registered again
+; Returns the index in which the alias is registered, or -1 on failure
 int Function RegisterAliasForUpdates(SAB_UpdatedReferenceAlias updatedScript, int currentIndex = -1)
 
 	if currentIndex > -1
@@ -208,6 +211,12 @@ Function UnregisterAliasFromUpdates(int aliasIndex)
 	numActives -= 1
 EndFunction
 
+Function UnregisterAllAliases()
+	While (topFilledIndex != -1)
+		UnregisterAliasFromUpdates(topFilledIndex)
+	EndWhile
+EndFunction
+
 int Function GetTopIndex()
 	return topFilledIndex
 EndFunction
@@ -243,6 +252,33 @@ SAB_UpdatedReferenceAlias[] Function GetUpdatedAliasArrayAtIndex(int index)
 	int dividedIndex = index / 128
 
 	return GetOrCreateAliasContainerAtIndex(dividedIndex).GetElementsArray()
+EndFunction
+
+SAB_UpdatedReferenceAlias Function GetRandomFilledRefAlias()
+	SAB_UpdatedReferenceAlias returnedRef = None
+	If topFilledIndex == -1
+		; no filled refs!
+		return returnedRef
+	EndIf
+
+	if topFilledIndex < jArray.count(jKnownVacantSlots)
+		; no filled refs! all slots that were filled are empty (this probably shouldn't happen)
+		return returnedRef
+	endif
+
+	int pickedIndex = Utility.RandomInt(0, topFilledIndex)
+	int attempts = 0
+	While jArray.findInt(jKnownVacantSlots, pickedIndex) != -1
+		attempts += 1
+		If (attempts > 5)
+			; topFilled index is guaranteed to be filled, I think
+			return GetUpdatedAliasAtIndex(topFilledIndex)
+		EndIf
+
+		pickedIndex = Utility.RandomInt(0, topFilledIndex)
+	EndWhile
+
+	return GetUpdatedAliasAtIndex(pickedIndex)
 EndFunction
 
 Function DebugPrintVacantSlotsInfo()

@@ -213,10 +213,13 @@ Function RunDestinationsUpdate(float curGameTime)
 		if targetLocIndex == -1
 			destinationScript_A = LocationDataHandler.GetRandomLocation()
 		else
-			destinationScript_A = LocationDataHandler.Locations[targetLocIndex]
+			destinationScript_A = LocationDataHandler.GetLocationByIndex(targetLocIndex)
 		endif
 
-		CmderDestination_A.GetReference().MoveTo(destinationScript_A.MoveDestination)
+		if destinationScript_A != None
+			CmderDestination_A.GetReference().MoveTo(destinationScript_A.MoveDestination)
+		endif
+
 		gameTimeOfLastDestinationChange_A = curGameTime
 
 		; show quest update to tell plyr the faction has changed priorities
@@ -240,10 +243,13 @@ Function RunDestinationsUpdate(float curGameTime)
 		if targetLocIndex == -1
 			destinationScript_B = LocationDataHandler.GetRandomLocation()
 		else
-			destinationScript_B = LocationDataHandler.Locations[targetLocIndex]
+			destinationScript_B = LocationDataHandler.GetLocationByIndex(targetLocIndex)
 		endif
 
-		CmderDestination_B.GetReference().MoveTo(destinationScript_B.MoveDestination)
+		if destinationScript_B != None
+			CmderDestination_B.GetReference().MoveTo(destinationScript_B.MoveDestination)
+		endif
+		
 		gameTimeOfLastDestinationChange_B = curGameTime
 
 		; show quest update to tell plyr the faction has changed priorities
@@ -267,10 +273,13 @@ Function RunDestinationsUpdate(float curGameTime)
 		if targetLocIndex == -1
 			destinationScript_C = LocationDataHandler.GetRandomLocation()
 		else
-			destinationScript_C = LocationDataHandler.Locations[targetLocIndex]
+			destinationScript_C = LocationDataHandler.GetLocationByIndex(targetLocIndex)
 		endif
 
-		CmderDestination_C.GetReference().MoveTo(destinationScript_C.MoveDestination)
+		if destinationScript_C != None
+			CmderDestination_C.GetReference().MoveTo(destinationScript_C.MoveDestination)
+		endif
+		
 		gameTimeOfLastDestinationChange_C = curGameTime
 
 		; show quest update to tell plyr the faction has changed priorities
@@ -293,10 +302,8 @@ int Function FindAttackTargets()
 	int i = jArray.count(jOwnedLocationIndexesArray)
 	int j = 0
 
-	
 	int jPossibleAttackTargets = jArray.object()
 	JValue.retain(jPossibleAttackTargets, "ShoutAndBlade")
-	SAB_LocationScript[] locScripts = LocationDataHandler.Locations
 
 	if i > 0
 		; look at the locations near our own and add them to the "candidates" list
@@ -305,31 +312,35 @@ int Function FindAttackTargets()
 			int locIndex = jArray.getInt(jOwnedLocationIndexesArray, i, -1)
 
 			if locIndex != -1
-				SAB_LocationScript locScript = locScripts[locIndex]
-				; check if this location is still owned by us and is enabled.
-				; if not, remove it from the owneds list
-				if locScript.factionScript != self || !locScript.isEnabled
-					JArray.eraseIndex(jOwnedLocationIndexesArray, i)
-				else
-					int jNearbyLocsArray = locScript.jNearbyLocationsArray	
-					j = jArray.count(jNearbyLocsArray)
+				SAB_LocationScript locScript = LocationDataHandler.GetLocationByIndex(locIndex)
 
-					while j > 0
-						j -= 1
-						locIndex = jArray.getInt(jNearbyLocsArray, j, -1)
-						SAB_LocationScript nearbyLocScript = locScripts[locIndex]
+				if locScript != None
+					; check if this location is still owned by us and is enabled.
+					; if not, remove it from the owneds list
+					if locScript.factionScript != self || !locScript.isEnabled
+						JArray.eraseIndex(jOwnedLocationIndexesArray, i)
+					else
+						int jNearbyLocsArray = locScript.jNearbyLocationsArray	
+						j = jArray.count(jNearbyLocsArray)
 
-						if locIndex != -1 && nearbyLocScript.isEnabled
-							; if we don't own the location with index locIndex, add it as a candidate for attacking
-							if jArray.findInt(jOwnedLocationIndexesArray, locIndex) == -1 && \
-								!DiplomacyDataHandler.AreFactionsInGoodStanding(self, nearbyLocScript.factionScript)
+						while j > 0
+							j -= 1
+							locIndex = jArray.getInt(jNearbyLocsArray, j, -1)
+							SAB_LocationScript nearbyLocScript = LocationDataHandler.GetLocationByIndex(locIndex)
 
-								JArray.addInt(jPossibleAttackTargets, locIndex)
+							if locIndex != -1 && nearbyLocScript != None && nearbyLocScript.isEnabled
+								; if we don't own the location with index locIndex, add it as a candidate for attacking
+								if jArray.findInt(jOwnedLocationIndexesArray, locIndex) == -1 && \
+									!DiplomacyDataHandler.AreFactionsInGoodStanding(self, nearbyLocScript.factionScript)
+
+									JArray.addInt(jPossibleAttackTargets, locIndex)
+								endif
 							endif
-						endif
-					endwhile
+						endwhile
 
+					endif
 				endif
+				
 			endif
 		endwhile	
 	else 
@@ -341,9 +352,9 @@ int Function FindAttackTargets()
 			while i > 0
 				i -= 1
 				
-				SAB_LocationScript locScript = locScripts[i]
+				SAB_LocationScript locScript = LocationDataHandler.GetLocationByIndex(i) 
 
-				if locScript.isEnabled == true && locScript.factionScript == None
+				if locScript != None && locScript.isEnabled == true && locScript.factionScript == None
 					JArray.addInt(jPossibleAttackTargets, i)
 				endif
 			endwhile
@@ -356,12 +367,12 @@ int Function FindAttackTargets()
 		; we're probably in a good situation, like with more than one location, or surrounded by allies.
 		; it's time to take the fight to any enemies left
 
-		i = locScripts.Length
+		i = LocationDataHandler.NextLocationIndex
 
 		while i > 0
 			i -= 1
 
-			SAB_LocationScript locScript = locScripts[i]
+			SAB_LocationScript locScript = LocationDataHandler.GetLocationByIndex(i)
 			; check if this location is still owned by us and is enabled.
 			; if not, remove it from the owneds list
 			if locScript != None && locScript.isEnabled && !DiplomacyDataHandler.AreFactionsInGoodStanding(self, locScript.factionScript)
@@ -388,9 +399,9 @@ int Function FindDefenseTargets()
 		int locIndex = jArray.getInt(jOwnedLocationIndexesArray, i, -1)
 
 		if locIndex != -1
-			SAB_LocationScript locScript = LocationDataHandler.Locations[locIndex]
-			; check if this location is still owned by us
-			if locScript.factionScript != self || !locScript.isEnabled
+			SAB_LocationScript locScript = LocationDataHandler.GetLocationByIndex(locIndex)
+			; check if this location is still valid and owned by us
+			if locScript == None || locScript.factionScript != self || !locScript.isEnabled
 				JArray.eraseIndex(jOwnedLocationIndexesArray, i)
 			else
 
@@ -474,9 +485,10 @@ int Function CalculateTotalGoldAward()
 	while i > 0
 		i -= 1
 		int locIndex = jArray.getInt(jOwnedLocationIndexesArray, i, -1)
+		SAB_LocationScript locScript = LocationDataHandler.GetLocationByIndex(locIndex)
 
-		if locIndex != -1
-			totalAward += (baseGoldPerLoc * LocationDataHandler.Locations[locIndex].GoldRewardMultiplier) as int
+		if locIndex != -1 && locScript != None
+			totalAward += (baseGoldPerLoc * locScript.GoldRewardMultiplier) as int
 		endif
 
 	endwhile
@@ -486,7 +498,11 @@ EndFunction
 
 
 Function AddLocationToOwnedList(SAB_LocationScript locationScript)
-	int locIndex = LocationDataHandler.Locations.Find(locationScript)
+	If locationScript == None
+		return
+	EndIf
+
+	int locIndex = LocationDataHandler.GetLocationIndexById(locationScript.GetLocId())
 
 	if locIndex == -1
 		debug.Trace("AddLocationToOwnedList: invalid location! " + locationScript.GetLocName() + " not found in locations array")
@@ -502,7 +518,11 @@ Function AddLocationToOwnedList(SAB_LocationScript locationScript)
 EndFunction
 
 Function RemoveLocationFromOwnedList(SAB_LocationScript locationScript)
-	int locIndex = LocationDataHandler.Locations.Find(locationScript)
+	If locationScript == None
+		return
+	EndIf
+
+	int locIndex = LocationDataHandler.GetLocationIndexById(locationScript.GetLocId())
 
 	if locIndex == -1
 		debug.Trace("AddLocationToOwnedList: invalid location! " + locationScript.GetLocName() + " not found in locations array")
@@ -823,6 +843,11 @@ Function GetGoldFromDespawningCommander(int jCmderArmyMap)
 	int armyGold = SpawnerScript.UnitDataHandler.GetTotalCurrentGoldCostFromArmy(jCmderArmyMap)
 	int cmderSpawnCost = JDB.solveInt(".ShoutAndBlade.factionOptions.createCmderCost", 250)
 
+	float extraCmderCostPercent = JDB.solveFlt(".ShoutAndBlade.factionOptions.createCmderCostPercent", 10.0) / 100.0
+	int currentGold = jMap.getInt(jFactionData, "AvailableGold", JDB.solveInt(".ShoutAndBlade.factionOptions.initialGold", SAB_FactionDataHandler.GetDefaultFactionGold()))
+
+	cmderSpawnCost += (currentGold * extraCmderCostPercent) as int
+
 	armyGold += cmderSpawnCost
 
 	debug.Trace("faction got " + armyGold + " gold back from a despawning cmder")
@@ -981,8 +1006,9 @@ ObjectReference function GetCmderSpawnPoint()
 
 		if locIndex != -1
 			; cmders shouldn't spawn in a contested zone
-			if !LocationDataHandler.Locations[locIndex].IsBeingContested()
-				return LocationDataHandler.Locations[locIndex].GetInteriorSpawnPointIfPossible()
+			SAB_LocationScript locScript = LocationDataHandler.GetLocationByIndex(locIndex)
+			if locScript != None && !locScript.IsBeingContested()
+				return locScript.GetInteriorSpawnPointIfPossible()
 			endif
 		endif
 

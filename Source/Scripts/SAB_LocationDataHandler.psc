@@ -1,11 +1,14 @@
 scriptname SAB_LocationDataHandler extends Quest
 {script for setting up and getting data for locations used by the mod.}
 
-SAB_LocationScript[] Property Locations Auto Hidden
+SAB_AliasUpdater Property Locations Auto
 { all locations useable by the mod, enabled and disabled. }
 
-SAB_LocationScript[] Property EnabledLocations Auto Hidden
+SAB_AliasUpdater Property EnabledLocations Auto
 { locations that are currently being used by the mod. Factions will browse this list when thinking about where to go }
+
+FormList Property SAB_ObjectsToUseAsSpawnsList Auto
+{ (Auto-fill) Formlist with objects like xmarkers, that should generally serve as "good enough" spawn points }
 
 SAB_FactionDataHandler Property FactionDataHandler Auto
 
@@ -22,14 +25,17 @@ int Property NextEnabledLocationIndex = 0 Auto Hidden
 ; a jMap, mapped by location name, containing jMaps with some configurable data on locations
 int Property jLocationsConfigMap Auto Hidden
 
-SAB_LocationDataAddon[] registeredAddons
+int jregisteredAddonsArray
 
 Function Initialize()
-    Locations = new SAB_LocationScript[128]
-    EnabledLocations = new SAB_LocationScript[128]
+    Locations.Initialize(false)
+    EnabledLocations.Initialize(false)
 
     jLocationsConfigMap = jMap.object()
     JValue.retain(jLocationsConfigMap, "ShoutAndBlade")
+
+    jregisteredAddonsArray = jArray.object()
+    JValue.retain(jregisteredAddonsArray, "ShoutAndBlade")
 
     initialSetupDone = true
 EndFunction
@@ -47,19 +53,9 @@ endevent
 
 Function AddNewLocationsFromAddon(SAB_LocationDataAddon addon, int addonIndex)
 
-    if NextLocationIndex >= 128
-        Debug.Trace("AddNewLocationsFromAddon: SAB Locations array is full! Aborting")
-        return
-    endif
-
     if addonIndex < 0
         ; register addon in an array, so that we can call for a re-add of locations
         int indexForAddon = GetNextIndexForLocationAddon()
-
-        if indexForAddon > 128
-            Debug.Trace("AddNewLocationsFromAddon: SAB Location Addons array is full! Aborting")
-            return
-        endif
 
         addon.SetIndexInRegisteredAddons(indexForAddon)
     endif
@@ -78,11 +74,11 @@ Function AddNewLocationsFromAddon(SAB_LocationDataAddon addon, int addonIndex)
     ; set up locations
     while i != -1 && i < newLocations.Length
         SAB_LocationScript newLoc = newLocations[i]
-        if newLoc
+        if newLoc != None
             If GetLocationIndexById(newLoc.GetLocId()) == -1
-                Locations[NextLocationIndex] = newLoc
+                Locations.RegisterAliasForUpdates(newLoc)
                 hasMadeChanges = true
-                NextLocationIndex += 1
+                NextLocationIndex = Locations.GetTopIndex()
                 debug.Trace("SAB: added new location " + newLoc.GetLocName())
             EndIf
 
@@ -109,7 +105,12 @@ Function ReaddLocationsFromAddons()
     int i = 0
 
     while i < topIndex
-        registeredAddons[i].ReaddLocations()
+        SAB_LocationDataAddon addonScript = jArray.getForm(jregisteredAddonsArray, i) as SAB_LocationDataAddon
+        if addonScript != None
+            addonScript.ReaddLocations()
+        else
+            Debug.Trace("addon reload: could not load addon quest form")
+        endif
 
         i += 1
     endwhile
@@ -170,12 +171,13 @@ Function RebuildEnabledLocationsArray()
 
     int i = 0
     NextEnabledLocationIndex = 0
+    EnabledLocations.UnregisterAllAliases()
 
     while i != -1 && i < NextLocationIndex
-        if Locations[i]
-            if Locations[i].isEnabled
-                EnabledLocations[NextEnabledLocationIndex] = Locations[i]
-                NextEnabledLocationIndex += 1
+        SAB_LocationScript locScript = Locations.GetUpdatedAliasAtIndex(i) as SAB_LocationScript
+        if locScript != None
+            if locScript.isEnabled
+                EnabledLocations.RegisterAliasForUpdates(locScript)
             endif
         endif
 
@@ -183,12 +185,7 @@ Function RebuildEnabledLocationsArray()
     endwhile
 
     ; clear other enabled location entries
-    i = 128 - NextEnabledLocationIndex
-
-    while 128 - i < 128
-        EnabledLocations[128 - i] = None
-        i -= 1
-    endwhile
+    NextEnabledLocationIndex = EnabledLocations.GetTopIndex()
 
     Debug.Trace("SAB: rebuild enabled locations - end")
 
@@ -229,83 +226,92 @@ Function CalculateLocationDistances()
     while i < NextEnabledLocationIndex
         
         ; debug.Trace(EnabledLocations[i])
-        
-        ObjectReference baseRef = EnabledLocations[i].GetReference()
-        ; debug.Trace(baseRef)
-
-        while !baseRef
-            Utility.Wait(0.15)
-            baseRef = EnabledLocations[i].GetReference()
+        SAB_LocationScript locScript = EnabledLocations.GetUpdatedAliasAtIndex(i) as SAB_LocationScript
+        if locScript != None
+            ObjectReference baseRef = locScript.GetReference()
             ; debug.Trace(baseRef)
-        endwhile
-        
-        baseRef = EnabledLocations[i].GetDistanceCheckReference()
-
-        int jDistMapsFromI = jIntMap.object()
-        JIntMap.setObj(jlocationDistancesMap, i, jDistMapsFromI)
-
-        ; also prepare the "top 3 closest to cur loc" jArray
-        int jDistancesArray = jArray.object()
-        JValue.retain(jDistancesArray, "ShoutAndBlade")
-
-        int jClosestIndexesArray = jArray.object()
-        JValue.retain(jClosestIndexesArray, "ShoutAndBlade")
-        
-        j = 0
-        while j < NextEnabledLocationIndex
-            if i != j
-                ; check if we haven't already checked the distance between j and i
-                int jDistMapsFromJ = JIntMap.getObj(jlocationDistancesMap, j)
-                float distance = 0.0
-
-                if jDistMapsFromJ != 0
-                    distance = JIntMap.getFlt(jDistMapsFromJ, i)
-                endif
-
-                if distance == 0.0
-                    distance = baseRef.GetDistance(EnabledLocations[j].GetDistanceCheckReference())
-                endif
-
-                ; add distance and loc index to the sorted distances arrays
-                hasCreatedDistArrayEntry = false
-                k = jValue.count(jDistancesArray) - 1
-                while k >= 0
-                    ; keep going until we find a stored distance that is smaller.
-                    ; if we find it, store the new distance right after it
-                    if jArray.getFlt(jDistancesArray, k) < distance
-                        JArray.addFlt(jDistancesArray, distance, k + 1)
-                        JArray.addInt(jClosestIndexesArray, j, k + 1)
-                        hasCreatedDistArrayEntry = true
-                        ; break
-                        k = -1
+    
+            while !baseRef
+                ; during the new game initialization, some aliases may take longer to be properly filled
+                Utility.Wait(0.15)
+                baseRef = locScript.GetReference()
+                ; debug.Trace(baseRef)
+            endwhile
+            
+            baseRef = locScript.GetDistanceCheckReference()
+    
+            int jDistMapsFromI = jIntMap.object()
+            JIntMap.setObj(jlocationDistancesMap, i, jDistMapsFromI)
+    
+            ; also prepare the "top 3 closest to cur loc" jArray
+            int jDistancesArray = jArray.object()
+            JValue.retain(jDistancesArray, "ShoutAndBlade")
+    
+            int jClosestIndexesArray = jArray.object()
+            JValue.retain(jClosestIndexesArray, "ShoutAndBlade")
+            
+            j = 0
+            while j < NextEnabledLocationIndex
+                if i != j
+                    ; check if we haven't already checked the distance between j and i
+                    int jDistMapsFromJ = JIntMap.getObj(jlocationDistancesMap, j)
+                    float distance = 0.0
+    
+                    if jDistMapsFromJ != 0
+                        distance = JIntMap.getFlt(jDistMapsFromJ, i)
                     endif
-                    k -= 1
-                endwhile
+    
+                    if distance == 0.0
+                        SAB_LocationScript otherLocScript = EnabledLocations.GetUpdatedAliasAtIndex(j) as SAB_LocationScript
+                        if otherLocScript != None
+                            distance = baseRef.GetDistance(otherLocScript.GetDistanceCheckReference())
+                        endif
+                    endif
+    
+                    if distance != 0.0
+                        ; add distance and loc index to the sorted distances arrays
+                        hasCreatedDistArrayEntry = false
+                        k = jValue.count(jDistancesArray) - 1
+                        while k >= 0
+                            ; keep going until we find a stored distance that is smaller.
+                            ; if we find it, store the new distance right after it
+                            if jArray.getFlt(jDistancesArray, k) < distance
+                                JArray.addFlt(jDistancesArray, distance, k + 1)
+                                JArray.addInt(jClosestIndexesArray, j, k + 1)
+                                hasCreatedDistArrayEntry = true
+                                ; break
+                                k = -1
+                            endif
+                            k -= 1
+                        endwhile
 
-                ; if we couldn't find a smaller distance than the new one, it's the new smallest one!
-                if !hasCreatedDistArrayEntry
-                    JArray.addFlt(jDistancesArray, distance, 0)
-                    JArray.addInt(jClosestIndexesArray, j, 0)
+                        ; if we couldn't find a smaller distance than the new one, it's the new smallest one!
+                        if !hasCreatedDistArrayEntry
+                            JArray.addFlt(jDistancesArray, distance, 0)
+                            JArray.addInt(jClosestIndexesArray, j, 0)
+                        endif
+
+
+                        JIntMap.setFlt(jDistMapsFromI, j, distance)
+                    endif
+                    
                 endif
-                
-
-                JIntMap.setFlt(jDistMapsFromI, j, distance)
-            endif
-            j += 1
-            ;Utility.Wait(0.1)
-        endwhile
-
-        ; store the (limited to 3 elements) closest locations array in the location script
-        int jTopClosestLocationsArray = jArray.subArray(jClosestIndexesArray, 0, 3)
-        jValue.retain(jTopClosestLocationsArray, "ShoutAndBlade")
-        EnabledLocations[i].jNearbyLocationsArray = jTopClosestLocationsArray
-
-        jValue.release(jDistancesArray)
-        jValue.zeroLifetime(jDistancesArray)
-
-        jValue.release(jClosestIndexesArray)
-        jValue.zeroLifetime(jClosestIndexesArray)
-
+                j += 1
+                ;Utility.Wait(0.1)
+            endwhile
+    
+            ; store the (limited to 3 elements) closest locations array in the location script
+            int jTopClosestLocationsArray = jArray.subArray(jClosestIndexesArray, 0, 3)
+            jValue.retain(jTopClosestLocationsArray, "ShoutAndBlade")
+            locScript.jNearbyLocationsArray = jTopClosestLocationsArray
+    
+            jValue.release(jDistancesArray)
+            jValue.zeroLifetime(jDistancesArray)
+    
+            jValue.release(jClosestIndexesArray)
+            jValue.zeroLifetime(jClosestIndexesArray)
+        endif
+        
         i += 1
         ;Utility.Wait(0.1)
     endwhile
@@ -396,14 +402,17 @@ Function WriteCurrentLocOwnershipsToJmap()
     int i = 0
 
     while i < NextLocationIndex
-        int jLocDataMap = JMap.getObj(jLocationsConfigMap, Locations[i].GetLocId())
+        SAB_LocationScript locScript = Locations.GetUpdatedAliasAtIndex(i) as SAB_LocationScript
+        if locScript != None
+            int jLocDataMap = JMap.getObj(jLocationsConfigMap, locScript.GetLocId())
 
-        if jLocDataMap == 0
-            jLocDataMap = jMap.object()
-            jMap.setObj(jLocationsConfigMap, Locations[i].GetLocId(), jLocDataMap)
+            if jLocDataMap == 0
+                jLocDataMap = jMap.object()
+                jMap.setObj(jLocationsConfigMap, locScript.GetLocId(), jLocDataMap)
+            endif
+    
+            jMap.setInt(jLocDataMap, "OwnerFactionIndex", FactionDataHandler.GetFactionIndex(locScript.factionScript))
         endif
-
-        jMap.setInt(jLocDataMap, "OwnerFactionIndex", FactionDataHandler.GetFactionIndex(Locations[i].factionScript))
 
         i += 1
     endwhile
@@ -415,15 +424,18 @@ Function WriteCurrentLocNamesToJmap()
     int i = 0
 
     while i < NextLocationIndex
-        int jLocDataMap = JMap.getObj(jLocationsConfigMap, Locations[i].GetLocId())
+        SAB_LocationScript locScript = Locations.GetUpdatedAliasAtIndex(i) as SAB_LocationScript
+        if locScript != None
+            int jLocDataMap = JMap.getObj(jLocationsConfigMap, locScript.GetLocId())
 
-        if jLocDataMap == 0
-            jLocDataMap = jMap.object()
-            jMap.setObj(jLocationsConfigMap, Locations[i].GetLocId(), jLocDataMap)
+            if jLocDataMap == 0
+                jLocDataMap = jMap.object()
+                jMap.setObj(jLocationsConfigMap, locScript.GetLocId(), jLocDataMap)
+            endif
+    
+            jMap.setStr(jLocDataMap, "OverrideDisplayName", locScript.GetLocName())
         endif
-
-        jMap.setStr(jLocDataMap, "OverrideDisplayName", Locations[i].GetLocName())
-
+        
         i += 1
     endwhile
 
@@ -434,14 +446,18 @@ Function WriteCurrentLocStartGarrsToJmap()
     int i = 0
 
     while i < NextLocationIndex
-        int jLocDataMap = JMap.getObj(jLocationsConfigMap, Locations[i].GetLocId())
+        SAB_LocationScript locScript = Locations.GetUpdatedAliasAtIndex(i) as SAB_LocationScript
+        if locScript != None
+            int jLocDataMap = JMap.getObj(jLocationsConfigMap, locScript.GetLocId())
 
-        if jLocDataMap == 0
-            jLocDataMap = jMap.object()
-            jMap.setObj(jLocationsConfigMap, Locations[i].GetLocId(), jLocDataMap)
+            if jLocDataMap == 0
+                jLocDataMap = jMap.object()
+                jMap.setObj(jLocationsConfigMap, locScript.GetLocId(), jLocDataMap)
+            endif
+    
+            jMap.setObj(jLocDataMap, "jStartingGarrison", locScript.jStartingUnitsMap)
         endif
-
-        jMap.setObj(jLocDataMap, "jStartingGarrison", Locations[i].jStartingUnitsMap)
+        
 
         i += 1
     endwhile
@@ -449,51 +465,101 @@ Function WriteCurrentLocStartGarrsToJmap()
 EndFunction
 
 ; creates a string array with location IDs accompanied by their names
-string[] Function CreateStringArrayWithLocationIdentifiers()
+string[] Function CreateStringArrayWithLocationIdentifiers(int page = 0)
 
-    string[] namesArray = Utility.CreateStringArray(NextLocationIndex)
-    int endingIndex = NextLocationIndex
+    int jStringsArr = jArray.object()
+    jValue.retain(jStringsArr, "ShoutAndBlade")
 
+    SAB_UpdatedReferenceAlias[] refsInPage = Locations.GetUpdatedAliasArrayAtIndex(page * 128)
     int i = 0
+    int endingIndex = NextLocationIndex
+    if page * 128 < endingIndex
+        endingIndex = page * 128
+    endif
 
-    while(i < endingIndex)
-
-        string locName = Locations[i].GetLocName()
-
-        namesArray[i] = ((i + 1) as string) + " - " + locName
+    while i < endingIndex
+        SAB_LocationScript locScript = refsInPage[i] as SAB_LocationScript
+        If locScript != None
+            string locName = locScript.GetLocName()
+            ; add loc's name to the jarray
+            jArray.addStr(jStringsArr, ((i + 1) as string) + " - " + locName)
+        EndIf
 
         i += 1
     endwhile
+
+    ; create actual string array with the jarray's size
+    ; fill string array with jarray's contents
+    ; return string array
+    string[] namesArray = Utility.CreateStringArray(jArray.count(jStringsArr))
+
+    i = 0
+    endingIndex = jArray.count(jStringsArr)
+
+    while(i < endingIndex)
+        namesArray[i] = jArray.getStr(jStringsArr, i)
+
+        i += 1
+    endwhile
+
+    jValue.release(jStringsArr)
+    jValue.zeroLifetime(jStringsArr)
 
     return namesArray
 EndFunction
 
 ; creates a string array with only enabled location IDs accompanied by their names
-string[] Function CreateStringArrayWithEnabledLocationIdentifiers()
+string[] Function CreateStringArrayWithEnabledLocationIdentifiers(int page = 0)
 
-    string[] namesArray = Utility.CreateStringArray(NextEnabledLocationIndex)
-    int endingIndex = NextEnabledLocationIndex
+    int jStringsArr = jArray.object()
+    jValue.retain(jStringsArr, "ShoutAndBlade")
 
+    SAB_UpdatedReferenceAlias[] refsInPage = EnabledLocations.GetUpdatedAliasArrayAtIndex(page * 128)
     int i = 0
+    int endingIndex = NextLocationIndex
+    if page * 128 < endingIndex
+        endingIndex = page * 128
+    endif
 
-    while(i < endingIndex)
-
-        string locName = EnabledLocations[i].GetLocName()
-
-        namesArray[i] = ((i + 1) as string) + " - " + locName
+    while i < endingIndex
+        SAB_LocationScript locScript = refsInPage[i] as SAB_LocationScript
+        If locScript != None
+            string locName = locScript.GetLocName()
+            ; add loc's name to the jarray
+            jArray.addStr(jStringsArr, ((i + 1) as string) + " - " + locName)
+        EndIf
 
         i += 1
     endwhile
+
+    ; create actual string array with the jarray's size
+    ; fill string array with jarray's contents
+    ; return string array
+    string[] namesArray = Utility.CreateStringArray(jArray.count(jStringsArr))
+
+    i = 0
+    endingIndex = jArray.count(jStringsArr)
+
+    while(i < endingIndex)
+        namesArray[i] = jArray.getStr(jStringsArr, i)
+
+        i += 1
+    endwhile
+
+    jValue.release(jStringsArr)
+    jValue.zeroLifetime(jStringsArr)
 
     return namesArray
 EndFunction
 
 
-int Function GetEnabledLocationIndex(SAB_LocationScript locScript)
+int Function GetEnabledLocationIndex(SAB_LocationScript targetLocScript)
     int i = 0
+    SAB_LocationScript locScript = None
 
     while i < NextEnabledLocationIndex
-        if EnabledLocations[i] == locScript
+        locScript = EnabledLocations.GetUpdatedAliasAtIndex(i) as SAB_LocationScript
+        if locScript != None && locScript == targetLocScript
             return i
         endif
         i += 1
@@ -506,9 +572,11 @@ EndFunction
 int Function GetLocationIndexesOwnedByFaction(SAB_FactionScript factionScript)
     int i = 0
     int jReturnedArray = jArray.object()
+    SAB_LocationScript locScript = None
 
     while i < NextLocationIndex
-        if Locations[i].factionScript == factionScript
+        locScript = Locations.GetUpdatedAliasAtIndex(i) as SAB_LocationScript
+        if locScript != None && locScript.factionScript == factionScript
             JArray.addInt(jReturnedArray, i)
         endif
         i += 1
@@ -520,16 +588,35 @@ EndFunction
 
 ; returns a random location from the enabled locations list
 SAB_LocationScript Function GetRandomLocation()
-    return EnabledLocations[Utility.RandomInt(0, NextEnabledLocationIndex - 1)]
+    return EnabledLocations.GetRandomFilledRefAlias() as SAB_LocationScript
 endfunction
 
+; returns the location script at the target index of the Locations alias updater
+SAB_LocationScript Function GetLocationByIndex(int index)
+    if index < 0
+        return None
+    endif
+
+    return Locations.GetUpdatedAliasAtIndex(index) as SAB_LocationScript
+EndFunction
+
+; returns the location script at the target index of the ENABLED Locations alias updater
+SAB_LocationScript Function GetEnabledLocationByIndex(int index)
+    if index < 0
+        return None
+    endif
+
+    return EnabledLocations.GetUpdatedAliasAtIndex(index) as SAB_LocationScript
+EndFunction
 
 SAB_LocationScript Function GetLocationByName(string name)
     int i = 0
+    SAB_LocationScript locScript = None
 
     while i < NextLocationIndex
-        if Locations[i].GetLocName() == name
-            return Locations[i]
+        locScript = Locations.GetUpdatedAliasAtIndex(i) as SAB_LocationScript
+        if locScript != None && locScript.GetLocName() == name
+            return locScript
         endif
         i += 1
     endwhile
@@ -539,10 +626,12 @@ EndFunction
 
 SAB_LocationScript Function GetLocationById(string Id)
     int i = 0
+    SAB_LocationScript locScript = None
 
     while i < NextLocationIndex
-        if Locations[i].GetLocId() == Id
-            return Locations[i]
+        locScript = Locations.GetUpdatedAliasAtIndex(i) as SAB_LocationScript
+        if locScript != None && locScript.GetLocId() == Id
+            return locScript
         endif
         i += 1
     endwhile
@@ -553,9 +642,11 @@ EndFunction
 ; returns location's index in the Locations array. -1 if not found
 int Function GetLocationIndexById(string Id)
     int i = 0
+    SAB_LocationScript locScript = None
 
     while i < NextLocationIndex
-        if Locations[i].GetLocId() == Id
+        locScript = Locations.GetUpdatedAliasAtIndex(i) as SAB_LocationScript
+        if locScript != None && locScript.GetLocId() == Id
             return i
         endif
         i += 1
@@ -566,20 +657,9 @@ EndFunction
 
 
 int Function GetNextIndexForLocationAddon()
-    int i = 0
 
-    if registeredAddons.Length <= 0
-        registeredAddons = new SAB_LocationDataAddon[128]
-    endif
+    return jArray.count(jregisteredAddonsArray)
 
-    while i < 128
-        if registeredAddons[i] == None
-            return i
-        endif
-        i += 1
-    endwhile
-
-    return 0
 EndFunction
 
 ; locationData jmap entries:

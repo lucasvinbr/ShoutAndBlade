@@ -20,9 +20,22 @@ Function InitializeLocations()
         i += 1
     endwhile
 
+    ; Alias[] locs = GetLocationsInAddon()
+    ; int idx = locs.Length
+
+    ; while idx > 0
+    ;     idx -= 1
+
+    ;     SAB_LocationScript nthAliasLoc = locs[idx] as SAB_LocationScript
+
+    ;     if nthAliasLoc != None
+    ;         if !nthAliasLoc.IsInitialized()
+    ;             nthAliasLoc.Setup(nthAliasLoc.factionScript)
+    ;         endif
+    ;     endIf
+    ; endWhile
+
 EndFunction
-
-
 
 event OnInit()
 
@@ -51,3 +64,29 @@ EndFunction
 Function SetIndexInRegisteredAddons(int indexInRegAddons)
     indexInRegisteredAddons = indexInRegAddons
 EndFunction
+
+; Alias[] function GetLocationsInAddon()
+
+;     Alias[] locsArray = Utility.CreateAliasArray(endingIndex)
+
+;     int i = 0
+;     int endingIndex = GetNumAliases()
+;     int validEntries = 0
+
+;     while i < endingIndex
+;       this GetNthAlias part doesn't seem to work
+;         SAB_LocationScript nthAliasLoc = GetNthAlias(i) as SAB_LocationScript
+
+;         if nthAliasLoc != None
+;             locsArray[i] = nthAliasLoc
+;             validEntries += 1
+;         endIf
+
+;         i += 1
+;     endwhile
+
+;     Utility.ResizeAliasArray(locsArray, validEntries)
+
+;     return locsArray
+
+; endfunction
