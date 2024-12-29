@@ -148,9 +148,11 @@ Function SetupOptionsForLoc(SAB_LocationScript loc, int locIndexInLocUpdater)
             endif
         else
             AddTextOptionST("NOT_ALLY_HOLDER___" + locIndexInLocUpdater, "$sab_mcm_curloc_transfer_units_not_ally", "")
+            AddEmptyOption()
         endif
     else
         AddTextOptionST("GARR_FULL_HOLDER___" + locIndexInLocUpdater, "$sab_mcm_curloc_transfer_units_full", "")
+        AddEmptyOption()
     endif
 
     AddEmptyOption()

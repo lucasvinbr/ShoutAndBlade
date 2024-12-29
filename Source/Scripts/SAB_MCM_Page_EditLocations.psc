@@ -167,6 +167,7 @@ Function SetupPage()
     SetCursorPosition(1)
 
     AddTextOptionST("LOC_EDIT_SAVE", "$sab_mcm_locationedit_button_save", "")
+    AddTextOptionST("LOC_EDIT_SAVE_WITH_GARR", "$sab_mcm_locationedit_button_save_with_garrisons", "")
     AddTextOptionST("LOC_EDIT_LOAD", "$sab_mcm_locationedit_button_load", "")
 
     AddEmptyOption()
@@ -654,6 +655,26 @@ state LOC_EDIT_SAVE
 	event OnHighlightST(string state_id)
         MainPage.ToggleQuickHotkey(true)
 		SetInfoText("$sab_mcm_factionedit_button_save_desc")
+	endEvent
+endstate
+
+state LOC_EDIT_SAVE_WITH_GARR
+    event OnSelectST(string state_id)
+        string filePath = JContainers.userDirectory() + "SAB/locationData.json"
+        MainPage.MainQuest.LocationDataHandler.WriteCurrentLocOwnershipsToJmap()
+        MainPage.MainQuest.LocationDataHandler.WriteCurrentLocNamesToJmap()
+        MainPage.MainQuest.LocationDataHandler.WriteCurrentLocGarrsToStartGarrsJmap()
+        JValue.writeToFile(MainPage.MainQuest.LocationDataHandler.jLocationsConfigMap, filePath)
+        ShowMessage("Save: " + filePath, false)
+	endEvent
+
+    event OnDefaultST(string state_id)
+        ; nothing
+    endevent
+
+	event OnHighlightST(string state_id)
+        MainPage.ToggleQuickHotkey(true)
+		SetInfoText("$sab_mcm_locationedit_button_save_with_garrisons_desc")
 	endEvent
 endstate
 
