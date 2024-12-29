@@ -85,9 +85,7 @@ Function UpdateAllRelationsAccordingToJMaps()
 
         float playerRel = ClampRelationValue(JIntMap.getFlt(jSABPlayerRelationsMap, i))
 
-        if playerRel != 0.0
-            ApplyRelationBetweenPlayerAndFac(i, playerRel)
-        endif
+        SetPlayerRelationWithFac(i, playerRel)
     EndWhile
 
 EndFunction
@@ -643,6 +641,8 @@ Function NotifyPlayerRelationChangeTowardsFac(int facIndex, float newRelationVal
     if JDB.solveInt(".ShoutAndBlade.diplomacyOptions.showRelChangeMessageBox", 0) >= 1
         Debug.MessageBox(msg)
     endif
+
+    facQuests[facIndex].UpdatePlayerAccessToOurLocs()
     
 EndFunction
 

@@ -125,6 +125,21 @@ Function RemovePlayerFromOurFaction(Actor playerActor)
 	playerHandler = None
 EndFunction
 
+Function UpdatePlayerAccessToOurLocs()
+	int i = jArray.count(jOwnedLocationIndexesArray)
+
+	while i > 0
+		i -= 1
+		int locIndex = jArray.getInt(jOwnedLocationIndexesArray, i, -1)
+		SAB_LocationScript locScript = LocationDataHandler.GetLocationByIndex(locIndex)
+
+		if locScript != None
+			locScript.UpdateInteriorsTrespassingStatus()
+		endif
+
+	endwhile
+EndFunction
+
 ; true if the plyr belongs to this fac and has set to control its destinations
 bool Function IsPlayerInControlOfThisFaction()
 	return playerIsControllingDestinations && playerHandler != None

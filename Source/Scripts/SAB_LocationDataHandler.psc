@@ -464,6 +464,29 @@ Function WriteCurrentLocStartGarrsToJmap()
 
 EndFunction
 
+Function WriteCurrentLocGarrsToStartGarrsJmap()
+    
+    int i = 0
+
+    while i < NextLocationIndex
+        SAB_LocationScript locScript = Locations.GetUpdatedAliasAtIndex(i) as SAB_LocationScript
+        if locScript != None
+            int jLocDataMap = JMap.getObj(jLocationsConfigMap, locScript.GetLocId())
+
+            if jLocDataMap == 0
+                jLocDataMap = jMap.object()
+                jMap.setObj(jLocationsConfigMap, locScript.GetLocId(), jLocDataMap)
+            endif
+    
+            jMap.setObj(jLocDataMap, "jStartingGarrison", locScript.jOwnedUnitsMap)
+        endif
+        
+
+        i += 1
+    endwhile
+
+EndFunction
+
 ; creates a string array with location IDs accompanied by their names
 string[] Function CreateStringArrayWithLocationIdentifiers(int page = 0)
 
