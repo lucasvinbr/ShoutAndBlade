@@ -496,8 +496,8 @@ string[] Function CreateStringArrayWithLocationIdentifiers(int page = 0)
     SAB_UpdatedReferenceAlias[] refsInPage = Locations.GetUpdatedAliasArrayAtIndex(page * 128)
     int i = 0
     int endingIndex = NextLocationIndex
-    if page * 128 < endingIndex
-        endingIndex = page * 128
+    if (page + 1) * 128 < endingIndex
+        endingIndex = (page + 1) * 128
     endif
 
     while i < endingIndex
@@ -540,8 +540,8 @@ string[] Function CreateStringArrayWithEnabledLocationIdentifiers(int page = 0)
     SAB_UpdatedReferenceAlias[] refsInPage = EnabledLocations.GetUpdatedAliasArrayAtIndex(page * 128)
     int i = 0
     int endingIndex = NextLocationIndex
-    if page * 128 < endingIndex
-        endingIndex = page * 128
+    if (page + 1) * 128 < endingIndex
+        endingIndex = (page + 1) * 128
     endif
 
     while i < endingIndex
