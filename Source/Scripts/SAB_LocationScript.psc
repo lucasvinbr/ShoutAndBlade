@@ -315,6 +315,8 @@ bool function RunCloseByUpdate()
 
 	; spawn random units from "storage". If we're under attack, spawn groups of units instead of one at a time
 	if factionScript != None
+		; CullUnitsIfAboveSpawnLimit()
+
 		if IsBeingContested()
 			SpawnUnitBatch()
 		else
@@ -330,6 +332,7 @@ bool function RunCloseByUpdate()
 			SAB_CommanderScript InteractingCommander = NearbyCommanders[i]
 
 			if InteractingCommander != None && InteractingCommander.IsValid()
+				; InteractingCommander.CullUnitsIfAboveSpawnLimit()
 				if IsBeingContested()
 					InteractingCommander.SpawnBesiegingUnitBatchAtLocation(GetSpawnLocationForUnit(), -1, true)
 				else

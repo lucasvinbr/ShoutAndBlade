@@ -145,6 +145,7 @@ Function HandleDeath()
 	ClearAliasData()
 EndFunction
 
+; makes the unit disappear and add it back to the troop container's "storage"
 Function Despawn()
 	ownerTroopContainer.OwnedUnitHasDespawned(unitIndex, gameTimeOwnerContainerWasSetup)
 	meActor.Disable()

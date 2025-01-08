@@ -117,6 +117,7 @@ endfunction
 
 bool function RunCloseByUpdate()
 
+	; CullUnitsIfAboveSpawnLimit()
 	;debug.Trace("real time updating commander!")
 	if spawnedUnitsAmount < GetMaxSpawnedUnitsAmount()
 		; spawn random units from "storage"
@@ -562,6 +563,15 @@ ReferenceAlias Function SpawnUnitAtLocation(int unitIndex, ObjectReference targe
 	return None
 EndFunction
 
+Function CullUnitsIfAboveSpawnLimit()
+	if spawnedUnitsAmount > GetMaxSpawnedUnitsAmount()
+		; despawn one unit. run this more times to keep culling
+		SAB_UnitScript ourUnit = factionScript.GetASpawnedUnitFromContainer(self)
+		if ourUnit != None
+			ourUnit.Despawn()
+		endif
+	endif
+EndFunction
 
 
 ; removes the despawned unit from the spawnedUnits list and adds it back to the spawnables, so that it can spawn again later
