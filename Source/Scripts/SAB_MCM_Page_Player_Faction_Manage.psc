@@ -78,7 +78,19 @@ Function SetupPage()
         int facGold = jMap.getInt(facScript.jFactionData, "AvailableGold", JDB.solveInt(".ShoutAndBlade.factionOptions.initialGold", SAB_FactionDataHandler.GetDefaultFactionGold()))
         int numCmders = facScript.GetNumActiveCommanders()
 
+        int playerGold = Game.GetPlayer().GetItemCount(MainPage.MainQuest.PlayerDataHandler.Gold001)
+
+        float relValue = MainPage.MainQuest.DiplomacyHandler.GetPlayerRelationWithFac(playerFactionIndex)
+
+        AddTextOptionST("PLYR_CUR_FAC_REL_VALUE", "$sab_mcm_myfaction_relation", relValue)
+
         AddTextOptionST("PLYR_CUR_FAC_NUM_GOLD", "$sab_mcm_myfaction_numgold", facGold)
+
+        AddTextOptionST("PLYR_CUR_FAC_TAKE_GOLD", "$sab_mcm_myfaction_takegold", "")
+        AddTextOptionST("PLYR_CUR_FAC_GIVE_GOLD", "$sab_mcm_myfaction_givegold", "")
+
+        AddEmptyOption()
+
         AddTextOptionST("PLYR_CUR_FAC_NUM_CMDERS", "$sab_mcm_myfaction_numcmders", numCmders)
 
         AddToggleOptionST("PLYR_CUR_FAC_PLYR_CONTROLS", "$sab_mcm_myfaction_playercontrols", playerControlsFacOrders)
@@ -298,6 +310,69 @@ state PLYR_CUR_FAC_NUM_GOLD
 	event OnHighlightST(string state_id)
         MainPage.ToggleQuickHotkey(true)
         SetInfoText("$sab_mcm_myfaction_numgold_desc")
+	endEvent
+endstate
+
+state PLYR_CUR_FAC_REL_VALUE
+	event OnHighlightST(string state_id)
+        MainPage.ToggleQuickHotkey(true)
+        SetInfoText("$sab_mcm_myfaction_relation_desc")
+	endEvent
+endstate
+
+state PLYR_CUR_FAC_TAKE_GOLD
+    event OnSelectST(string state_id)
+        Form gold = MainPage.MainQuest.PlayerDataHandler.Gold001
+        SAB_FactionScript facScript = MainPage.MainQuest.FactionDataHandler.SAB_FactionQuests[playerFactionIndex]
+        int facGold = jMap.getInt(facScript.jFactionData, "AvailableGold", JDB.solveInt(".ShoutAndBlade.factionOptions.initialGold", SAB_FactionDataHandler.GetDefaultFactionGold()))
+        int goldAmount = 1000
+
+        bool isAlly = MainPage.MainQuest.DiplomacyHandler.IsFactionAllyOfPlayer(playerFactionIndex)
+
+        If facGold >= goldAmount
+            if isAlly
+                facScript.AddGold(-goldAmount)
+                Game.GetPlayer().AddItem(gold, goldAmount)
+                MainPage.MainQuest.DiplomacyHandler.AddOrSubtractPlayerRelationWithFac(playerFactionIndex, JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.relDmg_playerTookGold", -0.1))
+                ForcePageReset()
+            else
+                ShowMessage("$sab_mcm_myfaction_popup_cant_takegold_not_friendly", false)
+            endif
+        else
+            ShowMessage("$sab_mcm_myfaction_popup_cant_takegold_not_enough", false)
+        endif
+
+        int playerGold = Game.GetPlayer().GetItemCount(gold)
+
+	endEvent
+
+	event OnHighlightST(string state_id)
+        MainPage.ToggleQuickHotkey(true)
+        SetInfoText("$sab_mcm_myfaction_takegold_desc")
+	endEvent
+endstate
+
+state PLYR_CUR_FAC_GIVE_GOLD
+    event OnSelectST(string state_id)
+        Form gold = MainPage.MainQuest.PlayerDataHandler.Gold001
+        SAB_FactionScript facScript = MainPage.MainQuest.FactionDataHandler.SAB_FactionQuests[playerFactionIndex]
+        int playerGold = Game.GetPlayer().GetItemCount(gold)
+        int goldAmount = 1000
+
+        If playerGold >= goldAmount
+            facScript.AddGold(goldAmount)
+            Game.GetPlayer().RemoveItem(gold, goldAmount)
+            MainPage.MainQuest.DiplomacyHandler.AddOrSubtractPlayerRelationWithFac(playerFactionIndex, JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.relAdd_playerGaveGold", 0.1))
+            ForcePageReset()
+        else
+            ShowMessage("$sab_mcm_myfaction_popup_cant_givegold_not_enough", false)
+        endif
+
+	endEvent
+
+	event OnHighlightST(string state_id)
+        MainPage.ToggleQuickHotkey(true)
+        SetInfoText("$sab_mcm_myfaction_givegold_desc")
 	endEvent
 endstate
 
