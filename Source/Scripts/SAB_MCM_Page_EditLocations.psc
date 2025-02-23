@@ -10,6 +10,7 @@ int jLocationsDataMap
 int unitToAddToStartingGarr = 0
 SAB_LocationScript editedLocationScript
 
+bool saveOwnerships = false
 
 event OnInit()
     RegisterModule("$sab_mcm_page_edit_locations", 7)
@@ -165,6 +166,8 @@ Function SetupPage()
     AddTextOptionST("LOC_EDIT_SET_STARTGARR_TO_CUR", "$sab_mcm_locationedit_button_set_startgarr_to_cur", "")
 
     SetCursorPosition(1)
+
+    AddToggleOptionST("LOC_EDIT_TOGGLE_SAVE_OWNERSHIPS", "$sab_mcm_locationedit_toggle_save_ownerships", saveOwnerships)
 
     AddTextOptionST("LOC_EDIT_SAVE", "$sab_mcm_locationedit_button_save", "")
     AddTextOptionST("LOC_EDIT_SAVE_WITH_GARR", "$sab_mcm_locationedit_button_save_with_garrisons", "")
@@ -638,10 +641,29 @@ state LOC_EDIT_SET_STARTGARR_TO_CUR
 endstate 
 
 
+state LOC_EDIT_TOGGLE_SAVE_OWNERSHIPS
+    event OnSelectST(string state_id)
+        saveOwnerships = !saveOwnerships
+        SetToggleOptionValueST(saveOwnerships)
+	endEvent
+
+    event OnDefaultST(string state_id)
+        saveOwnerships = true
+        SetToggleOptionValueST(saveOwnerships)
+    endevent
+
+	event OnHighlightST(string state_id)
+        MainPage.ToggleQuickHotkey(true)
+		SetInfoText("$sab_mcm_locationedit_toggle_save_ownerships_desc")
+	endEvent
+endstate
+
 state LOC_EDIT_SAVE
     event OnSelectST(string state_id)
         string filePath = JContainers.userDirectory() + "SAB/locationData.json"
-        MainPage.MainQuest.LocationDataHandler.WriteCurrentLocOwnershipsToJmap()
+        if saveOwnerships
+            MainPage.MainQuest.LocationDataHandler.WriteCurrentLocOwnershipsToJmap()
+        endif
         MainPage.MainQuest.LocationDataHandler.WriteCurrentLocNamesToJmap()
         MainPage.MainQuest.LocationDataHandler.WriteCurrentLocStartGarrsToJmap()
         JValue.writeToFile(MainPage.MainQuest.LocationDataHandler.jLocationsConfigMap, filePath)
@@ -661,7 +683,9 @@ endstate
 state LOC_EDIT_SAVE_WITH_GARR
     event OnSelectST(string state_id)
         string filePath = JContainers.userDirectory() + "SAB/locationData.json"
-        MainPage.MainQuest.LocationDataHandler.WriteCurrentLocOwnershipsToJmap()
+        if saveOwnerships
+            MainPage.MainQuest.LocationDataHandler.WriteCurrentLocOwnershipsToJmap()
+        endif
         MainPage.MainQuest.LocationDataHandler.WriteCurrentLocNamesToJmap()
         MainPage.MainQuest.LocationDataHandler.WriteCurrentLocGarrsToStartGarrsJmap()
         JValue.writeToFile(MainPage.MainQuest.LocationDataHandler.jLocationsConfigMap, filePath)
