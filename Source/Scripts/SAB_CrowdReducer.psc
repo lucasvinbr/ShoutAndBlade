@@ -42,6 +42,12 @@ Function AddDeadBody(Actor body)
 
 EndFunction
 
+Function RemoveActorImmediately(Actor ac)
+	ac.Disable(false)
+	ac.MoveTo(BodyDumpReference)
+	ac.SetCriticalStage(4)
+EndFunction
+
 Event OnUpdate()
 	
 	int bodiesErased = 0
@@ -63,9 +69,10 @@ Event OnUpdate()
 
 		if bodyToDelete
 
-			bodyToDelete.MoveTo(BodyDumpReference)
-			bodyToDelete.DisableNoWait()
-			bodyToDelete.Delete()
+			RemoveActorImmediately(bodyToDelete)
+			; bodyToDelete.MoveTo(BodyDumpReference)
+			; bodyToDelete.DisableNoWait()
+			; bodyToDelete.Delete()
 			
 		endif
 

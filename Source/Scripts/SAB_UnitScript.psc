@@ -148,8 +148,9 @@ EndFunction
 ; makes the unit disappear and add it back to the troop container's "storage"
 Function Despawn()
 	ownerTroopContainer.OwnedUnitHasDespawned(unitIndex, gameTimeOwnerContainerWasSetup)
-	meActor.Disable()
-	meActor.Delete()
+	CrowdReducer.RemoveActorImmediately(meActor)
+	; meActor.Disable()
+	; meActor.Delete()
 	ClearAliasData()
 EndFunction
 
@@ -163,8 +164,9 @@ EndFunction
 Function DespawnAndDontReturnToContainer()
 	deathHasBeenHandled = true
 	ownerTroopContainer.OwnedUnitHasDied(unitIndex, gameTimeOwnerContainerWasSetup)
-	meActor.Disable()
-	meActor.Delete()
+	CrowdReducer.RemoveActorImmediately(meActor)
+	; meActor.Disable()
+	; meActor.Delete()
 	ClearAliasData()
 EndFunction
 

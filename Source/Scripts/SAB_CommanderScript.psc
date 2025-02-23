@@ -103,8 +103,9 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 		if !factionScript.IsFactionEnabled()
 			; delete this cmder, its faction should no longer exist
 			ClearCmderData()
-			meActor.Disable()
-			meActor.Delete()
+			CrowdReducer.RemoveActorImmediately(meActor)
+			; meActor.Disable()
+			; meActor.Delete()
 			meActor = None
 
 			isUpdating = false
@@ -176,8 +177,9 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 				; give the faction some gold to compensate a little
 				factionScript.GetGoldFromDespawningCommander(jOwnedUnitsMap)
 				ClearCmderData()
-				meActor.Disable()
-				meActor.Delete()
+				; meActor.Disable()
+				; meActor.Delete()
+				CrowdReducer.RemoveActorImmediately(meActor)
 				meActor = None
 
 				isUpdating = false
@@ -596,8 +598,9 @@ Function HandleAutocalcDefeat()
 	; debug.Trace("commander (" + jMap.getStr(factionScript.jFactionData, "name", "Faction") + "): defeated in autocalc!")
 	ClearCmderData()
 	; meActor.SetCriticalStage(meActor.CritStage_DisintegrateEnd)
-	meActor.Disable()
-	meActor.Delete()
+	CrowdReducer.RemoveActorImmediately(meActor)
+	; meActor.Disable()
+	; meActor.Delete()
 	meActor = None
 EndFunction
 
