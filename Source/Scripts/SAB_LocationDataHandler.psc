@@ -18,6 +18,7 @@ bool isBusyAddingNewLocsToBaseArray = false
 
 bool shouldRecalculateDistances = false
 bool shouldRebuildEnabledLocations = false
+bool isReaddingAllLocations = false
 
 int Property NextLocationIndex = 0 Auto Hidden
 int Property NextEnabledLocationIndex = 0 Auto Hidden
@@ -25,6 +26,7 @@ int Property NextEnabledLocationIndex = 0 Auto Hidden
 ; a jMap, mapped by location name, containing jMaps with some configurable data on locations
 int Property jLocationsConfigMap Auto Hidden
 
+; a jArray of forms (quests), that we should cast to SAB_LocationDataAddon
 int jregisteredAddonsArray
 
 Function Initialize()
@@ -57,6 +59,8 @@ Function AddNewLocationsFromAddon(SAB_LocationDataAddon addon, int addonIndex)
         ; register addon in an array, so that we can call for a re-add of locations
         int indexForAddon = GetNextIndexForLocationAddon()
 
+        jArray.setForm(jregisteredAddonsArray, indexForAddon, addon)
+
         addon.SetIndexInRegisteredAddons(indexForAddon)
     endif
 
@@ -78,16 +82,11 @@ Function AddNewLocationsFromAddon(SAB_LocationDataAddon addon, int addonIndex)
             If GetLocationIndexById(newLoc.GetLocId()) == -1
                 Locations.RegisterAliasForUpdates(newLoc)
                 hasMadeChanges = true
-                NextLocationIndex = Locations.GetTopIndex()
+                NextLocationIndex = Locations.GetTopIndex() + 1
                 debug.Trace("SAB: added new location " + newLoc.GetLocName())
             EndIf
 
             i += 1
-            
-            if NextLocationIndex >= 128
-                ; break! the locations array is full
-                i = -1
-            endif
         endif
     endwhile
 
@@ -101,12 +100,23 @@ Function AddNewLocationsFromAddon(SAB_LocationDataAddon addon, int addonIndex)
 EndFunction
 
 Function ReaddLocationsFromAddons()
+
+    if isReaddingAllLocations
+        return
+    endif
+
+    isReaddingAllLocations = true
+
+    Locations.UnregisterAllAliases()
+    EnabledLocations.UnregisterAllAliases()
+
     int topIndex = GetNextIndexForLocationAddon()
     int i = 0
 
     while i < topIndex
         SAB_LocationDataAddon addonScript = jArray.getForm(jregisteredAddonsArray, i) as SAB_LocationDataAddon
         if addonScript != None
+            Debug.Trace("addon reload: readd " + addonScript)
             addonScript.ReaddLocations()
         else
             Debug.Trace("addon reload: could not load addon quest form")
@@ -114,6 +124,8 @@ Function ReaddLocationsFromAddons()
 
         i += 1
     endwhile
+
+    isReaddingAllLocations = false
 EndFunction
 
 ; enables or disables the target location
@@ -683,6 +695,14 @@ int Function GetNextIndexForLocationAddon()
 
     return jArray.count(jregisteredAddonsArray)
 
+EndFunction
+
+bool Function GetIsReaddingAllLocs()
+    return isReaddingAllLocations
+EndFunction
+
+bool Function GetIsBusyEditingLocData()
+    return isReaddingAllLocations || isBusyAddingNewLocsToBaseArray || isBusyUpdatingLocationData
 EndFunction
 
 ; locationData jmap entries:

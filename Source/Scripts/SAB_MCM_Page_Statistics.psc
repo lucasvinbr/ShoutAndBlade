@@ -90,7 +90,7 @@ Function SetupLocationStatistics()
     SAB_UnitDataHandler unitDataHandler = MainPage.MainQuest.UnitDataHandler
     SAB_LocationDataHandler locHandler = MainPage.MainQuest.LocationDataHandler
 
-    int locIndex = locHandler.NextLocationIndex + 1
+    int locIndex = locHandler.NextLocationIndex
     int slotsPerEntry = 6
     int entriesPerPage = Math.Floor(110 / slotsPerEntry)
 

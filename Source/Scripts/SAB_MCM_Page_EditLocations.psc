@@ -175,8 +175,8 @@ Function SetupPage()
 
     AddEmptyOption()
 
-    ; this isn't working as it should. New locations aren't registered in the addon's array
-    ;AddTextOptionST("LOC_RELOAD_ADDONS", "$sab_mcm_locationedit_button_reload_addons", "")
+    ; for debug/ bugfixing purposes only. Doesn't recognize new locs in already registered addons
+    ; AddTextOptionST("LOC_RELOAD_ADDONS", "$sab_mcm_locationedit_button_reload_addons", "")
 
     AddEmptyOption()
 
@@ -714,6 +714,7 @@ state LOC_EDIT_LOAD
             MainPage.MainQuest.LocationDataHandler.jLocationsConfigMap = JValue.releaseAndRetain(MainPage.MainQuest.LocationDataHandler.jLocationsConfigMap, jReadData, "ShoutAndBlade")
             MainPage.MainQuest.LocationDataHandler.UpdateLocationsAccordingToJMap()
             MainPage.isLoadingData = false
+            Debug.Trace("SAB: Load complete!")
             Debug.Notification("SAB: Load complete!")
             ShowMessage("$sab_mcm_shared_popup_msg_load_success", false)
             ForcePageReset()
@@ -736,7 +737,15 @@ endstate
 
 state LOC_RELOAD_ADDONS
     event OnSelectST(string state_id)
-        MainPage.MainQuest.LocationDataHandler.ReaddLocationsFromAddons()
+        if MainPage.MainQuest.LocationDataHandler.GetIsBusyEditingLocData()
+            ShowMessage("$sab_mcm_locationedit_popup_cannot_reload_addons_busy", false)
+        else
+            ShowMessage("$sab_mcm_locationedit_popup_reload_addons_started", false)
+            MainPage.MainQuest.LocationDataHandler.ReaddLocationsFromAddons()
+            ShowMessage("$sab_mcm_locationedit_popup_reload_addons_done", false)
+            Debug.Trace("SAB: rebuild locations done!")
+            Debug.Notification("SAB: rebuild locations done!")
+        endif
 	endEvent
 
     event OnDefaultST(string state_id)
