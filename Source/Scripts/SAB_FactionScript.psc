@@ -764,7 +764,7 @@ ReferenceAlias Function TrySpawnCommander(float curGameTime, bool onlySpawnIfHas
 		return None
 	endif
 
-	ReferenceAlias cmderAlias = GetAlias(cmderAliasID) as ReferenceAlias
+	SAB_CommanderScript cmderAlias = GetAlias(cmderAliasID) as SAB_CommanderScript
 
 	; check if we can afford creating a new cmder
 	int cmderCost = JDB.solveInt(".ShoutAndBlade.factionOptions.createCmderCost", 250)
@@ -779,9 +779,10 @@ ReferenceAlias Function TrySpawnCommander(float curGameTime, bool onlySpawnIfHas
 		return None
 	endif
 
-	Actor cmderUnit = SpawnerScript.SpawnUnit(cmderSpawn, None, cmderUnitTypeIndex)
+	Actor cmderUnit = SpawnerScript.SpawnUnit(cmderAlias.CrowdReducer.BodyDumpReference, None, cmderUnitTypeIndex)
 
 	if cmderUnit == None
+		debug.Trace("spawn cmder: cmderUnit is null!")
 		return None
 	endif
 
@@ -790,8 +791,9 @@ ReferenceAlias Function TrySpawnCommander(float curGameTime, bool onlySpawnIfHas
 	EndIf
 
 	cmderAlias.ForceRefTo(cmderUnit)
-	(cmderAlias as SAB_CommanderScript).Setup(self, curGameTime)
+	cmderAlias.Setup(self, curGameTime)
 
+	cmderUnit.MoveTo(cmderSpawn)
 	; debug.Trace("spawned cmder package is " + cmderUnit.GetCurrentPackage())
 
 	jMap.setInt(jFactionData, "AvailableGold", currentGold - cmderCost)
@@ -806,9 +808,9 @@ ReferenceAlias Function TrySpawnCommander(float curGameTime, bool onlySpawnIfHas
 EndFunction
 
 ; find a free unit slot and spawn a unit of the desired type
-ReferenceAlias Function SpawnUnitForTroopContainer(SAB_TroopContainerScript troopContainer, int unitIndex, ObjectReference spawnLocation, float containerSetupTime, int cmderFollowRank = -1)
+ReferenceAlias Function SpawnUnitForTroopContainer(SAB_TroopContainerScript troopContainer, int unitIndex, ObjectReference spawnLocation, ObjectReference moveDestAfterSpawn, float containerSetupTime, int cmderFollowRank = -1)
 	
-	if spawnLocation == None
+	if moveDestAfterSpawn == None
 		return None
 	endif
 
@@ -845,6 +847,8 @@ ReferenceAlias Function SpawnUnitForTroopContainer(SAB_TroopContainerScript troo
 
 	unitAlias.ForceRefTo(spawnedUnit)
 	(unitAlias as SAB_UnitScript).Setup(unitIndex, troopContainer, unitIndexInUnitUpdater, containerSetupTime)
+
+	spawnedUnit.MoveTo(moveDestAfterSpawn)
 
 	; debug.Trace("spawned unit package is " + spawnedUnit.GetCurrentPackage())
 

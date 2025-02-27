@@ -144,8 +144,8 @@ Function DespawnAllPlayerUnits()
 EndFunction
 
 
-ReferenceAlias Function SpawnPlayerUnit(int unitIndex, ObjectReference spawnLocation, float containerSetupTime)
-	if spawnLocation == None
+ReferenceAlias Function SpawnPlayerUnit(int unitIndex, ObjectReference spawnPoint, ObjectReference moveDestAfterSpawn, float containerSetupTime)
+	if moveDestAfterSpawn == None
 		return None
 	endif
 
@@ -168,7 +168,7 @@ ReferenceAlias Function SpawnPlayerUnit(int unitIndex, ObjectReference spawnLoca
 		return None
 	endif
 
-	Actor spawnedUnit = SpawnerScript.SpawnUnit(spawnLocation, None, unitIndex, -1, 0)
+	Actor spawnedUnit = SpawnerScript.SpawnUnit(spawnPoint, None, unitIndex, -1, 0)
 
 	if spawnedUnit == None
 		debug.Trace("spawn unit for player: got none as spawnedUnit, aborting!")
@@ -178,6 +178,8 @@ ReferenceAlias Function SpawnPlayerUnit(int unitIndex, ObjectReference spawnLoca
 
 	unitAlias.ForceRefTo(spawnedUnit)
 	(unitAlias as SAB_UnitScript).Setup(unitIndex, PlayerCommanderScript, unitIndexInUnitUpdater, containerSetupTime)
+
+	spawnedUnit.MoveTo(moveDestAfterSpawn)
 
 	; debug.Trace("spawned unit package is " + spawnedUnit.GetCurrentPackage())
 

@@ -67,6 +67,7 @@ int topFilledNearbyCmderIndex = -1
 bool editingNearbyCmderIndexes = false
 int jKnownVacantNearbyCmderSlots = -1
 
+ObjectReference cachedSpawnPoint = None
 
 Function Setup(SAB_FactionScript factionScriptRef, float curGameTime = 0.0)
 	parent.Setup(factionScriptRef, curGameTime)
@@ -320,7 +321,7 @@ bool function RunCloseByUpdate()
 		if IsBeingContested()
 			SpawnUnitBatch()
 		else
-			SpawnRandomUnitAtPos(GetSpawnLocationForUnit())
+			SpawnRandomUnitAtPos(GetSpawnPointForUnit(), GetMoveDestAfterSpawnForUnit())
 		endif
 	endif
 
@@ -334,10 +335,10 @@ bool function RunCloseByUpdate()
 			if InteractingCommander != None && InteractingCommander.IsValid()
 				; InteractingCommander.CullUnitsIfAboveSpawnLimit()
 				if IsBeingContested()
-					InteractingCommander.SpawnBesiegingUnitBatchAtLocation(GetSpawnLocationForUnit(), -1, true)
+					InteractingCommander.SpawnBesiegingUnitBatchAtLocation(GetMoveDestAfterSpawnForUnit(), -1, true)
 				else
 					; "ambient units", just to populate the location
-					InteractingCommander.SpawnBesiegingUnitAtPos(GetSpawnLocationForUnit(), -1, false)
+					InteractingCommander.SpawnBesiegingUnitAtPos(GetMoveDestAfterSpawnForUnit(), -1, false)
 				endif
 			endif
 
@@ -619,7 +620,7 @@ ObjectReference Function GetInteriorSpawnPointIfPossible()
 		if InternalSpawnPoints.Length > 0
 			return InternalSpawnPoints[Utility.RandomInt(0, InternalSpawnPoints.Length - 1)]
 		else 
-			return GetSpawnLocationForUnit()
+			return GetMoveDestAfterSpawnForUnit()
 		endif
 	else
 		return MoveDestination
@@ -627,7 +628,7 @@ ObjectReference Function GetInteriorSpawnPointIfPossible()
 EndFunction
 
 
-ObjectReference Function GetSpawnLocationForUnit()
+ObjectReference Function GetMoveDestAfterSpawnForUnit()
 	if playerIsInside
 		; debug.Trace("player is inside " + GetLocName())
 		if InternalSpawnPoints.Length > 0
@@ -642,6 +643,13 @@ ObjectReference Function GetSpawnLocationForUnit()
 			return Game.FindRandomReferenceOfAnyTypeInListFromRef(SAB_ObjectsToUseAsSpawnsList, GetClosestOutsideSpawnMarkerFromRef(playerActor), 4000)
 		endif
 	endif
+EndFunction
+
+ObjectReference Function GetSpawnPointForUnit()
+	if cachedSpawnPoint == None
+		cachedSpawnPoint = factionScript.DiplomacyDataHandler.PlayerDataHandler.PlayerCommanderScript.CrowdReducer.BodyDumpReference
+	endif
+	return cachedSpawnPoint
 EndFunction
 
 ; returns DistCalculationReference if it's set, GetReference() otherwise. 

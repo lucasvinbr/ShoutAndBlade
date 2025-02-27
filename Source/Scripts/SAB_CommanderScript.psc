@@ -386,24 +386,28 @@ Function UnregisterAsNearLocation_NoIndexChange(SAB_LocationScript loc)
 EndFunction
 
 
-ObjectReference Function GetSpawnLocationForUnit()
-	ObjectReference spawnLocation = meActor
+ObjectReference Function GetMoveDestAfterSpawnForUnit()
+	ObjectReference moveDestAfterSpawn = meActor
 
 	if meActor.IsInCombat()
-		spawnLocation = Game.FindRandomReferenceOfAnyTypeInListFromRef\
+		moveDestAfterSpawn = Game.FindRandomReferenceOfAnyTypeInListFromRef\
 			(factionScript.LocationDataHandler.SAB_ObjectsToUseAsSpawnsList, meActor, 1500)
 
-		if spawnLocation == None
-			spawnLocation = factionScript.UnitSpawnPoint.GetReference()
+		if moveDestAfterSpawn == None
+			moveDestAfterSpawn = factionScript.UnitSpawnPoint.GetReference()
 		endif
 	endif
 	
-	return spawnLocation
+	return moveDestAfterSpawn
+EndFunction
+
+ObjectReference Function GetSpawnPointForUnit()
+	return CrowdReducer.BodyDumpReference
 EndFunction
 
 
-ReferenceAlias Function SpawnUnitAtLocationWithDefaultFollowRank(int unitIndex, ObjectReference targetLocation)
-	return SpawnUnitAtLocation(unitIndex, targetLocation, CmderFollowFactionRank, IsOnAlert())
+ReferenceAlias Function SpawnUnitAtLocationWithDefaultFollowRank(int unitIndex, ObjectReference spawnPoint, ObjectReference targetLocation)
+	return SpawnUnitAtLocation(unitIndex, spawnPoint, targetLocation, CmderFollowFactionRank, IsOnAlert())
 EndFunction
 
 
@@ -414,7 +418,7 @@ Function SpawnBesiegingUnitAtPos(ObjectReference targetLocation, int followRank,
 		int indexToSpawn = GetUnitIndexToSpawn()
 
 		if indexToSpawn >= 0
-			ReferenceAlias spawnedUnit = SpawnUnitAtLocation(indexToSpawn, targetLocation, followRank, spawnAlerted)
+			ReferenceAlias spawnedUnit = SpawnUnitAtLocation(indexToSpawn, GetSpawnPointForUnit(), targetLocation, followRank, spawnAlerted)
 		endif
 		
 	endif
@@ -422,17 +426,18 @@ Function SpawnBesiegingUnitAtPos(ObjectReference targetLocation, int followRank,
 EndFunction
 
 ; like SpawnUnitBatchAtLocation, but spawns are limited by the max besieging units instead, and may not follow the cmder
-Function SpawnBesiegingUnitBatchAtLocation(ObjectReference spawnLocation, int followRank, bool spawnAlerted)
+Function SpawnBesiegingUnitBatchAtLocation(ObjectReference moveDestAfterSpawn, int followRank, bool spawnAlerted)
 	int maxBatchSize = 8
 	int spawnedCount = 0
 
 	int spawnedsLimit = GetMaxBesiegingUnitsAmount()
+	ObjectReference spawnPoint = GetSpawnPointForUnit()
 
 	while spawnedCount < maxBatchSize && spawnedUnitsAmount < spawnedsLimit 
 		int unitIndexToSpawn = GetUnitIndexToSpawn()
 
 		if unitIndexToSpawn >= 0
-			if SpawnUnitAtLocation(unitIndexToSpawn, spawnLocation, followRank, spawnAlerted) == None
+			if SpawnUnitAtLocation(unitIndexToSpawn, spawnPoint, moveDestAfterSpawn, followRank, spawnAlerted) == None
 				; stop spawning, it failed for some reason, so better stop for now
 				spawnedCount = maxBatchSize 
 			endif

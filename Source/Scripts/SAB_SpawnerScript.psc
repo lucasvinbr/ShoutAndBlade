@@ -82,11 +82,11 @@ Actor Function SpawnCustomizationGuy( int jUnitDataMap, int unitIndex )
 endFunction
 
 ; spawns a unit in the target location, customized according to the passed jMap (we fetch the map by unit index if it isn't passed) 
-Actor Function SpawnUnit( ObjectReference LocationRef, Faction ownerFaction, int unitIndex, int jUnitDataMap = -1, int cmderFollowIndex = -1)
+Actor Function SpawnUnit( ObjectReference spawnPoint, Faction ownerFaction, int unitIndex, int jUnitDataMap = -1, int cmderFollowIndex = -1)
 	
 	; debug.StartStackProfiling()
 
-	if LocationRef == None
+	if spawnPoint == None
 		debug.Trace("spawn unit: location ref is null!")
 		return None
 	endif
@@ -107,7 +107,9 @@ Actor Function SpawnUnit( ObjectReference LocationRef, Faction ownerFaction, int
 		jUnitDataMap = jArray.getObj(UnitDataHandler.jSABUnitDatasArray, unitIndex)
 	endif
 
-	Actor createdActor = LocationRef.PlaceActorAtMe(unitActorBase)
+	Actor createdActor = None
+
+	createdActor = spawnPoint.PlaceActorAtMe(unitActorBase)
 
 	if ownerFaction
 		createdActor.AddToFaction(ownerFaction)

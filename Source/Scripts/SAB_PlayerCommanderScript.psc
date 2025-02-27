@@ -110,7 +110,7 @@ endfunction
 
 
 
-ObjectReference Function GetSpawnLocationForUnit()
+ObjectReference Function GetMoveDestAfterSpawnForUnit()
 	ObjectReference spawnLocation = TroopSpawnPoint
 
 	if TroopSpawnPoint.GetDistance(playerActor) > 1500.0
@@ -120,12 +120,17 @@ ObjectReference Function GetSpawnLocationForUnit()
 	return spawnLocation
 EndFunction
 
-ReferenceAlias Function SpawnUnitAtLocationWithDefaultFollowRank(int unitIndex, ObjectReference targetLocation)
-	return SpawnUnitAtLocation(unitIndex, targetLocation, 0, IsOnAlert())
+ObjectReference Function GetSpawnPointForUnit()
+	return CrowdReducer.BodyDumpReference
 EndFunction
 
-ReferenceAlias Function SpawnUnitAtLocation(int unitIndex, ObjectReference targetLocation, int followRank, bool spawnAlerted)
-	ReferenceAlias spawnedUnit = PlayerDataHandler.SpawnPlayerUnit(unitIndex, targetLocation, gameTimeOfLastSetup)
+
+ReferenceAlias Function SpawnUnitAtLocationWithDefaultFollowRank(int unitIndex, ObjectReference spawnPoint, ObjectReference targetLocation)
+	return SpawnUnitAtLocation(unitIndex, spawnPoint, targetLocation, 0, IsOnAlert())
+EndFunction
+
+ReferenceAlias Function SpawnUnitAtLocation(int unitIndex, ObjectReference spawnPoint, ObjectReference targetLocation, int followRank, bool spawnAlerted)
+	ReferenceAlias spawnedUnit = PlayerDataHandler.SpawnPlayerUnit(unitIndex, spawnPoint, targetLocation, gameTimeOfLastSetup)
 
 	if spawnedUnit != None
 		; add spawned unit index to spawneds list
@@ -164,7 +169,7 @@ Function SpawnBesiegingUnitAtPos(ObjectReference targetLocation)
 		int indexToSpawn = GetUnitIndexToSpawn()
 
 		if indexToSpawn >= 0
-			SpawnUnitAtLocationWithDefaultFollowRank(indexToSpawn, targetLocation)
+			SpawnUnitAtLocationWithDefaultFollowRank(indexToSpawn, GetSpawnPointForUnit(), targetLocation)
 		endif
 		
 	endif
