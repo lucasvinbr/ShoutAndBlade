@@ -770,6 +770,15 @@ int Function GetMaxSpawnedUnitsAmount()
 	return 1
 EndFunction
 
+; returns -1 if neutral/no fac
+int Function GetOwnerFactionIndex()
+	if factionScript != None
+		return factionScript.GetFactionIndex()
+	endif
+
+	return -1
+EndFunction
+
 ; returns the owner faction's name, or "neutral"
 string Function GetOwnerFactionName()
 	string ownerFacName = "$sab_mcm_locationedit_ownership_option_neutral"

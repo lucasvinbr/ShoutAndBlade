@@ -389,9 +389,24 @@ EndFunction
 ObjectReference Function GetMoveDestAfterSpawnForUnit()
 	ObjectReference moveDestAfterSpawn = meActor
 
-	if meActor.IsInCombat()
-		moveDestAfterSpawn = Game.FindRandomReferenceOfAnyTypeInListFromRef\
-			(factionScript.LocationDataHandler.SAB_ObjectsToUseAsSpawnsList, meActor, 1500)
+	if meActor.IsInCombat() || meActor.IsDead()
+		; attackers besieging a location shouldn't be allowed to spawn everywhere. 
+		; defenders are fine, I think
+		if TargetLocationScript != None
+			ObjectReference unitSpawn = factionScript.UnitSpawnPoint.GetReference()
+			if unitSpawn.GetDistance(meActor) > 1400.0
+				unitSpawn.MoveTo(meActor)
+			endif
+			SAB_DiplomacyDataHandler diploHandler = factionScript.DiplomacyDataHandler
+			if !diploHandler.AreFactionsAllied(factionScript.GetFactionIndex(), TargetLocationScript.GetOwnerFactionIndex())
+				moveDestAfterSpawn = unitSpawn
+			endif
+		endif
+
+		if moveDestAfterSpawn == None
+			moveDestAfterSpawn = Game.FindRandomReferenceOfAnyTypeInListFromRef\
+				(factionScript.LocationDataHandler.SAB_ObjectsToUseAsSpawnsList, meActor, 1500)
+		endif
 
 		if moveDestAfterSpawn == None
 			moveDestAfterSpawn = factionScript.UnitSpawnPoint.GetReference()
@@ -542,7 +557,7 @@ Event OnCombatStateChanged(Actor akTarget, int aeCombatState)
 		; if the current spawn is too far away,
 		; update the faction's unit spawn point to where this cmder started combat
 		ObjectReference unitSpawn = factionScript.UnitSpawnPoint.GetReference()
-		if unitSpawn.GetDistance(meActor) > 800.0
+		if unitSpawn.GetDistance(meActor) > 1400.0
 			unitSpawn.MoveTo(meActor)
 		endif
 
