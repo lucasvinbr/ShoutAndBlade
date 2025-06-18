@@ -197,6 +197,8 @@ state MAIN_TEST_LOAD
             JDB.solveObjSetter(".ShoutAndBlade", jReadOptionsData, true)
             loadSuccesses += 1
             Debug.Notification("SAB: options data load complete! (" + loadSuccesses + " of " + expectedLoadSuccesses + ")")
+            int outfitterFollowsValue = JDB.solveInt(".ShoutAndBlade.generalOptions.outfitterFollowsPlayer", 0)
+            MainQuest.SpawnerScript.SetCustomizationGuyFollowsPlayer(outfitterFollowsValue != 0)
         else
             Debug.Notification("SAB: options data load failed!")
         endif
@@ -312,6 +314,8 @@ state OPTIONS_LOAD
             ForcePageReset()
             JDB.solveObjSetter(".ShoutAndBlade", jReadData, true)
             isLoadingData = false
+            int outfitterFollowsValue = JDB.solveInt(".ShoutAndBlade.generalOptions.outfitterFollowsPlayer", 0)
+            MainQuest.SpawnerScript.SetCustomizationGuyFollowsPlayer(outfitterFollowsValue != 0)
             Debug.Notification("SAB: Load complete!")
             ShowMessage("$sab_mcm_shared_popup_msg_load_success", false)
             ForcePageReset()
