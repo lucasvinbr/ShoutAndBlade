@@ -41,8 +41,11 @@ int Property jFactionData Auto Hidden
 int Property jOwnedLocationIndexesArray Auto Hidden
 { indexes of the LocationDataHandler array that contain locations owned by this faction }
 
+int Property jUnitsPendingDeploy Auto Hidden
+{ array of actors, spawned units still in the hidden cell, waiting to be moved to a spawn destination }
+
 bool Property playerIsControllingDestinations Auto Hidden
-{ if true and the player is part of this faction,, destinations won't be automatically changed for this faction }
+{ if true and the player is part of this faction, destinations won't be automatically changed for this faction }
 
 ; the player-related handler script. if this var has a value assigned, it probably means the player belongs to this faction
 SAB_PlayerDataHandler playerHandler
@@ -808,7 +811,7 @@ ReferenceAlias Function TrySpawnCommander(float curGameTime, bool onlySpawnIfHas
 EndFunction
 
 ; find a free unit slot and spawn a unit of the desired type
-ReferenceAlias Function SpawnUnitForTroopContainer(SAB_TroopContainerScript troopContainer, int unitIndex, ObjectReference spawnLocation, ObjectReference moveDestAfterSpawn, float containerSetupTime, int cmderFollowRank = -1)
+ReferenceAlias Function SpawnUnitForTroopContainer(SAB_TroopContainerScript troopContainer, int unitIndex, ObjectReference spawnLocation, ObjectReference moveDestAfterSpawn, float containerSetupTime, int cmderFollowRank = -1, bool moveNow = true)
 	
 	if moveDestAfterSpawn == None
 		return None
@@ -848,7 +851,12 @@ ReferenceAlias Function SpawnUnitForTroopContainer(SAB_TroopContainerScript troo
 	unitAlias.ForceRefTo(spawnedUnit)
 	(unitAlias as SAB_UnitScript).Setup(unitIndex, troopContainer, unitIndexInUnitUpdater, containerSetupTime)
 
-	spawnedUnit.MoveTo(moveDestAfterSpawn)
+	If moveNow
+		spawnedUnit.MoveTo(moveDestAfterSpawn)
+	else
+		jArray.AddForm(jUnitsPendingDeploy, spawnedUnit)
+	endif
+	; 
 
 	; debug.Trace("spawned unit package is " + spawnedUnit.GetCurrentPackage())
 
@@ -878,6 +886,65 @@ Function AddGold(int goldAmount)
 	jMap.setInt(jFactionData, "AvailableGold", currentGold + goldAmount)
 EndFunction
 
+
+Function DeployPendingUnits(ObjectReference spawnPoint, bool setAlert)
+	if spawnPoint == None
+		return
+	endif
+
+	If jUnitsPendingDeploy == 0
+		jUnitsPendingDeploy = jArray.object()
+		jValue.retain(jUnitsPendingDeploy, "ShoutAndBlade")
+	EndIf
+
+	int i = jArray.count(jUnitsPendingDeploy)
+
+	if i <= 0
+		return
+	endif
+
+	; if we're on alert, we should find an enemy to start fighting as soon as we spawn
+	Actor targetEnemy = none
+	SAB_CrowdReducer crowdReducer = DiplomacyDataHandler.PlayerDataHandler.PlayerCommanderScript.CrowdReducer
+	int jUnitsMap = crowdReducer.jLivingUnitsMap
+	int j = jIntMap.count(jUnitsMap)
+	int count = 0
+
+	; iterate over facs with living units, looking for an enemy fac, then get one of their units
+	while j > 0
+		j -= 1
+		int facIndexWithUnits = jIntMap.getNthKey(jUnitsMap, j)
+		int jFacUnitsArr = jIntMap.getObj(jUnitsMap, facIndexWithUnits)
+		int unitCount = jArray.count(jFacUnitsArr)
+		
+		if unitCount > 0
+			if DiplomacyDataHandler.AreFactionsEnemies(factionIndex, facIndexWithUnits)
+				targetEnemy = jArray.getForm(jFacUnitsArr, Utility.RandomInt(0, unitCount - 1)) as Actor
+			endif
+		endif
+		
+		
+		If targetEnemy != none
+			; break loop
+			j = -1
+		EndIf
+
+	endwhile
+
+	while i > 0
+		i -= 1
+		Actor pendingUnit = jArray.getForm(jUnitsPendingDeploy, i) as Actor
+		pendingUnit.MoveTo(spawnPoint)
+		if setAlert
+			pendingUnit.SetAlert(true)
+			if targetEnemy != none
+				pendingUnit.StartCombat(targetEnemy)
+			endif
+		endif
+		jArray.eraseIndex(jUnitsPendingDeploy, i)
+	endwhile
+
+EndFunction
 
 ; Returns an open alias reference with a name starting with aliasPrefix followed by a number.
 ; returns none if no empty aliases are found

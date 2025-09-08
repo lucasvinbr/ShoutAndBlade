@@ -125,11 +125,11 @@ ObjectReference Function GetSpawnPointForUnit()
 EndFunction
 
 
-ReferenceAlias Function SpawnUnitAtLocationWithDefaultFollowRank(int unitIndex, ObjectReference spawnPoint, ObjectReference targetLocation)
-	return SpawnUnitAtLocation(unitIndex, spawnPoint, targetLocation, 0, IsOnAlert())
+ReferenceAlias Function SpawnUnitAtLocationWithDefaultFollowRank(int unitIndex, ObjectReference spawnPoint, ObjectReference targetLocation, bool moveNow)
+	return SpawnUnitAtLocation(unitIndex, spawnPoint, targetLocation, 0, IsOnAlert(), moveNow)
 EndFunction
 
-ReferenceAlias Function SpawnUnitAtLocation(int unitIndex, ObjectReference spawnPoint, ObjectReference targetLocation, int followRank, bool spawnAlerted)
+ReferenceAlias Function SpawnUnitAtLocation(int unitIndex, ObjectReference spawnPoint, ObjectReference targetLocation, int followRank, bool spawnAlerted, bool moveNow)
 	ReferenceAlias spawnedUnit = PlayerDataHandler.SpawnPlayerUnit(unitIndex, spawnPoint, targetLocation, gameTimeOfLastSetup)
 
 	if spawnedUnit != None
@@ -153,6 +153,12 @@ ReferenceAlias Function SpawnUnitAtLocation(int unitIndex, ObjectReference spawn
 		if (spawnAlerted)
 			Actor unitActor = spawnedUnit.GetReference() as Actor
 			unitActor.SetAlert(true)
+
+			; if we're on alert, we should find an enemy to start fighting as soon as we spawn
+			Actor targetEnemy = playerActor.GetCombatTarget()
+			if targetEnemy != None && targetEnemy.IsHostileToActor(playerActor)
+				unitActor.StartCombat(targetEnemy)
+			endif
 		endif
 
 		return spawnedUnit
@@ -169,7 +175,7 @@ Function SpawnBesiegingUnitAtPos(ObjectReference targetLocation)
 		int indexToSpawn = GetUnitIndexToSpawn()
 
 		if indexToSpawn >= 0
-			SpawnUnitAtLocationWithDefaultFollowRank(indexToSpawn, GetSpawnPointForUnit(), targetLocation)
+			SpawnUnitAtLocationWithDefaultFollowRank(indexToSpawn, GetSpawnPointForUnit(), targetLocation, true)
 		endif
 		
 	endif

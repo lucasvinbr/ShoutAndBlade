@@ -186,7 +186,7 @@ int Function GetEnemyFactionsOfTargetFac(int targetFacIndex)
 EndFunction
 
 ; returns true if faction one and two have a relation value above or equal to the ally relation level threshold.
-; also returns true if faction one and two are the same
+; returns true if faction one and two are the same
 bool Function AreFactionsAllied(int factionOneIndex, int factionTwoIndex)
     if factionOneIndex == factionTwoIndex
         return true
@@ -198,7 +198,7 @@ bool Function AreFactionsAllied(int factionOneIndex, int factionTwoIndex)
 EndFunction
 
 ; returns true if faction one and two have a relation value below the enemy relation level threshold.
-; also returns false if faction one and two are the same
+; returns false if faction one and two are the same
 bool Function AreFactionsEnemies(int factionOneIndex, int factionTwoIndex)
     if factionOneIndex == factionTwoIndex
         return false
@@ -211,7 +211,7 @@ EndFunction
 
 ; returns true if faction one and two have a relation value above or equal to the enemy relation level threshold,
 ; and below the ally relation level threshold.
-; also returns false if faction one and two are the same
+; returns false if faction one and two are the same
 bool Function AreFactionsNeutral(int factionOneIndex, int factionTwoIndex)
     if factionOneIndex == factionTwoIndex
         return false
@@ -224,7 +224,7 @@ bool Function AreFactionsNeutral(int factionOneIndex, int factionTwoIndex)
 EndFunction
 
 ; uses actual faction standings to check if factions are allied or at least friendly.
-; also returns true if faction one and two are the same, false if one or both the factions are None
+; returns true if faction one and two are the same, false if one or both the factions are None
 bool Function AreFactionsInGoodStanding(SAB_FactionScript factionOne, SAB_FactionScript factionTwo)
     if factionOne == factionTwo
         return true

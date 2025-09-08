@@ -11,15 +11,50 @@ int numExistingBodies = 0
 int nextBodyIndexToFill = 0
 int nextBodyIndexToErase = 0
 
+; a "fac index - unit array" map describing the currently living units of all facs.
+; shouldn't count commanders... I think
+int property jLivingUnitsMap = 0 auto Hidden
+
 
 Function Initialize()
 	BodiesArray = new Actor[128]
 
+	If jLivingUnitsMap == 0
+		jLivingUnitsMap = jValue.releaseAndRetain(jLivingUnitsMap, jIntMap.object(), "ShoutAndBlade")
+	EndIf
 	; if jKnownVacantNearbyCmderSlots == -1 || jKnownVacantNearbyCmderSlots == 0
 	; 	NearbyCommanders = new SAB_CommanderScript[128]
 	; 	jKnownVacantNearbyCmderSlots = jArray.object()
 	; 	JValue.retain(jKnownVacantNearbyCmderSlots, "ShoutAndBlade")
 	; endif
+EndFunction
+
+Function RegisterUnitToLivingList(int facIndex, Actor unit)
+	If jLivingUnitsMap == 0
+		jLivingUnitsMap = jValue.releaseAndRetain(jLivingUnitsMap, jIntMap.object(), "ShoutAndBlade")
+	EndIf
+
+	int jFacArr = jIntMap.getObj(jLivingUnitsMap, facIndex)
+	if jFacArr == 0
+		jFacArr = jArray.object()
+		jIntMap.setObj(jLivingUnitsMap, facIndex, jFacArr)
+	endif
+
+	jArray.addForm(jFacArr, unit)
+EndFunction
+
+Function UnregisterUnitFromLivingList(int facIndex, Actor unit)
+	If jLivingUnitsMap == 0
+		jLivingUnitsMap = jValue.releaseAndRetain(jLivingUnitsMap, jIntMap.object(), "ShoutAndBlade")
+	EndIf
+
+	int jFacArr = jIntMap.getObj(jLivingUnitsMap, facIndex)
+	if jFacArr == 0
+		jFacArr = jArray.object()
+		jIntMap.setObj(jLivingUnitsMap, facIndex, jFacArr)
+	endif
+
+	jArray.eraseForm(jFacArr, unit)
 EndFunction
 
 ; stores the dead body in the bodies array and, if the body limit is reached, deletes the oldest body

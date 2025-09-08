@@ -421,19 +421,19 @@ ObjectReference Function GetSpawnPointForUnit()
 EndFunction
 
 
-ReferenceAlias Function SpawnUnitAtLocationWithDefaultFollowRank(int unitIndex, ObjectReference spawnPoint, ObjectReference targetLocation)
-	return SpawnUnitAtLocation(unitIndex, spawnPoint, targetLocation, CmderFollowFactionRank, IsOnAlert())
+ReferenceAlias Function SpawnUnitAtLocationWithDefaultFollowRank(int unitIndex, ObjectReference spawnPoint, ObjectReference targetLocation, bool moveNow)
+	return SpawnUnitAtLocation(unitIndex, spawnPoint, targetLocation, CmderFollowFactionRank, IsOnAlert(), moveNow)
 EndFunction
 
 
 ; like spawnRandomUnitAtPos, but spawns are limited by the max besieging units instead
-Function SpawnBesiegingUnitAtPos(ObjectReference targetLocation, int followRank, bool spawnAlerted)
+Function SpawnBesiegingUnitAtPos(ObjectReference targetLocation, int followRank, bool spawnAlerted, bool moveNow)
 
 	if spawnedUnitsAmount < GetMaxBesiegingUnitsAmount()
 		int indexToSpawn = GetUnitIndexToSpawn()
 
 		if indexToSpawn >= 0
-			ReferenceAlias spawnedUnit = SpawnUnitAtLocation(indexToSpawn, GetSpawnPointForUnit(), targetLocation, followRank, spawnAlerted)
+			ReferenceAlias spawnedUnit = SpawnUnitAtLocation(indexToSpawn, GetSpawnPointForUnit(), targetLocation, followRank, spawnAlerted, moveNow)
 		endif
 		
 	endif
@@ -452,7 +452,7 @@ Function SpawnBesiegingUnitBatchAtLocation(ObjectReference moveDestAfterSpawn, i
 		int unitIndexToSpawn = GetUnitIndexToSpawn()
 
 		if unitIndexToSpawn >= 0
-			if SpawnUnitAtLocation(unitIndexToSpawn, spawnPoint, moveDestAfterSpawn, followRank, spawnAlerted) == None
+			if SpawnUnitAtLocation(unitIndexToSpawn, spawnPoint, moveDestAfterSpawn, followRank, spawnAlerted, false) == None
 				; stop spawning, it failed for some reason, so better stop for now
 				spawnedCount = maxBatchSize 
 			endif
@@ -466,6 +466,8 @@ Function SpawnBesiegingUnitBatchAtLocation(ObjectReference moveDestAfterSpawn, i
 		spawnedsLimit = GetMaxBesiegingUnitsAmount()
 		
 	endwhile
+
+	factionScript.DeployPendingUnits(spawnPoint, IsOnAlert())
 EndFunction
 
 ; sets the "confidence faction" rank for this cmder. The higher the more confidence

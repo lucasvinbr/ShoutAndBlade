@@ -3,6 +3,9 @@ Scriptname SAB_UnitScript extends SAB_UpdatedReferenceAlias
 ; the unit type index of this unit
 int Property unitIndex = -1 auto hidden
 
+; the faction index of this unit
+int Property facIndex = -1 auto hidden
+
 ; reference to the troop container that spawned us. If we die/despawn, we should tell them
 SAB_TroopContainerScript ownerTroopContainer
 
@@ -27,6 +30,8 @@ Function Setup(int thisUnitIndex, SAB_TroopContainerScript containerRef, int ind
 	meActor = GetReference() as Actor
 	indexInUpdater = indexInUnitUpdater
 	gameTimeOwnerContainerWasSetup = gameTimeSetupOfParentContainer
+	facIndex = containerRef.GetOwnerFactionIndex()
+	CrowdReducer.RegisterUnitToLivingList(facIndex, meActor)
 	; ToggleUpdates(true)
 	; debug.Trace("unit: setup end!")
 EndFunction
@@ -110,10 +115,9 @@ float Function GetIsNearbyDistance()
 	; endif
 
 	; testing separate fixed value here
-	return 8192.0
+	return 12000.0
 	;return JDB.solveFlt(".ShoutAndBlade.cmderOptions.isNearbyDistance", 4096.0)
 EndFunction
-
 
 event OnDeath(Actor akKiller)	
 	; debug.Trace("unit: ondeath!")
@@ -126,7 +130,7 @@ event OnDeath(Actor akKiller)
 	if akKiller == playerActor
 		; debug.Trace("player killed a unit!")
 		if ownerTroopContainer.factionScript
-			ownerTroopContainer.factionScript.DiplomacyDataHandler.QueueGlobalReactToPlayerKillingUnit(ownerTroopContainer.factionScript.GetFactionIndex())
+			ownerTroopContainer.factionScript.DiplomacyDataHandler.QueueGlobalReactToPlayerKillingUnit(facIndex)
 		endif
 		 
 	endif
@@ -172,7 +176,9 @@ EndFunction
 
 Function ClearAliasData()
 	; debug.Trace("unit: clear alias data!")
+	CrowdReducer.UnregisterUnitFromLivingList(facIndex, meActor)
 	unitIndex = -1
+	facIndex = -1
 	gameTimeOwnerContainerWasSetup = 0.0
 	parent.ClearAliasData()
 	if(meActor != None)

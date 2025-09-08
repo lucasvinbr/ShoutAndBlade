@@ -338,7 +338,7 @@ bool function RunCloseByUpdate()
 					InteractingCommander.SpawnBesiegingUnitBatchAtLocation(GetMoveDestAfterSpawnForUnit(), -1, true)
 				else
 					; "ambient units", just to populate the location
-					InteractingCommander.SpawnBesiegingUnitAtPos(GetMoveDestAfterSpawnForUnit(), -1, false)
+					InteractingCommander.SpawnBesiegingUnitAtPos(GetMoveDestAfterSpawnForUnit(), -1, false, true)
 				endif
 			endif
 

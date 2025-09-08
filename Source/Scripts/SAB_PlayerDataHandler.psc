@@ -4,7 +4,7 @@ scriptname SAB_PlayerDataHandler extends Quest
 SAB_PlayerCommanderScript Property PlayerCommanderScript Auto
 
 SAB_FactionScript Property PlayerFaction Auto Hidden
-{The SAB faction the player belongs to}
+{The SAB faction the player belongs to. Can be None}
 
 Faction Property VanillaPlayerFaction Auto
 

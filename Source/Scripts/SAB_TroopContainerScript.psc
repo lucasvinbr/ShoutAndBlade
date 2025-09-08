@@ -474,7 +474,7 @@ Function SpawnUnitBatch()
 		int unitIndexToSpawn = GetUnitIndexToSpawn()
 
 		if unitIndexToSpawn >= 0
-			if SpawnUnitAtLocationWithDefaultFollowRank(unitIndexToSpawn, spawnPoint, moveDestAfterSpawn) == None
+			if SpawnUnitAtLocationWithDefaultFollowRank(unitIndexToSpawn, spawnPoint, moveDestAfterSpawn, false) == None
 				; stop spawning, the spawn failed (maybe too many units of our fac are around already)
 				spawnedCount = maxBatchSize
 			endif
@@ -488,6 +488,8 @@ Function SpawnUnitBatch()
 		spawnedsLimit = GetMaxSpawnedUnitsAmount()
 		
 	endwhile
+
+	factionScript.DeployPendingUnits(moveDestAfterSpawn, IsOnAlert())
 EndFunction
 
 ; attempts to spawn a group of units at a specific point
@@ -501,7 +503,7 @@ Function SpawnUnitBatchAtLocation(ObjectReference spawnPoint, ObjectReference mo
 		int unitIndexToSpawn = GetUnitIndexToSpawn()
 
 		if unitIndexToSpawn >= 0
-			if SpawnUnitAtLocationWithDefaultFollowRank(unitIndexToSpawn, spawnPoint, moveDestAfterSpawn) == None
+			if SpawnUnitAtLocationWithDefaultFollowRank(unitIndexToSpawn, spawnPoint, moveDestAfterSpawn, false) == None
 				; stop spawning, the spawn failed (too many of our fac around?)
 				spawnedCount = maxBatchSize 
 			endif
@@ -515,6 +517,8 @@ Function SpawnUnitBatchAtLocation(ObjectReference spawnPoint, ObjectReference mo
 		spawnedsLimit = GetMaxSpawnedUnitsAmount()
 		
 	endwhile
+
+	factionScript.DeployPendingUnits(moveDestAfterSpawn, IsOnAlert())
 EndFunction
 
 Function SpawnRandomUnitAtPos(ObjectReference spawnPoint, ObjectReference targetLocation)
@@ -523,7 +527,7 @@ Function SpawnRandomUnitAtPos(ObjectReference spawnPoint, ObjectReference target
 		int indexToSpawn = GetUnitIndexToSpawn()
 
 		if indexToSpawn >= 0
-			SpawnUnitAtLocationWithDefaultFollowRank(indexToSpawn, spawnPoint, targetLocation)
+			SpawnUnitAtLocationWithDefaultFollowRank(indexToSpawn, spawnPoint, targetLocation, true)
 		endif
 		
 	endif
@@ -531,12 +535,12 @@ Function SpawnRandomUnitAtPos(ObjectReference spawnPoint, ObjectReference target
 EndFunction
 
 ; Override this if your default follow rank shouldn't be -1 (-1 means the unit should sandbox. Other indexes should follow the respective cmders)
-ReferenceAlias Function SpawnUnitAtLocationWithDefaultFollowRank(int unitIndex, ObjectReference spawnPoint, ObjectReference targetLocation)
-	return SpawnUnitAtLocation(unitIndex, spawnPoint, targetLocation, -1, IsOnAlert())
+ReferenceAlias Function SpawnUnitAtLocationWithDefaultFollowRank(int unitIndex, ObjectReference spawnPoint, ObjectReference targetLocation, bool moveNow)
+	return SpawnUnitAtLocation(unitIndex, spawnPoint, targetLocation, -1, IsOnAlert(), moveNow)
 EndFunction
 
-ReferenceAlias Function SpawnUnitAtLocation(int unitIndex, ObjectReference spawnPoint, ObjectReference targetLocation, int followRank, bool spawnAlerted)
-	ReferenceAlias spawnedUnit = factionScript.SpawnUnitForTroopContainer(self, unitIndex, spawnPoint, targetLocation, gameTimeOfLastSetup, followRank)
+ReferenceAlias Function SpawnUnitAtLocation(int unitIndex, ObjectReference spawnPoint, ObjectReference targetLocation, int followRank, bool spawnAlerted, bool moveNow)
+	ReferenceAlias spawnedUnit = factionScript.SpawnUnitForTroopContainer(self, unitIndex, spawnPoint, targetLocation, gameTimeOfLastSetup, followRank, moveNow)
 
 	if spawnedUnit != None
 		; add spawned unit index to spawneds list
