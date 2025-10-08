@@ -63,6 +63,8 @@ float timeSinceLastHostileCmderUpdate = 1.0
 SAB_CommanderScript[] Property NearbyCommanders Auto Hidden
 { references to the commanders currently either attacking or reinforcing this location }
 
+int lastNearbyCmderIndexCloseByUpdated = -1
+
 int topFilledNearbyCmderIndex = -1
 bool editingNearbyCmderIndexes = false
 int jKnownVacantNearbyCmderSlots = -1
@@ -327,8 +329,11 @@ bool function RunCloseByUpdate()
 
 	; if commanders are nearby, spawn their units around the loc, to try and make it as populated as it actually is,
 	; both inside and outside
-	if topFilledNearbyCmderIndex >= 0 
-		int i = topFilledNearbyCmderIndex
+	if topFilledNearbyCmderIndex >= 0
+		if lastNearbyCmderIndexCloseByUpdated < 0
+			lastNearbyCmderIndexCloseByUpdated = topFilledNearbyCmderIndex
+		endif
+		int i = lastNearbyCmderIndexCloseByUpdated
 		While (i >= 0)
 			SAB_CommanderScript InteractingCommander = NearbyCommanders[i]
 
@@ -340,6 +345,10 @@ bool function RunCloseByUpdate()
 					; "ambient units", just to populate the location
 					InteractingCommander.SpawnBesiegingUnitAtPos(GetMoveDestAfterSpawnForUnit(), -1, false, true)
 				endif
+
+				lastNearbyCmderIndexCloseByUpdated = i - 1
+				;break
+				i = -1
 			endif
 
 			i -= 1

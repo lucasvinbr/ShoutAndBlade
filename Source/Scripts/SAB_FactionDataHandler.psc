@@ -155,7 +155,7 @@ Function UpdateAllFactionQuestsAccordingToJMap()
                     Faction targetVanillaFac = GetVanillaFactionByName(entryKey)
 
                     if targetVanillaFac != None
-                        SAB_FactionQuests[i].SetRelationsWithFaction(targetVanillaFac, jMap.getInt(jRelationEntryMap, "RelationValue"))
+                        SAB_FactionQuests[i].SetIngameRelationsWithFaction(targetVanillaFac, jMap.getInt(jRelationEntryMap, "RelationValue"))
                     endif
                 endif
 

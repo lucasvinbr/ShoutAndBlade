@@ -92,7 +92,7 @@ endfunction
 ; 1 - Enemy
 ; 2 - Ally
 ; 3 - Friend
-Function SetRelationsWithFaction(Faction targetFaction, int relationType)
+Function SetIngameRelationsWithFaction(Faction targetFaction, int relationType)
 	; we use this just to be able to fetch the standing with getReaction
 	targetFaction.SetReaction(OurFaction, relationType)
 	OurFaction.SetReaction(targetFaction, relationType)
@@ -490,6 +490,10 @@ bool Function ValidateCmderReachedDestination(SAB_CommanderScript commander, str
 	return false
 EndFunction
 
+; true if at least one of dests a,b,c are set to this loc
+bool Function IsLocationOneOfThisFacsDestinations(SAB_LocationScript locScript)
+	return destinationScript_A == locScript || destinationScript_B == locScript || destinationScript_C == locScript
+EndFunction
 
 ; returns the total gold amount the faction gets in one "gold award cycle"
 int Function CalculateTotalGoldAward()
@@ -752,8 +756,16 @@ endfunction
 ; (optionally spawn only if we've got double the cmder spawn cost,
 ;  to make sure we've got enough money to give the cmder some units)
 ReferenceAlias Function TrySpawnCommander(float curGameTime, bool onlySpawnIfHasExtraMoney = false)
-	; find a spawn for the cmder
-	ObjectReference cmderSpawn = GetCmderSpawnPoint()
+	; find a spawn for the cmder.
+	; prioritize mod locations
+	SAB_LocationScript spawnLoc = GetLocationForCmderSpawn()
+	ObjectReference cmderSpawn = None
+
+	if(spawnLoc != None)
+		cmderSpawn = spawnLoc.GetInteriorSpawnPointIfPossible()
+	else
+		cmderSpawn = GetCmderSpawnPoint()
+	endif
 
 	if cmderSpawn == None
 		return None
@@ -804,6 +816,16 @@ ReferenceAlias Function TrySpawnCommander(float curGameTime, bool onlySpawnIfHas
 	; draw a map marker for this cmder!
 	if playerHandler
 		SetObjectiveDisplayed(cmderAliasID, true, false)
+	endif
+
+	; if spawned in a location, register cmder as nearby
+	if spawnLoc != None
+		; don't attack random locs like this if the player is in control!
+		; the player should have more control over their diplomacy
+		if !playerIsControllingDestinations
+			cmderAlias.RegisterAsNearLocation(spawnLoc)
+		endif
+		
 	endif
 
 	return cmderAlias
@@ -903,45 +925,49 @@ Function DeployPendingUnits(ObjectReference spawnPoint, bool setAlert)
 		return
 	endif
 
-	; if we're on alert, we should find an enemy to start fighting as soon as we spawn
-	Actor targetEnemy = none
-	SAB_CrowdReducer crowdReducer = DiplomacyDataHandler.PlayerDataHandler.PlayerCommanderScript.CrowdReducer
-	int jUnitsMap = crowdReducer.jLivingUnitsMap
-	int j = jIntMap.count(jUnitsMap)
-	int count = 0
+	; ; if we're on alert, we should find an enemy to start fighting as soon as we spawn
+	; Actor targetEnemy = none
+	; SAB_CrowdReducer crowdReducer = DiplomacyDataHandler.PlayerDataHandler.PlayerCommanderScript.CrowdReducer
+	; int jUnitsMap = crowdReducer.jLivingUnitsMap
+	; int j = jIntMap.count(jUnitsMap)
+	; int count = 0
 
-	; iterate over facs with living units, looking for an enemy fac, then get one of their units
-	while j > 0
-		j -= 1
-		int facIndexWithUnits = jIntMap.getNthKey(jUnitsMap, j)
-		int jFacUnitsArr = jIntMap.getObj(jUnitsMap, facIndexWithUnits)
-		int unitCount = jArray.count(jFacUnitsArr)
+	; ; iterate over facs with living units, looking for an enemy fac, then get one of their units
+	; while j > 0
+	; 	j -= 1
+	; 	int facIndexWithUnits = jIntMap.getNthKey(jUnitsMap, j)
+	; 	int jFacUnitsArr = jIntMap.getObj(jUnitsMap, facIndexWithUnits)
+	; 	int unitCount = jArray.count(jFacUnitsArr)
 		
-		if unitCount > 0
-			if DiplomacyDataHandler.AreFactionsEnemies(factionIndex, facIndexWithUnits)
-				targetEnemy = jArray.getForm(jFacUnitsArr, Utility.RandomInt(0, unitCount - 1)) as Actor
-			endif
-		endif
+	; 	if unitCount > 0
+	; 		if DiplomacyDataHandler.AreFactionsEnemies(factionIndex, facIndexWithUnits)
+	; 			targetEnemy = jArray.getForm(jFacUnitsArr, Utility.RandomInt(0, unitCount - 1)) as Actor
+	; 		endif
+	; 	endif
 		
 		
-		If targetEnemy != none
-			; break loop
-			j = -1
-		EndIf
+	; 	If targetEnemy != none && !targetEnemy.IsDead()
+	; 		; got good enemy! break loop
+	; 		j = -1
+	; 	EndIf
 
-	endwhile
+	; endwhile
 
 	while i > 0
 		i -= 1
 		Actor pendingUnit = jArray.getForm(jUnitsPendingDeploy, i) as Actor
+
 		pendingUnit.MoveTo(spawnPoint)
 		if setAlert
 			pendingUnit.SetAlert(true)
-			if targetEnemy != none
-				pendingUnit.StartCombat(targetEnemy)
-			endif
+			; if targetEnemy != none
+			; 	; pendingUnit.EnableAI(true)
+			; 	; pendingUnit.EvaluatePackage()
+			; 	; pendingUnit.StartCombat(targetEnemy)
+			; endif
 		endif
 		jArray.eraseIndex(jUnitsPendingDeploy, i)
+		
 	endwhile
 
 EndFunction
@@ -1081,6 +1107,34 @@ Function SetCmderSpawnLocation(ObjectReference targetLocationRef)
 		cmderSpawnIsSet = false
 	endif
 endFunction
+
+SAB_LocationScript function GetLocationForCmderSpawn()
+	int i = jArray.count(jOwnedLocationIndexesArray)
+
+	while i > 0
+		i -= 1
+		int locIndex = jArray.getInt(jOwnedLocationIndexesArray, i, -1)
+
+		if locIndex != -1
+			; cmders shouldn't spawn in a contested zone
+			SAB_LocationScript locScript = LocationDataHandler.GetLocationByIndex(locIndex)
+			if locScript != None && !locScript.IsBeingContested()
+				return locScript
+			endif
+		endif
+
+	endwhile
+
+	int numRandomAttempts = 0
+	while numRandomAttempts < 10
+		SAB_LocationScript pickedLoc = LocationDataHandler.GetRandomLocation()
+		if !pickedLoc.isNearby && !pickedLoc.IsBeingContested()
+			return pickedLoc
+		endif
+
+		numRandomAttempts += 1
+	endwhile
+endfunction
 
 ; returns a spawn point from one of our locations, or a random preset one if we don't control any location and we haven't set the fallback point
 ObjectReference function GetCmderSpawnPoint()

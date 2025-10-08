@@ -231,12 +231,15 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 
 					if locFaction != None && diploHandler.AreFactionsNeutral(ourFacIndex, locFaction.GetFactionIndex())
 						; don't just stand there, kill them!
-						diploHandler.GlobalReactToWarDeclaration \
-							(ourFacIndex, locFaction.GetFactionIndex())
+						; (unless it's a player-controlled fac and this loc isn't one of the targets)
+						if !factionScript.IsPlayerInControlOfThisFaction() || factionScript.IsLocationOneOfThisFacsDestinations(TargetLocationScript)
+							diploHandler.GlobalReactToWarDeclaration \
+								(ourFacIndex, locFaction.GetFactionIndex())
 
-						if factionScript.IsFactionEnabled()
-							Debug.Trace(factionScript.GetFactionName() + " has declared war against the " + locFaction.GetFactionName())
-							Debug.Notification(factionScript.GetFactionName() + " has declared war against the " + locFaction.GetFactionName())
+							if factionScript.IsFactionEnabled()
+								Debug.Trace(factionScript.GetFactionName() + " has declared war against the " + locFaction.GetFactionName())
+								Debug.Notification(factionScript.GetFactionName() + " has declared war against the " + locFaction.GetFactionName())
+							endif
 						endif
 					endif
 				endif
@@ -467,7 +470,7 @@ Function SpawnBesiegingUnitBatchAtLocation(ObjectReference moveDestAfterSpawn, i
 		
 	endwhile
 
-	factionScript.DeployPendingUnits(spawnPoint, IsOnAlert())
+	factionScript.DeployPendingUnits(spawnPoint, spawnAlerted)
 EndFunction
 
 ; sets the "confidence faction" rank for this cmder. The higher the more confidence
@@ -705,13 +708,13 @@ int Function GetMaxOwnedUnitsAmount()
 EndFunction
 
 float Function GetIsNearbyDistance()
-	int nearbyCmders = CloseByUpdater.CmderUpdater.numActives
+	; int nearbyCmders = CloseByUpdater.CmderUpdater.numActives
 
-	if nearbyCmders >= JDB.solveInt(".ShoutAndBlade.cmderOptions.nearbyCmdersLimit", 5)
-		return JDB.solveFlt(".ShoutAndBlade.cmderOptions.nearbyDistanceDividend", 16384.0) / nearbyCmders
-	endif
+	; if nearbyCmders >= JDB.solveInt(".ShoutAndBlade.cmderOptions.nearbyCmdersLimit", 5)
+	; 	return JDB.solveFlt(".ShoutAndBlade.cmderOptions.nearbyDistanceDividend", 16384.0) / nearbyCmders
+	; endif
 
-	return JDB.solveFlt(".ShoutAndBlade.cmderOptions.isNearbyDistance", 4096.0)
+	return JDB.solveFlt(".ShoutAndBlade.cmderOptions.isNearbyDistance", 6000.0)
 EndFunction
 
 int Function GetMaxSpawnedUnitsAmount()

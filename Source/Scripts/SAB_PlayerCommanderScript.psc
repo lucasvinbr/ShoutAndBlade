@@ -157,6 +157,7 @@ ReferenceAlias Function SpawnUnitAtLocation(int unitIndex, ObjectReference spawn
 			; if we're on alert, we should find an enemy to start fighting as soon as we spawn
 			Actor targetEnemy = playerActor.GetCombatTarget()
 			if targetEnemy != None && targetEnemy.IsHostileToActor(playerActor)
+				unitActor.EnableAI(true)
 				unitActor.StartCombat(targetEnemy)
 			endif
 		endif

@@ -240,12 +240,23 @@ state MAIN_TEST_LOAD
 
         string diploFacsFilePath = JContainers.userDirectory() + "SAB/diplomacyData_factions.json"
         string diploPlayerFilePath = JContainers.userDirectory() + "SAB/diplomacyData_player.json"
+        string diploFacLocksPath = JContainers.userDirectory() + "SAB/diplomacyData_factions_locks.json"
+        string diploPlayerLocksPath = JContainers.userDirectory() + "SAB/diplomacyData_player_locks.json"
         int jReadDiploFacsData = JValue.readFromFile(diploFacsFilePath)
         int jReadDiploPlyrData = JValue.readFromFile(diploPlayerFilePath)
+        int jReadDiploFacLocks = jValue.readFromFile(diploFacLocksPath)
+        int jReadPlayerLocks = jValue.readFromFile(diploPlayerLocksPath)
         if jReadDiploFacsData != 0 && jReadDiploPlyrData != 0
-            MainQuest.DiplomacyHandler.jSABFactionRelationsMap = JValue.releaseAndRetain(MainQuest.DiplomacyHandler.jSABFactionRelationsMap, jReadDiploFacsData, "ShoutAndBlade")
-            MainQuest.DiplomacyHandler.jSABPlayerRelationsMap = JValue.releaseAndRetain(MainQuest.DiplomacyHandler.jSABPlayerRelationsMap, jReadDiploPlyrData, "ShoutAndBlade")
-            MainQuest.DiplomacyHandler.UpdateAllRelationsAccordingToJMaps()
+            SAB_DiplomacyDataHandler diploHandler = MainQuest.DiplomacyHandler
+            diploHandler.jSABFactionRelationsMap = JValue.releaseAndRetain(diploHandler.jSABFactionRelationsMap, jReadDiploFacsData, "ShoutAndBlade")
+            diploHandler.jSABPlayerRelationsMap = JValue.releaseAndRetain(diploHandler.jSABPlayerRelationsMap, jReadDiploPlyrData, "ShoutAndBlade")
+            diploHandler.UpdateAllRelationsAccordingToJMaps()
+            If jReadDiploFacLocks != 0
+                diploHandler.jSABLockedFactionRelationsMap = jValue.releaseAndRetain(diploHandler.jSABLockedFactionRelationsMap, jReadDiploFacLocks, "ShoutAndBlade")
+            EndIf
+            if jReadPlayerLocks != 0
+                diploHandler.jSABLockedPlayerRelationsList = jValue.releaseAndRetain(diploHandler.jSABLockedPlayerRelationsList, jReadPlayerLocks, "ShoutAndBlade")
+            endif
             loadSuccesses += 1
             Debug.Notification("SAB: diplomacy data load complete! (" + loadSuccesses + " of " + expectedLoadSuccesses + ")")
         else

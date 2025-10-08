@@ -193,7 +193,7 @@ state BUTTON_CLAIMLOC
         if locref
             if locref.factionScript == None
                 locref.BeTakenByFaction(playerFac)
-                MainPage.MainQuest.DiplomacyHandler.AddOrSubtractPlayerRelationWithFac(playerFac.GetFactionIndex(), JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.relAdd_playerTookLocForUs", 0.5))
+                MainPage.MainQuest.DiplomacyHandler.AddOrSubtractPlayerRelationWithFac(playerFac.GetFactionIndex(), JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.relAdd_playerTookLocForUs", 0.5), false)
                 ShowMessage("$sab_mcm_curloc_popup_zone_claimed", false)
                 ForcePageReset()
             else

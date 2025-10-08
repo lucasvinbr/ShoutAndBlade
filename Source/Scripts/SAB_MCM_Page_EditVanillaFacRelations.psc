@@ -235,7 +235,7 @@ Function SetActualFactionRelations(string facName, int relationValue)
 
     if targetVanillaFac != None
         SAB_FactionScript curFacScript = MainPage.MainQuest.FactionDataHandler.SAB_FactionQuests[editedFactionIndex]
-        curFacScript.SetRelationsWithFaction(targetVanillaFac, relationValue)
+        curFacScript.SetIngameRelationsWithFaction(targetVanillaFac, relationValue)
     endif
     
 EndFunction

@@ -333,7 +333,7 @@ state PLYR_CUR_FAC_TAKE_GOLD
             if isAlly
                 facScript.AddGold(-goldAmount)
                 Game.GetPlayer().AddItem(gold, goldAmount)
-                MainPage.MainQuest.DiplomacyHandler.AddOrSubtractPlayerRelationWithFac(playerFactionIndex, JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.relDmg_playerTookGold", -0.1))
+                MainPage.MainQuest.DiplomacyHandler.AddOrSubtractPlayerRelationWithFac(playerFactionIndex, JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.relDmg_playerTookGold", -0.1), false)
                 ForcePageReset()
             else
                 ShowMessage("$sab_mcm_myfaction_popup_cant_takegold_not_friendly", false)
@@ -362,7 +362,7 @@ state PLYR_CUR_FAC_GIVE_GOLD
         If playerGold >= goldAmount
             facScript.AddGold(goldAmount)
             Game.GetPlayer().RemoveItem(gold, goldAmount)
-            MainPage.MainQuest.DiplomacyHandler.AddOrSubtractPlayerRelationWithFac(playerFactionIndex, JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.relAdd_playerGaveGold", 0.1))
+            MainPage.MainQuest.DiplomacyHandler.AddOrSubtractPlayerRelationWithFac(playerFactionIndex, JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.relAdd_playerGaveGold", 0.1), false)
             ForcePageReset()
         else
             ShowMessage("$sab_mcm_myfaction_popup_cant_givegold_not_enough", false)
@@ -532,7 +532,7 @@ Function SetActualFactionRelations(string facName, int relationValue)
 
     if targetVanillaFac != None
         SAB_FactionScript curFacScript = MainPage.MainQuest.FactionDataHandler.SAB_FactionQuests[playerFactionIndex]
-        curFacScript.SetRelationsWithFaction(targetVanillaFac, relationValue)
+        curFacScript.SetIngameRelationsWithFaction(targetVanillaFac, relationValue)
     endif
     
 EndFunction
