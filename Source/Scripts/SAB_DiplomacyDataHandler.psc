@@ -277,8 +277,7 @@ bool Function AreFactionsNeutral(int factionOneIndex, int factionTwoIndex)
 
     float relValue = GetRelationBetweenFacs(factionOneIndex, factionTwoIndex)
 
-    return (relValue >= JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.enemyRelationLevel", 0.0) && \
-        relValue < JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.allyRelationLevel", 1.0)) 
+    return (relValue >= JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.enemyRelationLevel", 0.0) && relValue < JDB.solveFlt(".ShoutAndBlade.diplomacyOptions.allyRelationLevel", 1.0)) 
 EndFunction
 
 ; uses actual faction standings to check if factions are allied or at least friendly.

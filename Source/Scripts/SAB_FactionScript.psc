@@ -221,10 +221,7 @@ Function RunDestinationsUpdate(float curGameTime)
 	endif
 
 	; A should be an attack destination!
-	if curGameTime - gameTimeOfLastDestinationChange_A > gameTimeBeforeChangeDestination || \
-		destinationScript_A == None || \
-		DiplomacyDataHandler.AreFactionsInGoodStanding(self, destinationScript_A.factionScript) || \
-		destinationScript_A.isEnabled == false
+	if curGameTime - gameTimeOfLastDestinationChange_A > gameTimeBeforeChangeDestination || destinationScript_A == None || DiplomacyDataHandler.AreFactionsInGoodStanding(self, destinationScript_A.factionScript) || destinationScript_A.isEnabled == false
 
 		targetLocIndex = jArray.getInt(jAttackTargetsArray, Utility.RandomInt(0, attackTargetsCount - 1), -1)
 
@@ -247,10 +244,7 @@ Function RunDestinationsUpdate(float curGameTime)
 	endif
 
 	; B can be an attack or defend destination. If no "good" targets are available, fall back to a random loc, like A
-	if curGameTime - gameTimeOfLastDestinationChange_B > gameTimeBeforeChangeDestination || \
-		 destinationScript_B == None || destinationScript_B == destinationScript_A || \
-		 !destinationScript_B.IsBeingContested() || \
-		 destinationScript_B.isEnabled == false
+	if curGameTime - gameTimeOfLastDestinationChange_B > gameTimeBeforeChangeDestination || destinationScript_B == None || destinationScript_B == destinationScript_A || !destinationScript_B.IsBeingContested() || destinationScript_B.isEnabled == false
 
 		targetLocIndex = jArray.getInt(jDefenseTargetsArray, Utility.RandomInt(0, jArray.count(jDefenseTargetsArray) - 1), -1)
 
@@ -277,10 +271,7 @@ Function RunDestinationsUpdate(float curGameTime)
 	endif
 
 	; C is like B, but flipped: attack if any target is available, defend if not
-	if curGameTime - gameTimeOfLastDestinationChange_C > gameTimeBeforeChangeDestination || \
-		destinationScript_C == None || destinationScript_C.isEnabled == false || \
-		!destinationScript_C.IsBeingContested() || \
-		destinationScript_C == destinationScript_B
+	if curGameTime - gameTimeOfLastDestinationChange_C > gameTimeBeforeChangeDestination || destinationScript_C == None || destinationScript_C.isEnabled == false || !destinationScript_C.IsBeingContested() || destinationScript_C == destinationScript_B
 
 		targetLocIndex = jArray.getInt(jAttackTargetsArray, Utility.RandomInt(0, attackTargetsCount - 1), -1)
 		
@@ -348,8 +339,7 @@ int Function FindAttackTargets()
 
 							if locIndex != -1 && nearbyLocScript != None && nearbyLocScript.isEnabled
 								; if we don't own the location with index locIndex, add it as a candidate for attacking
-								if jArray.findInt(jOwnedLocationIndexesArray, locIndex) == -1 && \
-									!DiplomacyDataHandler.AreFactionsInGoodStanding(self, nearbyLocScript.factionScript)
+								if jArray.findInt(jOwnedLocationIndexesArray, locIndex) == -1 && !DiplomacyDataHandler.AreFactionsInGoodStanding(self, nearbyLocScript.factionScript)
 
 									JArray.addInt(jPossibleAttackTargets, locIndex)
 								endif
@@ -594,19 +584,13 @@ Function ReactToLocationUnderAttack(SAB_LocationScript attackedLoc, float curGam
 			return
 		endif
 
-		if destinationScript_B == None || destinationScript_B.factionScript != self || \
-				(destinationScript_B.factionScript == self && !destinationScript_B.IsBeingContested()) || \
-				destinationScript_B.isEnabled == false
+		if destinationScript_B == None || destinationScript_B.factionScript != self || (destinationScript_B.factionScript == self && !destinationScript_B.IsBeingContested()) || destinationScript_B.isEnabled == false
 
 			destinationScript_B = attackedLoc
 			CmderDestination_B.GetReference().MoveTo(destinationScript_B.MoveDestination)
 			gameTimeOfLastDestinationChange_B = curGameTime
 		
-		elseif destinationScript_B != attackedLoc && \
-				(destinationScript_C == None || destinationScript_C.isEnabled == false || \
-				destinationScript_C.factionScript != self || \
-				(destinationScript_C.factionScript == self && !destinationScript_C.IsBeingContested()) || \
-				destinationScript_C == destinationScript_B)
+		elseif destinationScript_B != attackedLoc && (destinationScript_C == None || destinationScript_C.isEnabled == false || destinationScript_C.factionScript != self || (destinationScript_C.factionScript == self && !destinationScript_C.IsBeingContested()) || destinationScript_C == destinationScript_B)
 		
 			destinationScript_C = attackedLoc
 			CmderDestination_C.GetReference().MoveTo(destinationScript_C.MoveDestination)

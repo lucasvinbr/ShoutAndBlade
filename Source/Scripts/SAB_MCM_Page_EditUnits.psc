@@ -103,8 +103,7 @@ Function SetupEditUnitsPage()
     
     AddHeaderOption("$sab_mcm_unitedit_header_selectunit")
     AddSliderOptionST("UNITEDIT_MENU_PAGE", "$sab_mcm_unitedit_slider_menupage", MainPage.editedUnitsMenuPage + 1)
-    AddMenuOptionST("UNITEDIT_CUR_UNIT", "$sab_mcm_unitedit_menu_currentunit", \
-        ((editedUnitIndex + 1) as string) + " - " + JMap.getStr(jEditedUnitData, "Name", "Recruit"))
+    AddMenuOptionST("UNITEDIT_CUR_UNIT", "$sab_mcm_unitedit_menu_currentunit", ((editedUnitIndex + 1) as string) + " - " + JMap.getStr(jEditedUnitData, "Name", "Recruit"))
     
     AddHeaderOption("$sab_mcm_unitedit_header_baseinfo")
     AddInputOptionST("UNITEDIT_NAME", "$sab_mcm_unitedit_input_unitname", JMap.getStr(jEditedUnitData, "Name", "Recruit"))
@@ -197,8 +196,7 @@ Function SetupEditUnitsPage()
             string indexString = i as string
             AddTextOptionST("UNITEDIT_UPGRADES_REMOVE___" + indexString, "$sab_mcm_unitedit_button_upgrade_option_remove", (i + 1) as string)
             AddSliderOptionST("UNITEDIT_UPGRADES_MENU_PAGE___TROOPLINE_ENTRY_" + indexString, "$sab_mcm_unitedit_slider_menupage", upgradeOptionsMenuPage + 1)
-            AddMenuOptionST("UNITEDIT_UPGRADES_SELECT___" + indexString, "$sab_mcm_unitedit_menu_upgrade_option_select", \
-                MainPage.GetMCMUnitDisplayByUnitIndex(jArray.getInt(jEditedUnitUpgradesArray, i, 0)))
+            AddMenuOptionST("UNITEDIT_UPGRADES_SELECT___" + indexString, "$sab_mcm_unitedit_menu_upgrade_option_select", MainPage.GetMCMUnitDisplayByUnitIndex(jArray.getInt(jEditedUnitUpgradesArray, i, 0)))
             AddEmptyOption()
 
             i += 1
@@ -367,16 +365,11 @@ state UNITEDIT_OUTFIT
 
     event OnSelectST(string state_id)
         ; run a raceGenders update on the unit and the outfitter guy, to avoid spawning a "raceless" guy
-        MainPage.MainQuest.UnitDataHandler.SetupRaceGendersLvlActorAccordingToUnitData \ 
-            (jEditedUnitData, (MainPage.MainQuest.UnitDataHandler.SAB_UnitAllowedRacesGenders.GetAt(editedUnitIndex) as LeveledActor))
-        MainPage.MainQuest.UnitDataHandler.SetupRaceGendersLvlActorAccordingToUnitData \ 
-            (jEditedUnitData, MainPage.MainQuest.UnitDataHandler.SAB_UnitLooks_TestGuy)
+        MainPage.MainQuest.UnitDataHandler.SetupRaceGendersLvlActorAccordingToUnitData(jEditedUnitData, (MainPage.MainQuest.UnitDataHandler.SAB_UnitAllowedRacesGenders.GetAt(editedUnitIndex) as LeveledActor))
+        MainPage.MainQuest.UnitDataHandler.SetupRaceGendersLvlActorAccordingToUnitData(jEditedUnitData, MainPage.MainQuest.UnitDataHandler.SAB_UnitLooks_TestGuy)
 
         ; also set the test guy's outfit to the target unit's outfit
-        MainPage.MainQuest.UnitDataHandler.SetupGearListAccordingToUnitData \
-            (jEditedUnitData, \
-            MainPage.MainQuest.UnitDataHandler.SAB_UnitGear_TestGuy, \
-            MainPage.MainQuest.UnitDataHandler.SAB_UnitDuplicateItems_TestGuy)
+        MainPage.MainQuest.UnitDataHandler.SetupGearListAccordingToUnitData(jEditedUnitData, MainPage.MainQuest.UnitDataHandler.SAB_UnitGear_TestGuy, MainPage.MainQuest.UnitDataHandler.SAB_UnitDuplicateItems_TestGuy)
 
         MainPage.MainQuest.SpawnerScript.SpawnCustomizationGuy(jEditedUnitData, editedUnitIndex)
         ShowMessage("$sab_mcm_unitedit_popup_msg_outfitguyspawned", false)
@@ -846,10 +839,8 @@ Function SetEditedUnitRaceMenuValue(string jUnitMapKey, int value)
     JMap.setInt(jEditedUnitData, jUnitMapKey, value)
     ; JMap.setInt(SAB_MCM.SAB_Main.UnitDataHandler.jTestGuyData, jUnitMapKey, value)
 
-    MainPage.MainQuest.UnitDataHandler.SetupRaceGendersLvlActorAccordingToUnitData \ 
-        (jEditedUnitData, MainPage.MainQuest.UnitDataHandler.SAB_UnitAllowedRacesGenders.GetAt(editedUnitIndex) as LeveledActor)
-    ; SAB_MCM.SAB_Main.UnitDataHandler.SetupRaceGendersLvlActorAccordingToUnitData \ 
-    ;     (SAB_MCM.SAB_Main.UnitDataHandler.jTestGuyData, SAB_MCM.SAB_Main.UnitDataHandler.SAB_UnitLooks_TestGuy)
+    MainPage.MainQuest.UnitDataHandler.SetupRaceGendersLvlActorAccordingToUnitData (jEditedUnitData, MainPage.MainQuest.UnitDataHandler.SAB_UnitAllowedRacesGenders.GetAt(editedUnitIndex) as LeveledActor)
+    ; SAB_MCM.SAB_Main.UnitDataHandler.SetupRaceGendersLvlActorAccordingToUnitData(SAB_MCM.SAB_Main.UnitDataHandler.jTestGuyData, SAB_MCM.SAB_Main.UnitDataHandler.SAB_UnitLooks_TestGuy)
     
 
     SetMenuOptionValueST(unitRaceEditOptions[value])
@@ -869,8 +860,7 @@ Function SetEditedUnitAddonRaceMenuValue(string raceId, int value)
         jMap.removeKey(jUnitRaceAddonsMap, raceId)
     EndIf
 
-    MainPage.MainQuest.UnitDataHandler.SetupRaceGendersLvlActorAccordingToUnitData \ 
-        (jEditedUnitData, MainPage.MainQuest.UnitDataHandler.SAB_UnitAllowedRacesGenders.GetAt(editedUnitIndex) as LeveledActor)
+    MainPage.MainQuest.UnitDataHandler.SetupRaceGendersLvlActorAccordingToUnitData(jEditedUnitData, MainPage.MainQuest.UnitDataHandler.SAB_UnitAllowedRacesGenders.GetAt(editedUnitIndex) as LeveledActor)
 
     SetMenuOptionValueST(unitRaceEditOptions[value])
 EndFunction

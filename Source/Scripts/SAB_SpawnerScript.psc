@@ -70,10 +70,7 @@ Actor Function SpawnCustomizationGuy( int jUnitDataMap, int unitIndex )
 	spawnedCustomizationGuy.AllowPCDialogue(true)
 
 	OutfitGuyAlias.ForceRefTo(spawnedCustomizationGuy)
-	(OutfitGuyAlias as SAB_OutfitGuyStorage).SetupStorage \
-		(UnitDataHandler.SAB_UnitGearSets.GetAt(unitIndex) as LeveledItem, \
-		UnitDataHandler.SAB_UnitDuplicateItemSets.GetAt(unitIndex) as LeveledItem, \
-		 jUnitDataMap)
+	(OutfitGuyAlias as SAB_OutfitGuyStorage).SetupStorage(UnitDataHandler.SAB_UnitGearSets.GetAt(unitIndex) as LeveledItem, UnitDataHandler.SAB_UnitDuplicateItemSets.GetAt(unitIndex) as LeveledItem, jUnitDataMap)
 
 	UpdateCustomizationGuyFollowFaction()
 

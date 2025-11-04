@@ -59,11 +59,9 @@ Function SetupPage()
             JArray.setObj(jFactionDatasArray, editedFactionIndex, jEditedFactionData)
         endif
 
-        AddMenuOptionST("FAC_EDIT_CUR_FAC", "$sab_mcm_vanillafacrel_menu_selectedfac", \
-            (MainPage.GetMCMFactionDisplayByFactionIndex(editedFactionIndex, jEditedFactionData)))
+        AddMenuOptionST("FAC_EDIT_CUR_FAC", "$sab_mcm_vanillafacrel_menu_selectedfac", (MainPage.GetMCMFactionDisplayByFactionIndex(editedFactionIndex, jEditedFactionData)))
     else
-        AddMenuOptionST("FAC_EDIT_CUR_FAC", "$sab_mcm_vanillafacrel_menu_selectedfac", \
-            "$sab_mcm_diplomacy_menu_entry_option_player")
+        AddMenuOptionST("FAC_EDIT_CUR_FAC", "$sab_mcm_vanillafacrel_menu_selectedfac", "$sab_mcm_diplomacy_menu_entry_option_player")
     endif
 
 

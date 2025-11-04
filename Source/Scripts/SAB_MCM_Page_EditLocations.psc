@@ -155,8 +155,7 @@ Function SetupPage()
     ; - set cur garrison to starting garrison
     AddHeaderOption("$sab_mcm_locationedit_header_editstartgarrison")
     AddSliderOptionST("LOC_EDIT_UNIT_MENU_PAGE___STARTGARRISON", "$sab_mcm_unitedit_slider_menupage", MainPage.editedUnitsMenuPage + 1)
-    AddMenuOptionST("LOC_EDIT_UNIT_RECRUIT_MENU", "$sab_mcm_locationedit_menu_garrunit", \
-        MainPage.GetMCMUnitDisplayByUnitIndex(unitToAddToStartingGarr))
+    AddMenuOptionST("LOC_EDIT_UNIT_RECRUIT_MENU", "$sab_mcm_locationedit_menu_garrunit", MainPage.GetMCMUnitDisplayByUnitIndex(unitToAddToStartingGarr))
     AddSliderOptionST("LOC_EDIT_UNIT_GARR_SLIDER", "$sab_mcm_locationedit_slider_garrunit_add", 0, "")
 
     AddEmptyOption()

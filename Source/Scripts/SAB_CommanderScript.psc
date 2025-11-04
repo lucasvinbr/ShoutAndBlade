@@ -233,8 +233,7 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 						; don't just stand there, kill them!
 						; (unless it's a player-controlled fac and this loc isn't one of the targets)
 						if !factionScript.IsPlayerInControlOfThisFaction() || factionScript.IsLocationOneOfThisFacsDestinations(TargetLocationScript)
-							diploHandler.GlobalReactToWarDeclaration \
-								(ourFacIndex, locFaction.GetFactionIndex())
+							diploHandler.GlobalReactToWarDeclaration(ourFacIndex, locFaction.GetFactionIndex())
 
 							if factionScript.IsFactionEnabled()
 								Debug.Trace(factionScript.GetFactionName() + " has declared war against the " + locFaction.GetFactionName())
@@ -287,19 +286,16 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 						endif
 					else
 						; if the player is nearby but the location is empty, take it
-						if locFaction == None || \
-							(locIsHostileToUs && TargetLocationScript.totalOwnedUnitsAmount <= 0)
+						if locFaction == None || (locIsHostileToUs && TargetLocationScript.totalOwnedUnitsAmount <= 0)
 
 							; TargetLocationScript.InteractingCommander = self
 							TargetLocationScript.BeTakenByFaction(factionScript, true)
 							TryTransferUnitsToAnotherContainer(TargetLocationScript)
 						else
 							; if the player is nearby, the location is occupied and we are neutral to the owners... it's time to stop being neutral
-							if locFaction != None && \
-								diploHandler.AreFactionsNeutral(ourFacIndex, locFaction.GetFactionIndex())
+							if locFaction != None && diploHandler.AreFactionsNeutral(ourFacIndex, locFaction.GetFactionIndex())
 								
-								diploHandler.GlobalReactToWarDeclaration \
-									(ourFacIndex, locFaction.GetFactionIndex())
+								diploHandler.GlobalReactToWarDeclaration(ourFacIndex, locFaction.GetFactionIndex())
 
 								if factionScript.IsFactionEnabled()
 									Debug.Trace(factionScript.GetFactionName() + " has declared war against the " + locFaction.GetFactionName())
@@ -407,8 +403,7 @@ ObjectReference Function GetMoveDestAfterSpawnForUnit()
 		endif
 
 		if moveDestAfterSpawn == None
-			moveDestAfterSpawn = Game.FindRandomReferenceOfAnyTypeInListFromRef\
-				(factionScript.LocationDataHandler.SAB_ObjectsToUseAsSpawnsList, meActor, 1500)
+			moveDestAfterSpawn = Game.FindRandomReferenceOfAnyTypeInListFromRef(factionScript.LocationDataHandler.SAB_ObjectsToUseAsSpawnsList, meActor, 1500)
 		endif
 
 		if moveDestAfterSpawn == None
@@ -729,8 +724,7 @@ int Function GetMaxSpawnedUnitsAmount()
 
 		if nearbyCmders >= JDB.solveInt(".ShoutAndBlade.cmderOptions.nearbyCmdersLimit", 5)
 			
-			; debug.Trace("Cmder GetMaxSpawnedUnitsAmount: in combat and above nearbyCmdersLimit. MaxAmount: " + \
-			; 				(JDB.solveInt(".ShoutAndBlade.cmderOptions.combatSpawnsDividend", 20) / nearbyCmders))
+			; debug.Trace("Cmder GetMaxSpawnedUnitsAmount: in combat and above nearbyCmdersLimit. MaxAmount: " + (JDB.solveInt(".ShoutAndBlade.cmderOptions.combatSpawnsDividend", 20) / nearbyCmders))
 			int limitedMax = JDB.solveInt(".ShoutAndBlade.cmderOptions.combatSpawnsDividend", 20) / nearbyCmders
 
 			if limitedMax < baseCombatMax
@@ -738,12 +732,10 @@ int Function GetMaxSpawnedUnitsAmount()
 			endif
 		endif
 
-		; debug.Trace("Cmder GetMaxSpawnedUnitsAmount: in combat. MaxAmount: " + \
-		; 					(JDB.solveInt(".ShoutAndBlade.cmderOptions.maxSpawnsInCombat", 8)))
+		; debug.Trace("Cmder GetMaxSpawnedUnitsAmount: in combat. MaxAmount: " + (JDB.solveInt(".ShoutAndBlade.cmderOptions.maxSpawnsInCombat", 8)))
 		return baseCombatMax
 	else
-		; debug.Trace("Cmder GetMaxSpawnedUnitsAmount: peaceful. MaxAmount: " + \
-		; 					(JDB.solveInt(".ShoutAndBlade.cmderOptions.maxSpawnsOutsideCombat", 6)))
+		; debug.Trace("Cmder GetMaxSpawnedUnitsAmount: peaceful. MaxAmount: " + (JDB.solveInt(".ShoutAndBlade.cmderOptions.maxSpawnsOutsideCombat", 6)))
 		return JDB.solveInt(".ShoutAndBlade.cmderOptions.maxSpawnsOutsideCombat", 6)
 	endif
 EndFunction

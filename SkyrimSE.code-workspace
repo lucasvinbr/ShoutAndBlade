@@ -9,6 +9,6 @@
         "papyrus.skyrimSpecialEdition.enabled": true,
         "papyrus.fallout4.enabled": false,
         "papyrus.skyrim.enabled": false,
-        "papyrus.skyrimSpecialEdition.installPath": "F:\\SteamLibrary\\steamapps\\common\\Skyrim Special Edition"
+        "papyrus.skyrimSpecialEdition.installPath": "/home/lucas/.steam/root/steamapps/common/Skyrim Special Edition"
     }
 }

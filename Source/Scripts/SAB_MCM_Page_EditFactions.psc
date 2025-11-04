@@ -72,8 +72,7 @@ Function SetupPage()
 
     
     AddHeaderOption("$sab_mcm_factionedit_header_selectfac")
-    AddMenuOptionST("FAC_EDIT_CUR_FAC", "$sab_mcm_factionedit_menu_currentfac", \
-        (MainPage.GetMCMFactionDisplayByFactionIndex(editedFactionIndex, jEditedFactionData)))
+    AddMenuOptionST("FAC_EDIT_CUR_FAC", "$sab_mcm_factionedit_menu_currentfac", (MainPage.GetMCMFactionDisplayByFactionIndex(editedFactionIndex, jEditedFactionData)))
     
     AddHeaderOption("$sab_mcm_unitedit_header_baseinfo")
     AddInputOptionST("FAC_EDIT_NAME", "$sab_mcm_factionedit_input_factionname", JMap.getStr(jEditedFactionData, "Name", "Faction"))
@@ -83,13 +82,11 @@ Function SetupPage()
 
     AddHeaderOption("$sab_mcm_factionedit_header_selectcmder")
     AddSliderOptionST("FAC_EDIT_UNIT_MENU_PAGE___CMDER", "$sab_mcm_unitedit_slider_menupage", MainPage.editedUnitsMenuPage + 1)
-    AddMenuOptionST("FAC_EDIT_UNIT_CMDER_MENU", "$sab_mcm_factionedit_menu_cmderunit", \
-        MainPage.GetMCMUnitDisplayByUnitIndex(JMap.getInt(jEditedFactionData, "CmderUnitIndex", 0)))
+    AddMenuOptionST("FAC_EDIT_UNIT_CMDER_MENU", "$sab_mcm_factionedit_menu_cmderunit", MainPage.GetMCMUnitDisplayByUnitIndex(JMap.getInt(jEditedFactionData, "CmderUnitIndex", 0)))
 
     AddHeaderOption("$sab_mcm_factionedit_header_selectrecruit")
     AddSliderOptionST("FAC_EDIT_UNIT_MENU_PAGE___RECRUIT", "$sab_mcm_unitedit_slider_menupage", MainPage.editedUnitsMenuPage + 1)
-    AddMenuOptionST("FAC_EDIT_UNIT_RECRUIT_MENU", "$sab_mcm_factionedit_menu_recruitunit", \
-        MainPage.GetMCMUnitDisplayByUnitIndex(JMap.getInt(jEditedFactionData, "RecruitUnitIndex", 0)))
+    AddMenuOptionST("FAC_EDIT_UNIT_RECRUIT_MENU", "$sab_mcm_factionedit_menu_recruitunit", MainPage.GetMCMUnitDisplayByUnitIndex(JMap.getInt(jEditedFactionData, "RecruitUnitIndex", 0)))
 
     AddEmptyOption()
     AddTextOptionST("FAC_EDIT_SAVE", "$sab_mcm_factionedit_button_save", "")

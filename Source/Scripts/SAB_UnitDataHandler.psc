@@ -115,26 +115,16 @@ Function SetupRaceGendersLvlActorAccordingToUnitData(int jUnitData, LeveledActor
 
     int addedEntries = 0
 
-    addedEntries = addedEntries + AddRaceGenderToLvlActorAccordingToValue \
-     (JMap.getInt(jUnitData, "RaceBreton", 0), lvlActor, SAB_LooksList_Breton_M, SAB_LooksList_Breton_F)
-    addedEntries = addedEntries + AddRaceGenderToLvlActorAccordingToValue \
-     (JMap.getInt(jUnitData, "RaceImperial", 0), lvlActor, SAB_LooksList_Imperial_M, SAB_LooksList_Imperial_F)
-    addedEntries = addedEntries + AddRaceGenderToLvlActorAccordingToValue \ 
-     (JMap.getInt(jUnitData, "RaceNord", 0), lvlActor, SAB_LooksList_Nord_M, SAB_LooksList_Nord_F)
-    addedEntries = addedEntries + AddRaceGenderToLvlActorAccordingToValue \
-     (JMap.getInt(jUnitData, "RaceRedguard", 0), lvlActor, SAB_LooksList_Redguard_M, SAB_LooksList_Redguard_F)
-    addedEntries = addedEntries + AddRaceGenderToLvlActorAccordingToValue \
-     (JMap.getInt(jUnitData, "RaceDarkElf", 0), lvlActor, SAB_LooksList_DarkElf_M, SAB_LooksList_DarkElf_F)
-    addedEntries = addedEntries + AddRaceGenderToLvlActorAccordingToValue \
-     (JMap.getInt(jUnitData, "RaceHighElf", 0), lvlActor, SAB_LooksList_HighElf_M, SAB_LooksList_HighElf_F)
-    addedEntries = addedEntries + AddRaceGenderToLvlActorAccordingToValue \ 
-     (JMap.getInt(jUnitData, "RaceWoodElf", 0), lvlActor, SAB_LooksList_WoodElf_M, SAB_LooksList_WoodElf_F)
-    addedEntries = addedEntries + AddRaceGenderToLvlActorAccordingToValue \
-     (JMap.getInt(jUnitData, "RaceArgonian", 0), lvlActor, SAB_LooksList_Argonian_M, SAB_LooksList_Argonian_F)
-    addedEntries = addedEntries + AddRaceGenderToLvlActorAccordingToValue \
-     (JMap.getInt(jUnitData, "RaceKhajiit", 0), lvlActor, SAB_LooksList_Khajiit_M, SAB_LooksList_Khajiit_F)
-    addedEntries = addedEntries + AddRaceGenderToLvlActorAccordingToValue \
-     (JMap.getInt(jUnitData, "RaceOrc", 0), lvlActor, SAB_LooksList_Orc_M, SAB_LooksList_Orc_F)
+    addedEntries = addedEntries + AddRaceGenderToLvlActorAccordingToValue(JMap.getInt(jUnitData, "RaceBreton", 0), lvlActor, SAB_LooksList_Breton_M, SAB_LooksList_Breton_F)
+    addedEntries = addedEntries + AddRaceGenderToLvlActorAccordingToValue(JMap.getInt(jUnitData, "RaceImperial", 0), lvlActor, SAB_LooksList_Imperial_M, SAB_LooksList_Imperial_F)
+    addedEntries = addedEntries + AddRaceGenderToLvlActorAccordingToValue(JMap.getInt(jUnitData, "RaceNord", 0), lvlActor, SAB_LooksList_Nord_M, SAB_LooksList_Nord_F)
+    addedEntries = addedEntries + AddRaceGenderToLvlActorAccordingToValue(JMap.getInt(jUnitData, "RaceRedguard", 0), lvlActor, SAB_LooksList_Redguard_M, SAB_LooksList_Redguard_F)
+    addedEntries = addedEntries + AddRaceGenderToLvlActorAccordingToValue(JMap.getInt(jUnitData, "RaceDarkElf", 0), lvlActor, SAB_LooksList_DarkElf_M, SAB_LooksList_DarkElf_F)
+    addedEntries = addedEntries + AddRaceGenderToLvlActorAccordingToValue(JMap.getInt(jUnitData, "RaceHighElf", 0), lvlActor, SAB_LooksList_HighElf_M, SAB_LooksList_HighElf_F)
+    addedEntries = addedEntries + AddRaceGenderToLvlActorAccordingToValue(JMap.getInt(jUnitData, "RaceWoodElf", 0), lvlActor, SAB_LooksList_WoodElf_M, SAB_LooksList_WoodElf_F)
+    addedEntries = addedEntries + AddRaceGenderToLvlActorAccordingToValue(JMap.getInt(jUnitData, "RaceArgonian", 0), lvlActor, SAB_LooksList_Argonian_M, SAB_LooksList_Argonian_F)
+    addedEntries = addedEntries + AddRaceGenderToLvlActorAccordingToValue(JMap.getInt(jUnitData, "RaceKhajiit", 0), lvlActor, SAB_LooksList_Khajiit_M, SAB_LooksList_Khajiit_F)
+    addedEntries = addedEntries + AddRaceGenderToLvlActorAccordingToValue(JMap.getInt(jUnitData, "RaceOrc", 0), lvlActor, SAB_LooksList_Orc_M, SAB_LooksList_Orc_F)
 
     int jUnitRaceAddonsMap = jMap.getObj(jUnitData, "jUnitRaceAddonsMap")
 
@@ -150,8 +140,7 @@ Function SetupRaceGendersLvlActorAccordingToUnitData(int jUnitData, LeveledActor
                 if jRaceAddonData != 0
                     LeveledActor addonMale = jMap.getForm(jRaceAddonData, "male") as LeveledActor
                     LeveledActor addonFemale = jMap.getForm(jRaceAddonData, "female") as LeveledActor
-                    addedEntries = addedEntries + AddRaceGenderToLvlActorAccordingToValue \
-                        (pickedGenders, lvlActor, addonMale, addonFemale)
+                    addedEntries = addedEntries + AddRaceGenderToLvlActorAccordingToValue(pickedGenders, lvlActor, addonMale, addonFemale)
                 endif
             EndIf
 
@@ -232,8 +221,7 @@ Function UpdateAllGearAndRaceListsAccordingToJMap()
 
         if jUnitData != 0
             SetupRaceGendersLvlActorAccordingToUnitData(jUnitData, SAB_UnitAllowedRacesGenders.GetAt(i) as LeveledActor)
-            SetupGearListAccordingToUnitData(jUnitData, \
-                SAB_UnitGearSets.GetAt(i) as LeveledItem, SAB_UnitDuplicateItemSets.GetAt(i) as LeveledItem)
+            SetupGearListAccordingToUnitData(jUnitData, SAB_UnitGearSets.GetAt(i) as LeveledItem, SAB_UnitDuplicateItemSets.GetAt(i) as LeveledItem)
         endif
         
     EndWhile
@@ -315,8 +303,7 @@ Function CopyUnitDataFromAnotherIndex(int indexToCopyTo, int indexToCopyFrom)
     JArray.setObj(jSABUnitDatasArray, indexToCopyTo, jUnitCopy)
 
     SetupRaceGendersLvlActorAccordingToUnitData(jUnitCopy, SAB_UnitAllowedRacesGenders.GetAt(indexToCopyTo) as LeveledActor)
-    SetupGearListAccordingToUnitData(jUnitCopy, \
-        SAB_UnitGearSets.GetAt(indexToCopyTo) as LeveledItem, SAB_UnitDuplicateItemSets.GetAt(indexToCopyTo) as LeveledItem)
+    SetupGearListAccordingToUnitData(jUnitCopy, SAB_UnitGearSets.GetAt(indexToCopyTo) as LeveledItem, SAB_UnitDuplicateItemSets.GetAt(indexToCopyTo) as LeveledItem)
 EndFunction
 
 Function AddNewRaceFromAddon(SAB_UnitRaceAddon addon)
