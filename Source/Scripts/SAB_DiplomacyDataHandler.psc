@@ -38,7 +38,7 @@ Function InitializeJData()
     JValue.retain(jSABLockedFactionRelationsMap, "ShoutAndBlade")
 
     jSABLockedPlayerRelationsList = jArray.object()
-    JValue.retain(jSABLockedFactionRelationsMap, "ShoutAndBlade")
+    JValue.retain(jSABLockedPlayerRelationsList, "ShoutAndBlade")
 EndFunction
 
 
@@ -188,7 +188,7 @@ bool Function GetAreRelationsLockedBetweenFacs(int factionOneIndex, int factionT
         factionWithBiggerIndex = factionOneIndex
     endif
 
-    ; if fac index exists in lockeds array, abort
+    ; if fac index exists in lockeds array, return true
     int jSmallerFacLockedsList = jIntMap.getObj(jSABLockedFactionRelationsMap, factionWithSmallerIndex)
     if jSmallerFacLockedsList != 0
         if jArray.findInt(jSmallerFacLockedsList, factionWithBiggerIndex) != -1

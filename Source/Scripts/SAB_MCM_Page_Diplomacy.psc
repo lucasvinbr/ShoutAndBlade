@@ -431,8 +431,13 @@ state FAC_EDIT_LOAD
         MainPage.isLoadingData = true
         int jReadData = JValue.readFromFile(filePath)
         int jReadDataPlayerDiplo = JValue.readFromFile(filePathPlayerDiplo)
-        int jReadDataFacLocks = jValue.readFromFile(filePathFacLocks)
+        int jReadDataFacLocks = JValue.readFromFile(filePathFacLocks)
         int jReadDataPlayerDiploLocks = JValue.readFromFile(filePathPlayerDiploLocks)
+
+        ; retain locks, because we load relations before applying them... 
+        ; so better make sure they're still around when we get to them
+        JValue.retain(jReadDataFacLocks, "ShoutAndBlade")
+        JValue.retain(jReadDataPlayerDiploLocks, "ShoutAndBlade")
         if jReadData != 0 && jReadDataPlayerDiplo != 0
             ShowMessage("$sab_mcm_shared_popup_msg_load_started", false)
             ;force a page reset to disable all action buttons!
@@ -442,11 +447,16 @@ state FAC_EDIT_LOAD
             DiplomacyHandler.jSABPlayerRelationsMap = JValue.releaseAndRetain(DiplomacyHandler.jSABPlayerRelationsMap, jReadDataPlayerDiplo, "ShoutAndBlade")
             DiplomacyHandler.UpdateAllRelationsAccordingToJMaps()
             if jReadDataFacLocks != 0
-                DiplomacyHandler.jSABLockedFactionRelationsMap = jValue.releaseAndRetain(DiplomacyHandler.jSABLockedFactionRelationsMap, jReadDataFacLocks, "ShoutAndBlade")
+                DiplomacyHandler.jSABLockedFactionRelationsMap = JValue.releaseAndRetain(DiplomacyHandler.jSABLockedFactionRelationsMap, jReadDataFacLocks, "ShoutAndBlade")
+                Debug.Notification("SAB: diplomacy locks loaded!")
             endif
             if jReadDataPlayerDiploLocks != 0
-                DiplomacyHandler.jSABLockedPlayerRelationsList = jValue.releaseAndRetain(DiplomacyHandler.jSABLockedPlayerRelationsList, jReadDataPlayerDiploLocks, "ShoutAndBlade")
+                DiplomacyHandler.jSABLockedPlayerRelationsList = JValue.releaseAndRetain(DiplomacyHandler.jSABLockedPlayerRelationsList, jReadDataPlayerDiploLocks, "ShoutAndBlade")
+                Debug.Notification("SAB: diplomacy player locks loaded!")
             endif
+            JValue.release(jReadDataFacLocks)
+            JValue.release(jReadDataPlayerDiploLocks)
+
             MainPage.isLoadingData = false
             Debug.Notification("SAB: Load complete!")
             ShowMessage("$sab_mcm_shared_popup_msg_load_success", false)

@@ -244,19 +244,30 @@ state MAIN_TEST_LOAD
         string diploPlayerLocksPath = JContainers.userDirectory() + "SAB/diplomacyData_player_locks.json"
         int jReadDiploFacsData = JValue.readFromFile(diploFacsFilePath)
         int jReadDiploPlyrData = JValue.readFromFile(diploPlayerFilePath)
-        int jReadDiploFacLocks = jValue.readFromFile(diploFacLocksPath)
-        int jReadPlayerLocks = jValue.readFromFile(diploPlayerLocksPath)
+        int jReadDiploFacLocks = JValue.readFromFile(diploFacLocksPath)
+        int jReadPlayerLocks = JValue.readFromFile(diploPlayerLocksPath)
+        ; retain locks, because we load relations before applying them... 
+        ; so better make sure they're still around when we get to them
+        JValue.retain(jReadDiploFacLocks, "ShoutAndBlade")
+        JValue.retain(jReadPlayerLocks, "ShoutAndBlade")
+
         if jReadDiploFacsData != 0 && jReadDiploPlyrData != 0
             SAB_DiplomacyDataHandler diploHandler = MainQuest.DiplomacyHandler
             diploHandler.jSABFactionRelationsMap = JValue.releaseAndRetain(diploHandler.jSABFactionRelationsMap, jReadDiploFacsData, "ShoutAndBlade")
             diploHandler.jSABPlayerRelationsMap = JValue.releaseAndRetain(diploHandler.jSABPlayerRelationsMap, jReadDiploPlyrData, "ShoutAndBlade")
             diploHandler.UpdateAllRelationsAccordingToJMaps()
             If jReadDiploFacLocks != 0
-                diploHandler.jSABLockedFactionRelationsMap = jValue.releaseAndRetain(diploHandler.jSABLockedFactionRelationsMap, jReadDiploFacLocks, "ShoutAndBlade")
+                diploHandler.jSABLockedFactionRelationsMap = JValue.releaseAndRetain(diploHandler.jSABLockedFactionRelationsMap, jReadDiploFacLocks, "ShoutAndBlade")
+                Debug.Notification("SAB: diplomacy locks loaded!")
             EndIf
             if jReadPlayerLocks != 0
-                diploHandler.jSABLockedPlayerRelationsList = jValue.releaseAndRetain(diploHandler.jSABLockedPlayerRelationsList, jReadPlayerLocks, "ShoutAndBlade")
+                diploHandler.jSABLockedPlayerRelationsList = JValue.releaseAndRetain(diploHandler.jSABLockedPlayerRelationsList, jReadPlayerLocks, "ShoutAndBlade")
+                Debug.Notification("SAB: diplomacy player locks loaded!")
             endif
+
+            JValue.release(jReadDiploFacLocks)
+            JValue.release(jReadPlayerLocks)
+
             loadSuccesses += 1
             Debug.Notification("SAB: diplomacy data load complete! (" + loadSuccesses + " of " + expectedLoadSuccesses + ")")
         else
