@@ -16,6 +16,12 @@ Faction Property SAB_CommanderRanksFaction Auto
 Faction Property SAB_RangedUnitsFaction Auto
 { Faction all units considered "ranged" should belong to }
 
+Spell Property NewlySpawnedInCombatSpell Auto
+{ a spell that should be applied to newly spawned units in combat. 
+ This is intended to make them more "competitive" in situations 
+ where there are too many enemies already spawned: usually, 
+ the new spawns are just killed one after the other }
+
 bool customizationGuyFollowsPlayer = false
 
 Actor spawnedCustomizationGuy

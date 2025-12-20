@@ -910,32 +910,32 @@ Function DeployPendingUnits(ObjectReference spawnPoint, bool setAlert)
 	endif
 
 	; ; if we're on alert, we should find an enemy to start fighting as soon as we spawn
-	; Actor targetEnemy = none
-	; SAB_CrowdReducer crowdReducer = DiplomacyDataHandler.PlayerDataHandler.PlayerCommanderScript.CrowdReducer
-	; int jUnitsMap = crowdReducer.jLivingUnitsMap
-	; int j = jIntMap.count(jUnitsMap)
-	; int count = 0
+	Actor targetEnemy = none
+	SAB_CrowdReducer crowdReducer = DiplomacyDataHandler.PlayerDataHandler.PlayerCommanderScript.CrowdReducer
+	int jUnitsMap = crowdReducer.jLivingUnitsMap
+	int j = jIntMap.count(jUnitsMap)
+	int count = 0
 
-	; ; iterate over facs with living units, looking for an enemy fac, then get one of their units
-	; while j > 0
-	; 	j -= 1
-	; 	int facIndexWithUnits = jIntMap.getNthKey(jUnitsMap, j)
-	; 	int jFacUnitsArr = jIntMap.getObj(jUnitsMap, facIndexWithUnits)
-	; 	int unitCount = jArray.count(jFacUnitsArr)
+	; iterate over facs with living units, looking for an enemy fac, then get one of their units
+	while j > 0
+		j -= 1
+		int facIndexWithUnits = jIntMap.getNthKey(jUnitsMap, j)
+		int jFacUnitsArr = jIntMap.getObj(jUnitsMap, facIndexWithUnits)
+		int unitCount = jArray.count(jFacUnitsArr)
 		
-	; 	if unitCount > 0
-	; 		if DiplomacyDataHandler.AreFactionsEnemies(factionIndex, facIndexWithUnits)
-	; 			targetEnemy = jArray.getForm(jFacUnitsArr, Utility.RandomInt(0, unitCount - 1)) as Actor
-	; 		endif
-	; 	endif
+		if unitCount > 0
+			if DiplomacyDataHandler.AreFactionsEnemies(factionIndex, facIndexWithUnits)
+				targetEnemy = jArray.getForm(jFacUnitsArr, Utility.RandomInt(0, unitCount - 1)) as Actor
+			endif
+		endif
 		
 		
-	; 	If targetEnemy != none && !targetEnemy.IsDead()
-	; 		; got good enemy! break loop
-	; 		j = -1
-	; 	EndIf
+		If targetEnemy != none && !targetEnemy.IsDead()
+			; got good enemy! break loop
+			j = -1
+		EndIf
 
-	; endwhile
+	endwhile
 
 	while i > 0
 		i -= 1
@@ -944,11 +944,13 @@ Function DeployPendingUnits(ObjectReference spawnPoint, bool setAlert)
 		pendingUnit.MoveTo(spawnPoint)
 		if setAlert
 			pendingUnit.SetAlert(true)
-			; if targetEnemy != none
-			; 	; pendingUnit.EnableAI(true)
-			; 	; pendingUnit.EvaluatePackage()
-			; 	; pendingUnit.StartCombat(targetEnemy)
-			; endif
+			if targetEnemy != none
+				; pendingUnit.EnableAI(true)
+				; pendingUnit.EvaluatePackage()
+				; pendingUnit.StartCombat(targetEnemy)
+				; targetEnemy.CreateDetectionEvent(pendingUnit, 100)
+				targetEnemy.DoCombatSpellApply(SpawnerScript.NewlySpawnedInCombatSpell, pendingUnit)
+			endif
 		endif
 		jArray.eraseIndex(jUnitsPendingDeploy, i)
 		
