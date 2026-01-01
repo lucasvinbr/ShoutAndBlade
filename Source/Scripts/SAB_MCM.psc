@@ -155,7 +155,9 @@ event OnPageDraw()
     AddSliderOptionST("OPTIONS_MULTIPLIER___healthMagickaMultiplier", "$sab_mcm_options_slider_unit_healthmagickamultiplier", JDB.solveFlt(".ShoutAndBlade.generalOptions.healthMagickaMultiplier", 1.0), "{1}")
     AddSliderOptionST("OPTIONS_MULTIPLIER___skillsMultiplier", "$sab_mcm_options_slider_unit_skillsmultiplier", JDB.solveFlt(".ShoutAndBlade.generalOptions.skillsMultiplier", 1.0), "{1}")
     AddSliderOptionST("OPTIONS_UNITS___maxDeadBodies", "$sab_mcm_options_slider_unit_maxdeadbodies", JDB.solveInt(".ShoutAndBlade.generalOptions.maxDeadBodies", 12))
+    AddToggleOptionST("OPTIONS_GENERAL_TOGGLE___applyRecentSpawnBuff", "$sab_mcm_options_toggle_unit_recent_spawn_buff", JDB.solveInt(".ShoutAndBlade.generalOptions.applyRecentSpawnBuff", 0) >= 1, 0)
     AddToggleOptionST("OPTIONS_GENERAL_TOGGLE___outfitterFollowsPlayer", "$sab_mcm_options_toggle_general_outfitter_follows", JDB.solveInt(".ShoutAndBlade.generalOptions.outfitterFollowsPlayer", 0) >= 1, 0)
+    AddToggleOptionST("OPTIONS_GENERAL_TOGGLE___jContainersApiLogging", "$sab_mcm_options_toggle_apilogging", JDB.solveInt(".ShoutAndBlade.generalOptions.jContainersApiLogging", 0) >= 1, 0)
     
 endevent
 
@@ -1020,6 +1022,8 @@ state OPTIONS_GENERAL_TOGGLE
 
         If state_id == "outfitterFollowsPlayer"
             MainQuest.SpawnerScript.SetCustomizationGuyFollowsPlayer(curValue != 0)
+        elseif state_id == "jContainersApiLogging"
+            jValue.enableAPILog(curValue != 0)
         EndIf
 	endEvent
 
@@ -1030,6 +1034,8 @@ state OPTIONS_GENERAL_TOGGLE
 
         If state_id == "outfitterFollowsPlayer"
             MainQuest.SpawnerScript.SetCustomizationGuyFollowsPlayer(curValue != 0)
+        elseif state_id == "jContainersApiLogging"
+            jValue.enableAPILog(curValue != 0)
         EndIf
     endevent
 
@@ -1038,6 +1044,10 @@ state OPTIONS_GENERAL_TOGGLE
         
 		if state_id == "outfitterFollowsPlayer"
             SetInfoText("$sab_mcm_options_toggle_general_outfitter_follows_desc")
+        elseif state_id == "jContainersApiLogging"
+            SetInfoText("$sab_mcm_options_toggle_apilogging_desc")
+        elseif state_id == "applyRecentSpawnBuff"
+            SetInfoText("$sab_mcm_options_toggle_unit_recent_spawn_buff_desc")
         endif
 	endEvent
 endstate

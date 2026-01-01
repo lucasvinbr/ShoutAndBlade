@@ -1,6 +1,6 @@
 local lfs = require("lfs")
 
-local baseDir = "F:/proyects/ShoutAndBlade/"
+local baseDir = "/home/lucas2/dev/proyects/ShoutAndBlade/"
 
 lfs.chdir(baseDir .. "Interface/translations/")
 
@@ -23,7 +23,7 @@ local otherTranslations = {
 local baseFile = io.open(filePrefix .. baseTranslation .. fileSuffix, "r")
 
 if baseFile then
-    local content = baseFile:read("a")
+    local content = baseFile:read("*a")
 
     print(content)
 

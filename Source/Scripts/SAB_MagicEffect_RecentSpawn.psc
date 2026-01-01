@@ -1,7 +1,6 @@
 scriptname SAB_MagicEffect_RecentSpawn extends ActiveMagicEffect
 
-; basically a copy from tonycubed's CHIM Aware NPC Repair mod procedure
-Float Property AIToggleWait = 0.25 Auto
+; a modified copy from tonycubed's CHIM Aware NPC Repair mod procedure
 
 Event OnEffectStart(Actor akTarget, Actor akCaster)
     if akTarget == None
@@ -17,12 +16,6 @@ Event OnEffectStart(Actor akTarget, Actor akCaster)
 EndEvent
 
 Function RepairAIState(Actor a)
-    a.EnableAI(False)
-    Utility.Wait(AIToggleWait)
-    a.EnableAI(True)
-
-    a.StopCombat()
-    a.StopCombatAlarm()
 
     a.SetRestrained(False)
     a.SetDontMove(False)

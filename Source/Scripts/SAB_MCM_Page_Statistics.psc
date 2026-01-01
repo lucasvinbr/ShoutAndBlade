@@ -239,6 +239,9 @@ Function SetupDebugStatistics()
     EndWhile
 
     ; AddTextOptionST("STATS_DISPLAY___NEARBYCMDERS", "$sab_mcm_stats_menu_statspage_debug_nearbycmders", crowdReducer.NumNearbyCmders)
+    AddTextOptionST("STATS_DISPLAY___TOTALCMDERS_ALIAS", "$sab_mcm_stats_menu_statspage_debug_totalcmders", MainPage.MainQuest.BackgroundUpdater.BackgroundCmderUpdater.numActives)
+    int totalCmdersTopFilledIndex = MainPage.MainQuest.BackgroundUpdater.BackgroundCmderUpdater.GetTopIndex()
+    AddTextOptionST("STATS_DISPLAY___TOTALCMDERS_ALIAS_TOPFILLEDINDEX", "$sab_mcm_stats_menu_statspage_debug_totalcmders_aliases", totalCmdersTopFilledIndex)
     AddTextOptionST("STATS_DISPLAY___NEARBYCMDERS_ALIAS", "$sab_mcm_stats_menu_statspage_debug_nearbycmders_aliases", MainPage.MainQuest.SpawnersUpdater.CmderUpdater.numActives)
 
     int nearbyCmdersTopFilledIndex = MainPage.MainQuest.SpawnersUpdater.CmderUpdater.GetTopIndex()
