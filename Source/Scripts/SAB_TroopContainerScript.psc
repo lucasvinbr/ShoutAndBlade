@@ -743,7 +743,7 @@ EndFunction
 ; this container has been completely defeated in an autocalc battle and has no units left!
 ; this function should do whatever happens in that case
 Function HandleAutocalcDefeat()
-	Debug.Trace("HandleAutocalcDefeat: Override me!")
+	Debug.Trace("[SAB] HandleAutocalcDefeat: Override me!")
 EndFunction
 
 ; override this!

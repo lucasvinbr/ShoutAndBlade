@@ -180,7 +180,7 @@ Faction Function GetVanillaFactionByName(string facName)
         endif
     endwhile
 
-    Debug.Trace("GetVanillaFactionByName: couldn't find vanilla fac with name " + facName)
+    Debug.Trace("[SAB] GetVanillaFactionByName: couldn't find vanilla fac with name " + facName)
     return None
 EndFunction
 

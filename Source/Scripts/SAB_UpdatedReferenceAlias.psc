@@ -8,7 +8,7 @@ bool Property isUpdating = false Auto Hidden
 
 
 bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
-	Debug.Trace("updated ref alias: override me!")
+	Debug.Trace("[SAB] updated ref alias: override me!")
 	return true
 EndFunction
 

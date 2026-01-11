@@ -65,7 +65,7 @@ Function AddNewLocationsFromAddon(SAB_LocationDataAddon addon, int addonIndex)
     endif
 
     while isBusyAddingNewLocsToBaseArray
-        Debug.Trace("SAB queued new addon location registration is waiting")
+        Debug.Trace("[SAB]  queued new addon location registration is waiting")
         Utility.Wait(0.1)
     endwhile
 
@@ -116,10 +116,10 @@ Function ReaddLocationsFromAddons()
     while i < topIndex
         SAB_LocationDataAddon addonScript = jArray.getForm(jregisteredAddonsArray, i) as SAB_LocationDataAddon
         if addonScript != None
-            Debug.Trace("addon reload: readd " + addonScript)
+            Debug.Trace("[SAB] addon reload: readd " + addonScript)
             addonScript.ReaddLocations()
         else
-            Debug.Trace("addon reload: could not load addon quest form")
+            Debug.Trace("[SAB] addon reload: could not load addon quest form")
         endif
 
         i += 1
@@ -132,7 +132,7 @@ EndFunction
 Function SetLocationEnabled(SAB_LocationScript locScript, bool enable)
 
     while isBusyUpdatingLocationData
-        Debug.Trace("SAB queued location enable is waiting")
+        Debug.Trace("[SAB]  queued location enable is waiting")
         Utility.Wait(0.1)
     endwhile
 
@@ -169,7 +169,7 @@ Function RebuildEnabledLocationsArray()
 
     if isBusyUpdatingLocationData
         if !shouldRebuildEnabledLocations
-            Debug.Trace("SAB: rebuild enabled locations is  now scheduled")
+            Debug.Trace("[SAB] rebuild enabled locations is  now scheduled")
         endif
         
         shouldRebuildEnabledLocations = true
@@ -179,7 +179,7 @@ Function RebuildEnabledLocationsArray()
     isBusyUpdatingLocationData = true
     shouldRebuildEnabledLocations = false
 
-    Debug.Trace("SAB: rebuild enabled locations - start")
+    Debug.Trace("[SAB] rebuild enabled locations - start")
 
     int i = 0
     NextEnabledLocationIndex = 0
@@ -199,7 +199,7 @@ Function RebuildEnabledLocationsArray()
     ; clear other enabled location entries
     NextEnabledLocationIndex = EnabledLocations.GetTopIndex()
 
-    Debug.Trace("SAB: rebuild enabled locations - end")
+    Debug.Trace("[SAB] rebuild enabled locations - end")
 
     isBusyUpdatingLocationData = false
     OnDoneUpdatingLocationData()
@@ -214,7 +214,7 @@ Function CalculateLocationDistances()
     if isBusyUpdatingLocationData
         ; schedule a recalculation once the current updates are done
         if !shouldRebuildEnabledLocations
-            Debug.Trace("SAB: recalculate location distances is now scheduled")
+            Debug.Trace("[SAB] recalculate location distances is now scheduled")
         endif
         
         shouldRecalculateDistances = true
@@ -224,7 +224,7 @@ Function CalculateLocationDistances()
     isBusyUpdatingLocationData = true
     shouldRecalculateDistances = false
 
-    Debug.Trace("SAB: recalculate location distances - start")
+    Debug.Trace("[SAB] recalculate location distances - start")
 
     int i = 0
     int j = 0
@@ -331,7 +331,7 @@ Function CalculateLocationDistances()
     jValue.release(jlocationDistancesMap)
     jValue.zeroLifetime(jlocationDistancesMap)
 
-    Debug.Trace("SAB: recalculate location distances - end")
+    Debug.Trace("[SAB] recalculate location distances - end")
 
     isBusyUpdatingLocationData = false
 

@@ -145,7 +145,7 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 	endif
 	
 	if !meActor
-		debug.Trace("WARNING: attempted to update commander which had an invalid (maybe None?) reference!")
+		debug.Trace("[SAB] WARNING: attempted to update commander which had an invalid (maybe None?) reference!")
 		ClearCmderData()
 
 		isUpdating = false
@@ -236,7 +236,7 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 							diploHandler.GlobalReactToWarDeclaration(ourFacIndex, locFaction.GetFactionIndex())
 
 							if factionScript.IsFactionEnabled()
-								Debug.Trace(factionScript.GetFactionName() + " has declared war against the " + locFaction.GetFactionName())
+								Debug.Trace("[SAB] " + factionScript.GetFactionName() + " has declared war against the " + locFaction.GetFactionName())
 								Debug.Notification(factionScript.GetFactionName() + " has declared war against the " + locFaction.GetFactionName())
 							endif
 						endif
@@ -255,7 +255,7 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 									; somehow, the indexes have desynced.
 									; removing the index on the loc's side should be enough
 									otherCmder.UnregisterAsNearLocation_NoIndexChange(TargetLocationScript)
-									Debug.Trace("SAB: removed desynced nearby cmder index in " + factionScript.GetFactionName())
+									Debug.Trace("[SAB] removed desynced nearby cmder index in " + factionScript.GetFactionName())
 								endif
 
 								if !diploHandler.AreFactionsInGoodStanding(factionScript, otherCmder.factionScript)
@@ -298,7 +298,7 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 								diploHandler.GlobalReactToWarDeclaration(ourFacIndex, locFaction.GetFactionIndex())
 
 								if factionScript.IsFactionEnabled()
-									Debug.Trace(factionScript.GetFactionName() + " has declared war against the " + locFaction.GetFactionName())
+									Debug.Trace("[SAB] " + factionScript.GetFactionName() + " has declared war against the " + locFaction.GetFactionName())
 									Debug.Notification(factionScript.GetFactionName() + " has declared war against the " + locFaction.GetFactionName())
 								endif
 							endif
@@ -572,7 +572,7 @@ event OnDeath(Actor akKiller)
 	; debug.Trace("commander: dead!")
 
 	if akKiller == playerActor
-		debug.Trace("player killed a cmder!")
+		debug.Trace("[SAB] player killed a cmder!")
 		factionScript.DiplomacyDataHandler.GlobalReactToPlayerKillingCmder(factionScript.GetFactionIndex())
 	endif
 

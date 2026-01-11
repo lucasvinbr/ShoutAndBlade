@@ -39,7 +39,7 @@ Function ToggleNearbyUpdates(bool updatesEnabled)
 			indexInCloseByUpdater = CloseByUpdater.CmderUpdater.RegisterAliasForUpdates(self, indexInCloseByUpdater)
 			if indexInCloseByUpdater > -1
 				; CrowdReducer.NearbyCmdersList.AddForm(GetReference())
-				debug.Trace("player: began closebyupdating!")
+				debug.Trace("[SAB] player: began closebyupdating!")
 				; debug.Trace("player: nearby cmders: " + CrowdReducer.NumNearbyCmders)
 			endif
 		endif

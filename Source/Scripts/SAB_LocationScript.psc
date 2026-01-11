@@ -120,7 +120,7 @@ Function BeTakenByFaction(SAB_FactionScript factionScriptRef, bool notify = true
 	UpdateInteriorsTrespassingStatus()
 
 	if notify
-		Debug.Trace(GetLocName() + " has been taken by the " + jMap.getStr(factionScript.jFactionData, "name", "Faction"))
+		Debug.Trace("[SAB] " + GetLocName() + " has been taken by the " + jMap.getStr(factionScript.jFactionData, "name", "Faction"))
 		Debug.Notification(GetLocName() + " has been taken by the " + jMap.getStr(factionScript.jFactionData, "name", "Faction"))
 	endif
 EndFunction
@@ -132,7 +132,7 @@ Function BecomeNeutral(bool notify = true)
 		factionScript.RemoveLocationFromOwnedList(self)
 
 		if notify
-			Debug.Trace(GetLocName() + " is no longer controlled by the " + jMap.getStr(factionScript.jFactionData, "name", "Faction"))
+			Debug.Trace("[SAB] " + GetLocName() + " is no longer controlled by the " + jMap.getStr(factionScript.jFactionData, "name", "Faction"))
 			Debug.Notification(GetLocName() + " is no longer controlled by the " + jMap.getStr(factionScript.jFactionData, "name", "Faction"))
 		endif
 		
@@ -370,7 +370,7 @@ int Function RegisterCommanderInNearbyList(SAB_CommanderScript cmderScript, int 
 	endif
 
 	while editingNearbyCmderIndexes
-		debug.Trace("(register) hold on, " + GetLocName() + " is editing nearby cmder indexes")
+		debug.Trace("[SAB] (register) hold on, " + GetLocName() + " is editing nearby cmder indexes")
 		Utility.Wait(0.05)
 	endwhile
 
@@ -382,7 +382,7 @@ int Function RegisterCommanderInNearbyList(SAB_CommanderScript cmderScript, int 
 			; topFilledNearbyCmderIndex is -1!
 			; in this case, we aren't expecting any vacant slots,
 			; so we empty the vacants list
-			debug.Trace("loc " + GetLocName() + " is clearing invalid vacant nearby cmder slots")
+			debug.Trace("[SAB] loc " + GetLocName() + " is clearing invalid vacant nearby cmder slots")
 			jArray.clear(jKnownVacantNearbyCmderSlots)
 			; numActives = 0
 			topFilledNearbyCmderIndex = vacantIndex
@@ -396,7 +396,7 @@ int Function RegisterCommanderInNearbyList(SAB_CommanderScript cmderScript, int 
 		if vacantIndex >= 128
 			; there are no holes and all entries are filled!
 			; abort
-			debug.Trace("loc " + GetLocName() + " is full of nearby cmders!")
+			debug.Trace("[SAB] loc " + GetLocName() + " is full of nearby cmders!")
 			editingNearbyCmderIndexes = false
 			return -1
 		endif
@@ -422,7 +422,7 @@ Function UnregisterCommanderFromNearbyList(int cmderIndexInNearbies)
 	endif
 
 	while editingNearbyCmderIndexes
-		debug.Trace("(unregister) hold on, " + GetLocName() + " is editing nearby cmder indexes")
+		debug.Trace("[SAB] (unregister) hold on, " + GetLocName() + " is editing nearby cmder indexes")
 		Utility.Wait(0.05)
 	endwhile
 

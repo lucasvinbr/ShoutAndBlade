@@ -683,7 +683,7 @@ EndFunction
 ; this queues the reaction, to avoid stack dumps due to too many units being killed
 Function QueueGlobalReactToPlayerKillingUnit(int killedUnitFacIndex)
     if jPendingUnitKillsMap == -1
-        debug.Trace("initial set up for relation kills queue")
+        debug.Trace("[SAB] initial set up for relation kills queue")
         ; the queue array hasn't been set up yet!
         ; set it up and start the updates
         jPendingUnitKillsMap = jIntMap.object()
@@ -702,7 +702,7 @@ EndFunction
 Function GlobalReactToPlayerKillingUnit(int killedUnitFacIndex, int killedUnitAmount)
 
     isGlobalReactToPlayerKillRunning = true
-    debug.Trace("global react to unit kills START! killedFac: "+ killedUnitFacIndex +", killedAmount: " + killedUnitAmount)
+    debug.Trace("[SAB] global react to unit kills START! killedFac: "+ killedUnitFacIndex +", killedAmount: " + killedUnitAmount)
 
     SAB_FactionScript[] facQuests = FactionDataHandler.SAB_FactionQuests
 
@@ -733,7 +733,7 @@ Function GlobalReactToPlayerKillingUnit(int killedUnitFacIndex, int killedUnitAm
     EndWhile
 
     isGlobalReactToPlayerKillRunning = false
-    debug.Trace("global react to unit kills END! killedFac: "+ killedUnitFacIndex +", killedAmount: " + killedUnitAmount)
+    debug.Trace("[SAB] global react to unit kills END! killedFac: "+ killedUnitFacIndex +", killedAmount: " + killedUnitAmount)
 EndFunction
 
 ; killed and allies of the killed get angry at player.

@@ -4,7 +4,7 @@ scriptname SAB_UnitsUpdater extends Quest
 SAB_AliasUpdater Property UnitUpdater Auto
 
 function Initialize()
-	debug.Trace("unit updater: initialize!")
+	debug.Trace("[SAB] unit updater: initialize!")
 	; unit alias updater is attached to this quest as well, so there's no need to register for updates there
 	UnitUpdater.Initialize(false)
 	RegisterForSingleUpdate(1.0)

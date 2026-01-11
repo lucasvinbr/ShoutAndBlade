@@ -5,7 +5,7 @@ SAB_AliasUpdater Property CmderUpdater Auto
 SAB_AliasUpdater Property LocationUpdater Auto
 
 function Initialize()
-	debug.Trace("spawners updater: initialize!")
+	debug.Trace("[SAB] spawners updater: initialize!")
 	CmderUpdater.updateTypeIndex = 1
 	LocationUpdater.updateTypeIndex = 1
 	; cmder updater is attached to this quest as well, so there's no need to register for updates there

@@ -6,7 +6,7 @@ scriptname SAB_RefAliasContainer extends Form
 SAB_UpdatedReferenceAlias[] SAB_ActiveElements
 
 function Initialize()
-	debug.Trace("alias container: initialize!")
+	debug.Trace("[SAB] alias container: initialize!")
 	SAB_ActiveElements = new SAB_UpdatedReferenceAlias[128]
 endfunction
 

@@ -90,19 +90,19 @@ Actor Function SpawnUnit( ObjectReference spawnPoint, Faction ownerFaction, int 
 	; debug.StartStackProfiling()
 
 	if spawnPoint == None
-		debug.Trace("spawn unit: location ref is null!")
+		debug.Trace("[SAB] spawn unit: location ref is null!")
 		return None
 	endif
 
 	if unitIndex == -1
-		debug.Trace("spawn unit: unit index is -1!")
+		debug.Trace("[SAB] spawn unit: unit index is -1!")
 		return None
 	endif
 
 	ActorBase unitActorBase = UnitDataHandler.SAB_UnitActorBases.GetAt(unitIndex) as ActorBase
 
 	if unitActorBase == None
-		debug.Trace("spawn unit: unit base at index "+ unitIndex +" is -1!")
+		debug.Trace("[SAB] spawn unit: unit base at index "+ unitIndex +" is -1!")
 		return None
 	endif
 

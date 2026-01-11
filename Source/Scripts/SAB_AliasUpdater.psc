@@ -33,7 +33,7 @@ int updatesLimit = 8
 
 ; sets up the alias updater to make it work correctly, optionally telling it to update itself
 function Initialize(bool autoRunUpdates = false)
-	debug.Trace("alias updater: initialize! auto updates? " + autoRunUpdates)
+	debug.Trace("[SAB] alias updater: initialize! auto updates? " + autoRunUpdates)
 	SAB_ActiveElementsContainers = new SAB_RefAliasContainer[128]
 	jKnownVacantSlots = jArray.object()
 	JValue.retain(jKnownVacantSlots, "ShoutAndBlade")
@@ -102,12 +102,12 @@ endFunction
 int Function RegisterAliasForUpdates(SAB_UpdatedReferenceAlias updatedScript, int currentIndex = -1)
 
 	if currentIndex > -1
-		debug.Trace(GetName() + " wanted to register " + updatedScript + ", but it already had an index")
+		debug.Trace("[SAB] " + GetName() + " wanted to register " + updatedScript + ", but it already had an index")
 		return -1
 	endif
 
 	while editingIndexes
-		debug.Trace("(register) hold on, " + GetName() + " is editing indexes")
+		debug.Trace("[SAB] (register) hold on, " + GetName() + " is editing indexes")
 		Utility.Wait(0.05)
 	endwhile
 
@@ -119,7 +119,7 @@ int Function RegisterAliasForUpdates(SAB_UpdatedReferenceAlias updatedScript, in
 			; topFilledIndex is -1!
 			; in this case, we aren't expecting any vacant slots,
 			; so we empty the vacants list
-			debug.Trace("alias updater " + GetName() + " is clearing invalid vacant slots")
+			debug.Trace("[SAB] alias updater " + GetName() + " is clearing invalid vacant slots")
 			jArray.clear(jKnownVacantSlots)
 			numActives = 0
 			topFilledIndex = vacantIndex
@@ -133,7 +133,7 @@ int Function RegisterAliasForUpdates(SAB_UpdatedReferenceAlias updatedScript, in
 		if vacantIndex >= 128 * 128
 			; there are no holes and all entries are filled!
 			; abort
-			debug.Trace("alias updater " + GetName() + " is full!")
+			debug.Trace("[SAB] alias updater " + GetName() + " is full!")
 			editingIndexes = false
 			return -1
 		endif
@@ -162,7 +162,7 @@ Function UnregisterAliasFromUpdates(int aliasIndex)
 	endif
 
 	while editingIndexes
-		debug.Trace("(unregister) hold on, " + GetName() + " is editing indexes")
+		debug.Trace("[SAB] (unregister) hold on, " + GetName() + " is editing indexes")
 		Utility.Wait(0.05)
 	endwhile
 
@@ -282,7 +282,7 @@ SAB_UpdatedReferenceAlias Function GetRandomFilledRefAlias()
 EndFunction
 
 Function DebugPrintVacantSlotsInfo()
-	Debug.Trace("vacant slots count: " + JArray.count(jKnownVacantSlots))
+	Debug.Trace("[SAB] vacant slots count: " + JArray.count(jKnownVacantSlots))
 	
-	Debug.Trace("vacant slots: " + JArray.asIntArray(jKnownVacantSlots))
+	Debug.Trace("[SAB] vacant slots: " + JArray.asIntArray(jKnownVacantSlots))
 EndFunction

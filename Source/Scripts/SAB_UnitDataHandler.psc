@@ -309,7 +309,7 @@ EndFunction
 Function AddNewRaceFromAddon(SAB_UnitRaceAddon addon)
 
     while isBusyAddingNewRace
-        Debug.Trace("SAB queued new addon race registration is waiting")
+        Debug.Trace("[SAB] queued new addon race registration is waiting")
         Utility.Wait(0.1)
     endwhile
 

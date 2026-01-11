@@ -13,7 +13,7 @@ int updatedFactionIndex = -1
 bool hasUpdatedFaction = false
 
 function Initialize(SAB_FactionScript[] factionScriptsArray)
-	debug.Trace("background updater: initialize!")
+	debug.Trace("[SAB] background updater: initialize!")
 	SAB_FactionScripts = factionScriptsArray
 	BackgroundCmderUpdater.GameDaysPassed = GameDaysPassed
 	BackgroundLocationUpdater.GameDaysPassed = GameDaysPassed

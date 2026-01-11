@@ -150,28 +150,28 @@ ReferenceAlias Function SpawnPlayerUnit(int unitIndex, ObjectReference spawnPoin
 	endif
 
 	if unitIndex < 0
-		debug.Trace("spawn unit for player: invalid unit index!")
+		debug.Trace("[SAB] spawn unit for player: invalid unit index!")
 		return None
 	endif
 
 	ReferenceAlias unitAlias = GetFreeUnitAliasSlot()
 
 	if unitAlias == None
-		debug.Trace("spawn unit for player: no free alias slot!")
+		debug.Trace("[SAB] spawn unit for player: no free alias slot!")
 		return None
 	endif
 
 	int unitIndexInUnitUpdater = UnitsUpdater.UnitUpdater.RegisterAliasForUpdates(unitAlias as SAB_UnitScript, -1)
 
 	if unitIndexInUnitUpdater == -1
-		debug.Trace("spawn unit for player: unitIndexInUnitUpdater is -1!")
+		debug.Trace("[SAB] spawn unit for player: unitIndexInUnitUpdater is -1!")
 		return None
 	endif
 
 	Actor spawnedUnit = SpawnerScript.SpawnUnit(spawnPoint, None, unitIndex, -1, 0)
 
 	if spawnedUnit == None
-		debug.Trace("spawn unit for player: got none as spawnedUnit, aborting!")
+		debug.Trace("[SAB] spawn unit for player: got none as spawnedUnit, aborting!")
 		UnitsUpdater.UnitUpdater.UnregisterAliasFromUpdates(unitIndexInUnitUpdater)
 		return None
 	endif

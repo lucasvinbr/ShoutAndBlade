@@ -517,7 +517,7 @@ Function AddLocationToOwnedList(SAB_LocationScript locationScript)
 	int locIndex = LocationDataHandler.GetLocationIndexById(locationScript.GetLocId())
 
 	if locIndex == -1
-		debug.Trace("AddLocationToOwnedList: invalid location! " + locationScript.GetLocName() + " not found in locations array")
+		debug.Trace("[SAB] AddLocationToOwnedList: invalid location! " + locationScript.GetLocName() + " not found in locations array")
 		return
 	endif
 
@@ -537,7 +537,7 @@ Function RemoveLocationFromOwnedList(SAB_LocationScript locationScript)
 	int locIndex = LocationDataHandler.GetLocationIndexById(locationScript.GetLocId())
 
 	if locIndex == -1
-		debug.Trace("AddLocationToOwnedList: invalid location! " + locationScript.GetLocName() + " not found in locations array")
+		debug.Trace("[SAB] AddLocationToOwnedList: invalid location! " + locationScript.GetLocName() + " not found in locations array")
 		return
 	endif
 
@@ -781,7 +781,7 @@ ReferenceAlias Function TrySpawnCommander(float curGameTime, bool onlySpawnIfHas
 	Actor cmderUnit = SpawnerScript.SpawnUnit(cmderAlias.CrowdReducer.BodyDumpReference, None, cmderUnitTypeIndex)
 
 	if cmderUnit == None
-		debug.Trace("spawn cmder: cmderUnit is null!")
+		debug.Trace("[SAB] spawn cmder: cmderUnit is null!")
 		return None
 	endif
 
@@ -824,28 +824,28 @@ ReferenceAlias Function SpawnUnitForTroopContainer(SAB_TroopContainerScript troo
 	endif
 
 	if unitIndex < 0
-		debug.Trace("spawn unit for container: invalid unit index!")
+		debug.Trace("[SAB] spawn unit for container: invalid unit index!")
 		return None
 	endif
 
 	ReferenceAlias unitAlias = GetFreeUnitAliasSlot()
 
 	if unitAlias == None
-		debug.Trace("spawn unit for container: no free alias slot!")
+		debug.Trace("[SAB] spawn unit for container: no free alias slot!")
 		return None
 	endif
 
 	int unitIndexInUnitUpdater = UnitUpdater.UnitUpdater.RegisterAliasForUpdates(unitAlias as SAB_UnitScript, -1)
 
 	if unitIndexInUnitUpdater == -1
-		debug.Trace("spawn unit for container: unitIndexInUnitUpdater is -1!")
+		debug.Trace("[SAB] spawn unit for container: unitIndexInUnitUpdater is -1!")
 		return None
 	endif
 
 	Actor spawnedUnit = SpawnerScript.SpawnUnit(spawnLocation, None, unitIndex, -1, cmderFollowRank)
 
 	if spawnedUnit == None
-		debug.Trace("spawn unit for container: got none as spawnedUnit, aborting!")
+		debug.Trace("[SAB] spawn unit for container: got none as spawnedUnit, aborting!")
 		UnitUpdater.UnitUpdater.UnregisterAliasFromUpdates(unitIndexInUnitUpdater)
 		return None
 	endif
@@ -883,7 +883,7 @@ Function GetGoldFromDespawningCommander(int jCmderArmyMap)
 
 	armyGold += cmderSpawnCost
 
-	debug.Trace("faction got " + armyGold + " gold back from a despawning cmder")
+	debug.Trace("[SAB] faction got " + armyGold + " gold back from a despawning cmder")
 	AddGold(armyGold)
 EndFunction
 

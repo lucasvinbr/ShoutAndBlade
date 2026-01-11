@@ -73,7 +73,7 @@ Function SetupPage()
         SetupDebugStatistics()
     endif
 
-    debug.Trace("numstatspages: " + numStatsPages)
+    debug.Trace("[SAB] numstatspages: " + numStatsPages)
     ; if there are too many entries, paginate!
     if numStatsPages > 1
         ; add pagintation slider
