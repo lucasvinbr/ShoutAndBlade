@@ -562,7 +562,7 @@ ReferenceAlias Function SpawnUnitAtLocation(int unitIndex, ObjectReference spawn
 		; debug.Trace("spawnedUnitsAmount is now " + spawnedUnitsAmount)
 
 		; set unit to be alerted if container is on alert
-		if (spawnAlerted)
+		if (moveNow && spawnAlerted)
 			Actor unitActor = spawnedUnit.GetReference() as Actor
 			unitActor.SetAlert(true)
 		endif

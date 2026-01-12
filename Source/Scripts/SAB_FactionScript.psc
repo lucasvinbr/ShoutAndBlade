@@ -62,6 +62,8 @@ int lastCheckedCmderAliasIndex = -1
 
 int factionIndex = -1
 
+bool editingPendingUnitDeploys = false
+
 ; prepares this faction's data and registers it for updating
 function EnableFaction(int jEnabledFactionData, int thisFactionIndex)
 	jFactionData = jEnabledFactionData
@@ -860,7 +862,21 @@ ReferenceAlias Function SpawnUnitForTroopContainer(SAB_TroopContainerScript troo
 	If moveNow
 		spawnedUnit.MoveTo(moveDestAfterSpawn)
 	else
+		while editingPendingUnitDeploys
+			debug.Trace("[SAB] hold on, " + GetFactionName() + " is editing pending unit deploys")
+			Utility.Wait(0.05)
+		endwhile
+
+		editingPendingUnitDeploys = true
+
+		If jUnitsPendingDeploy == 0
+			jUnitsPendingDeploy = jArray.object()
+			jValue.retain(jUnitsPendingDeploy, "ShoutAndBlade")
+		EndIf
+
 		jArray.AddForm(jUnitsPendingDeploy, spawnedUnit)
+
+		editingPendingUnitDeploys = false
 	endif
 	; 
 
@@ -909,6 +925,13 @@ Function DeployPendingUnits(ObjectReference spawnPoint, bool setAlert)
 		return
 	endif
 
+	while editingPendingUnitDeploys
+		debug.Trace("[SAB] hold on, " + GetFactionName() + " is editing pending unit deploys (deploying units)")
+		Utility.Wait(0.05)
+	endwhile
+
+	editingPendingUnitDeploys = true
+
 	; ; if we're on alert, we should find an enemy to start fighting as soon as we spawn
 	; Actor targetEnemy = none
 	; SAB_CrowdReducer crowdReducer = DiplomacyDataHandler.PlayerDataHandler.PlayerCommanderScript.CrowdReducer
@@ -955,6 +978,8 @@ Function DeployPendingUnits(ObjectReference spawnPoint, bool setAlert)
 		endif
 		
 	endwhile
+
+	editingPendingUnitDeploys = false
 
 EndFunction
 

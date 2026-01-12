@@ -18,12 +18,17 @@ SAB_CrowdReducer Property CrowdReducer Auto
 
 bool deathHasBeenHandled = false
 
+; we should only despawn a unit after a few updates, 
+; to make sure we don't despawn units that haven't been spawned yet
+int numUpdatesSinceSpawn = 0
+
 ; since there are times when units outlive their owners,
 ; this is used to know whether the owner container is still the same as when this unit was created
 float gameTimeOwnerContainerWasSetup = 0.0
 
 Function Setup(int thisUnitIndex, SAB_TroopContainerScript containerRef, int indexInUnitUpdater, float gameTimeSetupOfParentContainer)
 	deathHasBeenHandled = false
+	numUpdatesSinceSpawn = 0
 	ownerTroopContainer = containerRef
 	ownerContainerLocation = containerRef as SAB_LocationScript
 	unitIndex = thisUnitIndex
@@ -79,15 +84,21 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 		return true
 	endif
 
-	float distToPlayer = meActor.GetDistance(playerActor)
 
-	if distToPlayer > GetIsNearbyDistance()
-		; debug.Trace("unit: too far, despawn!")
-		Despawn()
+	if numUpdatesSinceSpawn > 10
+		float distToPlayer = meActor.GetDistance(playerActor)
 
-		isUpdating = false
-		return true
+		if distToPlayer > GetIsNearbyDistance()
+			; debug.Trace("unit: too far, despawn!")
+			Despawn()
+
+			isUpdating = false
+			return true
+		endif
+	else
+		numUpdatesSinceSpawn += 1
 	endif
+	
 
 	; if ownerContainerLocation != None
 	; 	; if we're guarding a location and it is under attack, keep trying to find the enemy
@@ -185,6 +196,7 @@ Function ClearAliasData()
 		meActor.SetPlayerTeammate(false, false)
 	endif
 	meActor = None
+	numUpdatesSinceSpawn = 0
 EndFunction
 
 bool Function IsAlive()
