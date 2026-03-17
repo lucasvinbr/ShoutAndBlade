@@ -465,7 +465,7 @@ Function SpawnBesiegingUnitBatchAtLocation(ObjectReference moveDestAfterSpawn, i
 		
 	endwhile
 
-	factionScript.DeployPendingUnits(spawnPoint, spawnAlerted)
+	factionScript.DeployPendingUnits(moveDestAfterSpawn, spawnAlerted)
 EndFunction
 
 ; sets the "confidence faction" rank for this cmder. The higher the more confidence

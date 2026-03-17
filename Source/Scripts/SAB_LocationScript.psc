@@ -337,8 +337,12 @@ bool function RunCloseByUpdate()
 		While (i >= 0)
 			SAB_CommanderScript InteractingCommander = NearbyCommanders[i]
 
+			; debug.Trace("[SAB] (location script) " + GetLocName() + " InteractingCommander index " + (i as string))
 			if InteractingCommander != None && InteractingCommander.IsValid()
 				; InteractingCommander.CullUnitsIfAboveSpawnLimit()
+
+				; debug.Trace("[SAB] (location script) " + GetLocName() + " InteractingCommander found! spawning units (or single unit if not contested)")
+				; debug.Trace("[SAB] (location script) " + GetLocName() + " InteractingCommander fac: " + InteractingCommander.factionScript.GetFactionName())
 				if IsBeingContested()
 					InteractingCommander.SpawnBesiegingUnitBatchAtLocation(GetMoveDestAfterSpawnForUnit(), -1, true)
 				else
@@ -347,8 +351,10 @@ bool function RunCloseByUpdate()
 				endif
 
 				lastNearbyCmderIndexCloseByUpdated = i - 1
-				;break
+				;break! We only want one valid nearby cmder update
 				i = -1
+			else
+				; debug.Trace("[SAB] (location script) " + GetLocName() + " InteractingCommander is none or not valid")
 			endif
 
 			i -= 1
@@ -568,8 +574,8 @@ bool Function IsRefNearbyOutside(ObjectReference targetRef, float nearbyDistance
 EndFunction
 
 ObjectReference Function GetClosestOutsideSpawnMarkerFromRef(ObjectReference targetRef)
-	float smallestDist = targetRef.GetDistance(GetReference())
 	ObjectReference closestMarker = GetReference()
+	float smallestDist = targetRef.GetDistance(closestMarker)
 
 	int i = ExtraIsNearbyOutsideMarkers.Length
 
@@ -698,6 +704,20 @@ EndFunction
 Function HandleAutocalcDefeat()
 	BecomeNeutralIfOutOfTroops()
 EndFunction
+
+
+Event OnAttachedToCell()
+	if !isNearby && isEnabled && IsRefNearbyOutside(playerActor)
+		ToggleNearbyUpdates(true)
+	endif
+EndEvent
+
+Event OnCellAttach()
+	if !isNearby && isEnabled && IsRefNearbyOutside(playerActor)
+		ToggleNearbyUpdates(true)
+	endif
+EndEvent
+
 
 int Function GetMaxOwnedUnitsAmount()
 	int calculatedMax = (JDB.solveInt(".ShoutAndBlade.locationOptions.maxOwnedUnits", 45) * GarrisonSizeMultiplier) as int
