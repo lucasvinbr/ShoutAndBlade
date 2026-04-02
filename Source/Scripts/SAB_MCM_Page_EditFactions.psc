@@ -97,6 +97,7 @@ Function SetupPage()
     AddToggleOptionST("FAC_EDIT_ISMERC", "$sab_mcm_factionedit_toggle_mercenary", JMap.hasKey(jEditedFactionData, "IsMercenary"))
     AddToggleOptionST("FAC_EDIT_TAKELOCS", "$sab_mcm_factionedit_toggle_takelocs", JMap.hasKey(jEditedFactionData, "CannotTakeLocations"))
     
+    AddTextOptionST("FAC_EDIT_DEBUG_CMDERSPAWN_INFO", "debug log cmderspawn info", "")
 EndFunction
 
 
@@ -197,7 +198,7 @@ state FAC_EDIT_ENABLED
             jMap.removeKey(jEditedFactionData, "enabled")
         else
             JMap.setInt(jEditedFactionData, "enabled", 1)
-            MainPage.MainQuest.FactionDataHandler.SAB_FactionQuests[editedFactionIndex].EnableFaction(jEditedFactionData, editedFactionIndex)
+            MainPage.MainQuest.FactionDataHandler.SAB_FactionQuests[editedFactionIndex].PrepareFactionData(jEditedFactionData, editedFactionIndex)
         endif
 
         SetToggleOptionValueST(jMap.hasKey(jEditedFactionData, "enabled"))
@@ -504,5 +505,22 @@ state FAC_EDIT_TROOPLINE_ENTRY_ADD
 	event OnHighlightST(string state_id)
         MainPage.ToggleQuickHotkey(true)
 		SetInfoText("$sab_mcm_factionedit_button_troopline_entry_add_desc")
+	endEvent
+endstate
+
+state FAC_EDIT_DEBUG_CMDERSPAWN_INFO
+    event OnSelectST(string state_id)
+        ObjectReference spawnpt = MainPage.MainQuest.FactionDataHandler.SAB_FactionQuests[editedFactionIndex].CmderSpawnPoint.GetReference()
+        debug.Trace("[SAB] cmderspawn debug info: posx: " + spawnpt.GetPositionX() + ", posy: " + spawnpt.GetPositionY() + ", posz: " + spawnpt.GetPositionZ())
+        debug.Trace("[SAB] cmderspawn debug info: cell: " + spawnpt.GetParentCell())
+	endEvent
+
+    event OnDefaultST(string state_id)
+        ; nothing
+    endevent
+
+	event OnHighlightST(string state_id)
+        MainPage.ToggleQuickHotkey(true)
+		SetInfoText("logs, to the papyrus log, some info on the fac's cmder spawn marker")
 	endEvent
 endstate

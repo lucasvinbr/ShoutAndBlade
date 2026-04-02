@@ -50,8 +50,6 @@ bool Property playerIsControllingDestinations Auto Hidden
 ; the player-related handler script. if this var has a value assigned, it probably means the player belongs to this faction
 SAB_PlayerDataHandler playerHandler
 
-bool cmderSpawnIsSet = false
-
 ; measured in days (1.0 is a day)
 float gameTimeOfLastRealUpdate = 0.0
 float gameTimeOfLastDestinationUpdate = 0.0
@@ -65,7 +63,7 @@ int factionIndex = -1
 bool editingPendingUnitDeploys = false
 
 ; prepares this faction's data and registers it for updating
-function EnableFaction(int jEnabledFactionData, int thisFactionIndex)
+function PrepareFactionData(int jEnabledFactionData, int thisFactionIndex)
 	jFactionData = jEnabledFactionData
 	CmderDestination_A.GetReference().MoveTo(GetRandomCmderDefaultSpawnPoint())
 	CmderDestination_B.GetReference().MoveTo(GetRandomCmderDefaultSpawnPoint())
@@ -75,6 +73,16 @@ function EnableFaction(int jEnabledFactionData, int thisFactionIndex)
 	destinationScript_C = None
 	jOwnedLocationIndexesArray = jValue.releaseAndRetain(jOwnedLocationIndexesArray, LocationDataHandler.GetLocationIndexesOwnedByFaction(self), "ShoutAndBlade")
 	factionIndex = thisFactionIndex
+
+	; apply cmder spawn pos from data
+	int jCmderSpawnMap = jMap.getObj(jFactionData, "CmderSpawnData")
+	if jCmderSpawnMap == 0
+		jCmderSpawnMap = jMap.object()
+		jValue.retain(jCmderSpawnMap, "ShoutAndBlade")
+		jMap.setObj(jFactionData, "CmderSpawnData", jCmderSpawnMap)
+	endif
+	Cell cmderSpawnCell = jMap.getForm(jCmderSpawnMap, "ParentCell") as Cell
+	SetCmderSpawnLocation_CellAndPos(cmderSpawnCell, jMap.getFlt(jCmderSpawnMap, "PosX"), jMap.getFlt(jCmderSpawnMap, "PosY"), jMap.getFlt(jCmderSpawnMap, "PosZ"))
 endfunction
 
 bool function IsFactionEnabled()
@@ -1108,17 +1116,6 @@ SAB_UnitScript Function GetSpawnedUnitOfTypeFromContainer(SAB_TroopContainerScri
 	return None
 endFunction
 
-; moves the cmder spawn to the location of the target ref and marks the spawn as set...
-; unless the target ref is none; in that case we mark the spawn as "unset"
-Function SetCmderSpawnLocation(ObjectReference targetLocationRef)
-	if targetLocationRef != None
-		CmderSpawnPoint.GetReference().MoveTo(targetLocationRef)
-		cmderSpawnIsSet = true
-	else
-		cmderSpawnIsSet = false
-	endif
-endFunction
-
 SAB_LocationScript function GetLocationForCmderSpawn()
 	int i = jArray.count(jOwnedLocationIndexesArray)
 
@@ -1165,12 +1162,69 @@ ObjectReference function GetCmderSpawnPoint()
 
 	endwhile
 
-	if !cmderSpawnIsSet
+	int jCmderSpawnMap = jMap.getObj(jFactionData, "CmderSpawnData")
+	if jCmderSpawnMap == 0
+		jCmderSpawnMap = jMap.object()
+		jValue.retain(jCmderSpawnMap, "ShoutAndBlade")
+		jMap.setObj(jFactionData, "CmderSpawnData", jCmderSpawnMap)
+	endif
+
+	if !jMap.HasKey(jCmderSpawnMap, "SpawnIsSet")
 		return GetRandomCmderDefaultSpawnPoint()
 	else
 		return CmderSpawnPoint.GetReference()
 	endif
 endfunction
+
+; moves the cmder spawn to the location of the target ref and marks the spawn as set...
+; unless the target ref is none; in that case we mark the spawn as "unset"
+Function SetCmderSpawnLocation(ObjectReference targetLocationRef)
+	int jCmderSpawnMap = jMap.getObj(jFactionData, "CmderSpawnData")
+	if jCmderSpawnMap == 0
+		jCmderSpawnMap = jMap.object()
+		jValue.retain(jCmderSpawnMap, "ShoutAndBlade")
+		jMap.setObj(jFactionData, "CmderSpawnData", jCmderSpawnMap)
+	endif
+	if targetLocationRef != None
+		CmderSpawnPoint.GetReference().MoveTo(targetLocationRef)
+		jMap.setForm(jCmderSpawnMap, "ParentCell", targetLocationRef.GetParentCell())
+		jMap.setFlt(jCmderSpawnMap, "PosX", targetLocationRef.GetPositionX())
+        jMap.setFlt(jCmderSpawnMap, "PosY", targetLocationRef.GetPositionY())
+        jMap.setFlt(jCmderSpawnMap, "PosZ", targetLocationRef.GetPositionZ())
+		jMap.setInt(jCmderSpawnMap, "SpawnIsSet", 1)
+	else
+		jMap.removeKey(jCmderSpawnMap, "SpawnIsSet")
+	endif
+endFunction
+
+; moves the cmder spawn to the location of the target ref and marks the spawn as set...
+; unless the target ref is none; in that case we mark the spawn as "unset"
+Function SetCmderSpawnLocation_CellAndPos(Cell parentCell, float posX, float posY, float posZ)
+	ObjectReference cmderSpawn = CmderSpawnPoint.GetReference()
+	ObjectReference targetLocationRef = None
+	if parentCell != None
+		; find some ref in the target cell, so that we can move the spawn to it
+		targetLocationRef = parentCell.GetNthRef(0)
+	endif
+
+	int jCmderSpawnMap = jMap.getObj(jFactionData, "CmderSpawnData")
+	if jCmderSpawnMap == 0
+		jCmderSpawnMap = jMap.object()
+		jValue.retain(jCmderSpawnMap, "ShoutAndBlade")
+		jMap.setObj(jFactionData, "CmderSpawnData", jCmderSpawnMap)
+	endif
+	if targetLocationRef != None
+		cmderSpawn.MoveTo(targetLocationRef)
+		cmderSpawn.SetPosition(jMap.getFlt(jCmderSpawnMap, "PosX"), jMap.getFlt(jCmderSpawnMap, "PosY"), jMap.getFlt(jCmderSpawnMap, "PosZ"))
+		jMap.setForm(jCmderSpawnMap, "ParentCell", cmderSpawn.GetParentCell())
+		jMap.setFlt(jCmderSpawnMap, "PosX", cmderSpawn.GetPositionX())
+        jMap.setFlt(jCmderSpawnMap, "PosY", cmderSpawn.GetPositionY())
+        jMap.setFlt(jCmderSpawnMap, "PosZ", cmderSpawn.GetPositionZ())
+		jMap.setInt(jCmderSpawnMap, "SpawnIsSet", 1)
+	else
+		jMap.removeKey(jCmderSpawnMap, "SpawnIsSet")
+	endif
+endFunction
 
 ObjectReference function GetRandomCmderDefaultSpawnPoint()
 	ObjectReference pickedSpawnPoint = DefaultCmderSpawnPointsList.GetAt(0) as ObjectReference
