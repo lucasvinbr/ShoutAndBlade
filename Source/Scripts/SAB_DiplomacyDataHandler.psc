@@ -39,8 +39,13 @@ Function InitializeJData()
 
     jSABLockedPlayerRelationsList = jArray.object()
     JValue.retain(jSABLockedPlayerRelationsList, "ShoutAndBlade")
+
+    JDB.solveFormSetter(".ShoutAndBlade_global.diploDataHandler", self, true)
 EndFunction
 
+SAB_DiplomacyDataHandler function GetFromJdb() global
+	return JDB.solveForm(".ShoutAndBlade_global.diploDataHandler") as SAB_DiplomacyDataHandler
+endfunction
 
 Event OnUpdate()
 	

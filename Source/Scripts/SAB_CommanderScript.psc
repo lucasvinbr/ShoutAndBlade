@@ -230,7 +230,7 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 					TargetLocationScript.BeNotifiedOfNearbyHostileCmder()
 
 					if locFaction != None && diploHandler.AreFactionsNeutral(ourFacIndex, locFaction.GetFactionIndex())
-						; don't just stand there, kill them!
+						; don't just stand there, kill them! (declare war)
 						; (unless it's a player-controlled fac and this loc isn't one of the targets)
 						if !factionScript.IsPlayerInControlOfThisFaction() || factionScript.IsLocationOneOfThisFacsDestinations(TargetLocationScript)
 							diploHandler.GlobalReactToWarDeclaration(ourFacIndex, locFaction.GetFactionIndex())
@@ -415,7 +415,7 @@ ObjectReference Function GetMoveDestAfterSpawnForUnit()
 EndFunction
 
 ObjectReference Function GetSpawnPointForUnit()
-	return CrowdReducer.BodyDumpReference
+	return CrowdReducer.HiddenSpawnReference
 EndFunction
 
 

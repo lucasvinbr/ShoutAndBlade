@@ -121,7 +121,7 @@ ObjectReference Function GetMoveDestAfterSpawnForUnit()
 EndFunction
 
 ObjectReference Function GetSpawnPointForUnit()
-	return CrowdReducer.BodyDumpReference
+	return CrowdReducer.HiddenSpawnReference
 EndFunction
 
 

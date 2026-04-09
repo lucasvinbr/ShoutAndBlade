@@ -7,6 +7,9 @@ Actor[] BodiesArray
 ObjectReference Property BodyDumpReference Auto
 { reference to which bodies that will be deleted are moved }
 
+ObjectReference Property HiddenSpawnReference Auto
+{ reference in which units, cmders etc should be spawned before being moved to their target spawn pos}
+
 int numExistingBodies = 0
 int nextBodyIndexToFill = 0
 int nextBodyIndexToErase = 0
@@ -27,7 +30,24 @@ Function Initialize()
 	; 	jKnownVacantNearbyCmderSlots = jArray.object()
 	; 	JValue.retain(jKnownVacantNearbyCmderSlots, "ShoutAndBlade")
 	; endif
+
+	JDB.solveFormSetter(".ShoutAndBlade_global.crowdReducer", self, true)
+	JDB.solveFormSetter(".ShoutAndBlade_global.bodyDumpReference", BodyDumpReference, true)
+	JDB.solveFormSetter(".ShoutAndBlade_global.hiddenSpawnReference", HiddenSpawnReference, true)
+
 EndFunction
+
+SAB_CrowdReducer function GetFromJdb() global
+	return JDB.solveForm(".ShoutAndBlade_global.crowdReducer") as SAB_CrowdReducer
+endfunction
+
+ObjectReference function GetBodyDumpRefFromJdb() global
+	return JDB.solveForm(".ShoutAndBlade_global.bodyDumpReference") as ObjectReference
+endfunction
+
+ObjectReference function GetHiddenSpawnRefFromJdb() global
+	return JDB.solveForm(".ShoutAndBlade_global.hiddenSpawnReference") as ObjectReference
+endfunction
 
 Function RegisterUnitToLivingList(int facIndex, Actor unit)
 	If jLivingUnitsMap == 0

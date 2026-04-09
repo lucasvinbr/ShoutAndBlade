@@ -45,7 +45,11 @@ float Property GarrisonSizeMultiplier = 1.0 Auto Hidden
 ObjectReference Property DistCalculationReference Auto
 { (Optional) if not None, this object will be used as reference when calculating distances between locations. if not set, the base alias reference will be used }
 
-bool Property isEnabled = true Auto Hidden
+bool Property isEnabled = true Auto
+{ keep this enabled, unless, for some reason, you don't want the loc to start as part of the mod as soon as possible. The player will have to enable it manually }
+
+bool Property isChangeable = false Auto
+{ if true, the player will be able to set this location script to point to wherever they want to }
 
 bool playerIsInside = false
 
@@ -68,8 +72,6 @@ int lastNearbyCmderIndexCloseByUpdated = -1
 int topFilledNearbyCmderIndex = -1
 bool editingNearbyCmderIndexes = false
 int jKnownVacantNearbyCmderSlots = -1
-
-ObjectReference cachedSpawnPoint = None
 
 Function Setup(SAB_FactionScript factionScriptRef, float curGameTime = 0.0)
 	parent.Setup(factionScriptRef, curGameTime)
@@ -99,6 +101,11 @@ Function DisableLocation()
 EndFunction
 
 Function BeTakenByFaction(SAB_FactionScript factionScriptRef, bool notify = true)
+	if !isEnabled
+		Debug.Trace("[SAB] location " + GetLocName() + " couldn't be taken by the " + jMap.getStr(factionScript.jFactionData, "name", "Faction") + " because it is disabled")
+		return
+	endif
+
 	if !factionScriptRef
 		BecomeNeutral(notify)
 		return
@@ -661,10 +668,7 @@ ObjectReference Function GetMoveDestAfterSpawnForUnit()
 EndFunction
 
 ObjectReference Function GetSpawnPointForUnit()
-	if cachedSpawnPoint == None
-		cachedSpawnPoint = factionScript.DiplomacyDataHandler.PlayerDataHandler.PlayerCommanderScript.CrowdReducer.BodyDumpReference
-	endif
-	return cachedSpawnPoint
+	return SAB_CrowdReducer.GetHiddenSpawnRefFromJdb()
 EndFunction
 
 ; returns DistCalculationReference if it's set, GetReference() otherwise. 
@@ -754,3 +758,8 @@ endfunction
 bool Function IsInitialized()
 	return jKnownVacantNearbyCmderSlots != -1
 EndFunction
+
+bool Function IsPlaceholderLocation()
+	SAB_LocationDataHandler locHandler = SAB_LocationDataHandler.GetFromJdb()
+	return ThisLocation.HasKeyword(locHandler.SAB_PlaceholderLocationKeyword)
+endfunction

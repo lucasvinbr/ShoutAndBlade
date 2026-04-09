@@ -12,6 +12,9 @@ FormList Property SAB_ObjectsToUseAsSpawnsList Auto
 
 SAB_FactionDataHandler Property FactionDataHandler Auto
 
+Keyword Property SAB_PlaceholderLocationKeyword Auto
+{ keyword used for marking the placeholder SAB locations, which should be replaced by valid ingame locations }
+
 bool initialSetupDone = false
 bool isBusyUpdatingLocationData = false
 bool isBusyAddingNewLocsToBaseArray = false
@@ -39,9 +42,14 @@ Function Initialize()
     jregisteredAddonsArray = jArray.object()
     JValue.retain(jregisteredAddonsArray, "ShoutAndBlade")
 
+    JDB.solveFormSetter(".ShoutAndBlade_global.locDataHandler", self, true)
+
     initialSetupDone = true
 EndFunction
 
+SAB_LocationDataHandler function GetFromJdb() global
+	return JDB.solveForm(".ShoutAndBlade_global.locDataHandler") as SAB_LocationDataHandler
+endfunction
 
 bool Function IsDoneSettingUp()
     return initialSetupDone
@@ -79,7 +87,7 @@ Function AddNewLocationsFromAddon(SAB_LocationDataAddon addon, int addonIndex)
     while i != -1 && i < newLocations.Length
         SAB_LocationScript newLoc = newLocations[i]
         if newLoc != None
-            If GetLocationIndexById(newLoc.GetLocId()) == -1
+            If GetLocationIndexById(newLoc.GetLocId()) == -1 || newLoc.isChangeable
                 Locations.RegisterAliasForUpdates(newLoc)
                 hasMadeChanges = true
                 NextLocationIndex = Locations.GetTopIndex() + 1
@@ -132,7 +140,7 @@ EndFunction
 Function SetLocationEnabled(SAB_LocationScript locScript, bool enable)
 
     while isBusyUpdatingLocationData
-        Debug.Trace("[SAB]  queued location enable is waiting")
+        Debug.Trace("[SAB] queued location enable is waiting")
         Utility.Wait(0.1)
     endwhile
 
@@ -196,7 +204,6 @@ Function RebuildEnabledLocationsArray()
         i += 1
     endwhile
 
-    ; clear other enabled location entries
     NextEnabledLocationIndex = EnabledLocations.GetTopIndex()
 
     Debug.Trace("[SAB] rebuild enabled locations - end")
@@ -367,7 +374,7 @@ Function UpdateLocationsAccordingToJMap()
             int jLocDataMap = jMap.getObj(jLocationsConfigMap, locId)
 
             if jLocDataMap != 0
-                bool enableLoc = jMap.getInt(jLocDataMap, "IsEnabled", 1) != 0
+                bool enableLoc = jMap.getInt(jLocDataMap, "IsEnabled", 1) != 0 && !locScript.IsPlaceholderLocation()
 
                 if locScript.isEnabled != enableLoc
                     hasChangedEnabledLocations = true
@@ -707,7 +714,7 @@ EndFunction
 
 ; locationData jmap entries:
 
-; int IsEnabled - 0 = disabled, anything else = enabled
+; int IsEnabled - key exists = enabled
 ; string OverrideDisplayName
 ; float GarrisonSizeMultiplier
 ; float GoldRewardMultiplier

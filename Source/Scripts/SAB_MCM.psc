@@ -2,7 +2,7 @@ scriptname SAB_MCM extends nl_mcm_module
 
 SAB_MainQuest Property MainQuest Auto
 
-; since we want more than 128 custom units, we need two arrays (0 or 1 here)
+; since we want more than 128 custom units, we need more arrays, each one being a "page"
 int Property editedUnitsMenuPage = 0 auto hidden
 
 bool Property isLoadingData Auto

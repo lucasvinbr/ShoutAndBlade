@@ -28,7 +28,7 @@ event OnInit()
 		LocationDataHandler.Initialize()
 		PlayerDataHandler.Initialize()
 		
-		
+		JDB.solveFormSetter(".ShoutAndBlade_global.mainQuest", self, true)
 
 		; Debug.StartScriptProfiling("SAB_SpawnerScript")
 		; Debug.StartScriptProfiling("SAB_FactionScript")
@@ -41,3 +41,7 @@ event OnInit()
 		HasInitialized = true
 	endif
 endEvent
+
+SAB_MainQuest function GetFromJdb() global
+	return JDB.solveForm(".ShoutAndBlade_global.mainQuest") as SAB_MainQuest
+endfunction

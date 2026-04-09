@@ -19,7 +19,13 @@ int Property jSABFactionDatasArray Auto Hidden
 Function InitializeJData()
     jSABFactionDatasArray = JArray.objectWithSize(100)
     JValue.retain(jSABFactionDatasArray, "ShoutAndBlade")
+
+    JDB.solveFormSetter(".ShoutAndBlade_global.factionDataHandler", self, true)
 EndFunction
+
+SAB_FactionDataHandler function GetFromJdb() global
+	return JDB.solveForm(".ShoutAndBlade_global.factionDataHandler") as SAB_FactionDataHandler
+endfunction
 
 ; makes sure the factionDatasArray has 100 elements
 Function EnsureArrayCounts()
