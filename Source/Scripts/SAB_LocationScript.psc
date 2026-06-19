@@ -73,6 +73,12 @@ int topFilledNearbyCmderIndex = -1
 bool editingNearbyCmderIndexes = false
 int jKnownVacantNearbyCmderSlots = -1
 
+int Property jExtraNearbyOutsideMarkersArr = -1 Auto Hidden
+{ a jArray filled with the obj refs set in the array, and any others added, if this loc is editable }
+
+int Property jInteriorCellsArr = -1 Auto Hidden
+{ a jArray filled with the cells set in the array, and any others added, if this loc is editable }
+
 Function Setup(SAB_FactionScript factionScriptRef, float curGameTime = 0.0)
 	parent.Setup(factionScriptRef, curGameTime)
 
@@ -159,19 +165,25 @@ Function UpdateInteriorsTrespassingStatus()
 		ownerFac = factionScript.OurFaction
 	EndIf
 
-	int i = 0
-	while i < InteriorCells.Length
-		InteriorCells[i].SetFactionOwner(ownerFac)
+	GuardInteriorCellsJArray()
 
-		If hasOwner
-			; make neutral/hostile owned locations private, 
-			; to make the units attack the player if they don't leave
-			InteriorCells[i].SetPublic(factionScript.DiplomacyDataHandler.IsFactionAllyOfPlayer(factionScript.GetFactionIndex()))	
-		else
-			InteriorCells[i].SetPublic(true)
+	int i = jArray.count(jInteriorCellsArr)
+	while i > 0
+		i -= 1
+		Cell interiorCell = jArray.GetForm(jInteriorCellsArr, i) as Cell
+
+		if interiorCell != None
+			interiorCell.SetFactionOwner(ownerFac)
+
+			If hasOwner
+				; make neutral/hostile owned locations private, 
+				; to make the units attack the player if they don't leave
+				interiorCell.SetPublic(factionScript.DiplomacyDataHandler.IsFactionAllyOfPlayer(factionScript.GetFactionIndex()))	
+			else
+				interiorCell.SetPublic(true)
+			endif
 		endif
 
-		i += 1
 	endwhile
 EndFunction
 
@@ -522,7 +534,9 @@ EndFunction
 
 ; checks the interiorCells list. if there is no interior, always returns false
 bool Function IsRefInThisLocationsInteriors(ObjectReference ref)
-	if InteriorCells.Length == 0
+
+	GuardInteriorCellsJArray()
+	if jArray.count(jInteriorCellsArr) == 0
 		return false
 	endif
 
@@ -532,13 +546,13 @@ bool Function IsRefInThisLocationsInteriors(ObjectReference ref)
 		return false
 	endif
 
-	int i = InteriorCells.Length
+	int i = jArray.count(jInteriorCellsArr)
 
 	While (i > 0)
 		i -= 1
-		Cell testedCell = InteriorCells[i]
+		Cell testedCell = jArray.GetForm(jInteriorCellsArr, i) as Cell
 
-		if refCell == testedCell
+		if testedCell != None && refCell == testedCell
 			return true
 		endif
 	EndWhile
@@ -566,12 +580,15 @@ bool Function IsRefNearbyOutside(ObjectReference targetRef, float nearbyDistance
 		return true
 	EndIf
 
-	int i = ExtraIsNearbyOutsideMarkers.Length
+	GuardExtraMarkersArray()
+	int i = jArray.count(jExtraNearbyOutsideMarkersArr)
 
+	ObjectReference extraMarker = None
 	While i > 0
 		i -= 1
 
-		distToRef = targetRef.GetDistance(ExtraIsNearbyOutsideMarkers[i])
+		extraMarker = jArray.GetForm(jExtraNearbyOutsideMarkersArr, i) as ObjectReference
+		distToRef = targetRef.GetDistance(extraMarker)
 		If (distToRef < nearbyDistance)
 			return true
 		EndIf
@@ -584,15 +601,40 @@ ObjectReference Function GetClosestOutsideSpawnMarkerFromRef(ObjectReference tar
 	ObjectReference closestMarker = GetReference()
 	float smallestDist = targetRef.GetDistance(closestMarker)
 
-	int i = ExtraIsNearbyOutsideMarkers.Length
+	GuardExtraMarkersArray()
+	int i = jArray.count(jExtraNearbyOutsideMarkersArr)
 
+	ObjectReference extraMarker = None
 	While i > 0
 		i -= 1
 
-		float distToNewRef = targetRef.GetDistance(ExtraIsNearbyOutsideMarkers[i])
+		extraMarker = jArray.GetForm(jExtraNearbyOutsideMarkersArr, i) as ObjectReference
+		float distToNewRef = targetRef.GetDistance(extraMarker)
 		If (distToNewRef < smallestDist)
 			smallestDist = distToNewRef
-			closestMarker = ExtraIsNearbyOutsideMarkers[i]
+			closestMarker = extraMarker
+		EndIf
+	EndWhile
+
+	return closestMarker
+EndFunction
+
+ObjectReference Function GetClosestExtraNearbyOutsideMarkerFromRef(ObjectReference targetRef)
+	ObjectReference closestMarker = None
+	float smallestDist = 0.0 ; we check if closestMarker is none below, so this is fine
+
+	GuardExtraMarkersArray()
+	int i = jArray.count(jExtraNearbyOutsideMarkersArr)
+
+	ObjectReference extraMarker = None
+	While i > 0
+		i -= 1
+
+		extraMarker = jArray.GetForm(jExtraNearbyOutsideMarkersArr, i) as ObjectReference
+		float distToNewRef = targetRef.GetDistance(extraMarker)
+		If (distToNewRef < smallestDist || closestMarker == None)
+			smallestDist = distToNewRef
+			closestMarker = extraMarker
 		EndIf
 	EndWhile
 
@@ -721,6 +763,139 @@ Event OnCellAttach()
 		ToggleNearbyUpdates(true)
 	endif
 EndEvent
+
+
+Function AddExtraNearbyMarker(ObjectReference marker)
+	if !isChangeable
+		Debug.Trace("[SAB] attempted to AddExtraNearbyMarker to non-editable location " + GetLocName())
+		return
+	endif
+
+	GuardExtraMarkersArray()
+
+	jArray.addForm(jExtraNearbyOutsideMarkersArr, marker)
+
+EndFunction
+
+; returns true if a marker was removed
+bool function RemoveNearestExtraNearbyMarker(ObjectReference referencePos)
+	if !isChangeable
+		Debug.Trace("[SAB] attempted to RemoveNearestExtraNearbyMarker to non-editable location " + GetLocName())
+		return false
+	endif
+
+	GuardExtraMarkersArray()
+
+	ObjectReference nearestMarker = GetClosestExtraNearbyOutsideMarkerFromRef(referencePos)
+
+	if nearestMarker != None
+		jArray.eraseForm(jExtraNearbyOutsideMarkersArr, nearestMarker)
+		return true
+	endif
+
+	return false
+endfunction
+
+
+function AddInteriorCell(Cell targetCell)
+	if !isChangeable
+		Debug.Trace("[SAB] attempted to AddInteriorCell to non-editable location " + GetLocName())
+		return
+	endif
+
+	GuardInteriorCellsJArray()
+
+	if jArray.findForm(jInteriorCellsArr, targetCell) == -1
+		jArray.AddForm(jInteriorCellsArr, targetCell)
+	endif
+
+endfunction
+
+bool function RemoveInteriorCell(Cell targetCell)
+	if !isChangeable
+		Debug.Trace("[SAB] attempted to RemoveInteriorCell to non-editable location " + GetLocName())
+		return false
+	endif
+
+	GuardInteriorCellsJArray()
+
+	if jArray.findForm(jInteriorCellsArr, targetCell) != -1
+		jArray.eraseForm(jInteriorCellsArr, targetCell)
+		return true
+	endif
+
+	return false
+endFunction
+
+
+function ApplyJObjectRepresentingMarkerPosition(ObjectReference marker, int jPosMap = -1)
+	if marker == None || jPosMap == -1 || jPosMap == 0
+		return
+	endif
+
+	Cell parentCell = jMap.getForm(jPosMap, "ParentCell") as Cell
+	if parentCell == None
+		Debug.Trace("[SAB] got invalid parent cell for a marker of location " + GetLocName())
+		return
+	endif
+
+	ObjectReference targetLocationRef = None
+	; find some ref in the target cell, so that we can move the marker to it
+	targetLocationRef = parentCell.GetNthRef(0)
+	
+	marker.MoveTo(targetLocationRef)
+	marker.SetPosition(jMap.getFlt(jPosMap, "PosX"), jMap.getFlt(jPosMap, "PosY"), jMap.getFlt(jPosMap, "PosZ"))
+
+endfunction
+
+int function GetJObjectRepresentingMarkerPosition(ObjectReference marker)
+	if marker == None
+		return -1
+	endif
+
+	int jReturnedMap = jMap.object()
+
+	jMap.setForm(jCmderSpawnMap, "ParentCell", marker.GetParentCell())
+	jMap.setFlt(jCmderSpawnMap, "PosX", marker.GetPositionX())
+	jMap.setFlt(jCmderSpawnMap, "PosY", marker.GetPositionY())
+	jMap.setFlt(jCmderSpawnMap, "PosZ", marker.GetPositionZ())
+
+	return jReturnedMap
+endfunction
+
+; makes sure the extra markers jArray is set up
+function GuardExtraMarkersArray()
+	if jExtraNearbyOutsideMarkersArr == -1 || jExtraNearbyOutsideMarkersArr == 0
+		jExtraNearbyOutsideMarkersArr = jArray.object()
+		JValue.retain(jExtraNearbyOutsideMarkersArr, "ShoutAndBlade")
+
+		; add extra markers from CK array
+		int i = ExtraIsNearbyOutsideMarkers.Length
+
+		While i > 0
+			i -= 1
+
+			jArray.addForm(jExtraNearbyOutsideMarkersArr, ExtraIsNearbyOutsideMarkers[i])
+		EndWhile
+	endif
+endfunction
+
+; makes sure the interior cells jArray is set up
+function GuardInteriorCellsJArray()
+	if jInteriorCellsArr == -1 || jInteriorCellsArr == 0
+		jInteriorCellsArr = jArray.object()
+		JValue.retain(jInteriorCellsArr, "ShoutAndBlade")
+
+		; add interior cells from CK array
+		int i = InteriorCells.Length
+
+		While i > 0
+			i -= 1
+
+			jArray.addForm(jInteriorCellsArr, InteriorCells[i])
+		EndWhile
+	endif
+endfunction
 
 
 int Function GetMaxOwnedUnitsAmount()

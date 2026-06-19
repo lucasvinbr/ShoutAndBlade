@@ -154,6 +154,12 @@ ReferenceAlias Function SpawnUnitAtLocation(int unitIndex, ObjectReference spawn
 			Actor unitActor = spawnedUnit.GetReference() as Actor
 			unitActor.SetAlert(true)
 
+			; apply new spawn buff if enabled
+			int buffEnabled = JDB.solveInt(".ShoutAndBlade.generalOptions.applyRecentSpawnBuff", 0)
+			if buffEnabled > 0
+				unitActor.DoCombatSpellApply(PlayerDataHandler.SpawnerScript.NewlySpawnedInCombatSpell, unitActor)
+			endif
+
 			; if we're on alert, we should find an enemy to start fighting as soon as we spawn
 			Actor targetEnemy = playerActor.GetCombatTarget()
 			if targetEnemy != None && targetEnemy.IsHostileToActor(playerActor)
@@ -316,5 +322,5 @@ EndFunction
 
 ; if true, units spawning from this container should spawn ready for combat
 bool Function IsOnAlert()
-	return playerActor.IsInCombat()
+	return playerActor.IsInCombat() || playerActor.IsWeaponDrawn()
 endfunction

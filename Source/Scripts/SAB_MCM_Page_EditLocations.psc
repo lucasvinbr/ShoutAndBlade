@@ -12,6 +12,15 @@ SAB_LocationScript editedLocationScript
 
 bool saveOwnerships = false
 
+string[] leftSideMenuOptions
+int displayedLeftSideMenu = 0
+
+; the cell in which all markers are in, before we start moving them
+Cell Property MarkersHolderCell auto
+
+; the marker we use as base for creating new ones
+ObjectReference Property XMarker auto
+
 event OnInit()
     RegisterModule("$sab_mcm_page_edit_locations", 7)
 endevent
@@ -19,6 +28,10 @@ endevent
 Event OnPageInit()
 
     editedFactionIdentifiersArray = new string[101]
+
+    leftSideMenuOptions = new string[2]
+    leftSideMenuOptions[0] = "$sab_mcm_locationedit_menu_leftside_garrison"
+    leftSideMenuOptions[1] = "$sab_mcm_locationedit_menu_leftside_positions"
 
 EndEvent
 
@@ -36,10 +49,6 @@ EndEvent
 ; SHARED STUFF
 ;---------------------------------------------------------------------------------------------------------
 
-; fetches the localization key based on the stateId. Should be overridden on the "base" states!
-string function GetInfoTextLocaleKey(string stateId)
-    return "$sab_mcm_unitedit_slider_health_desc"
-endfunction
 
 state SHARED_LOADING
 
@@ -94,76 +103,125 @@ Function SetupPage()
     AddSliderOptionST("LOC_EDIT_MULTIPLIER___GoldReward", "$sab_mcm_locationedit_slider_gold_award_mult", editedLocationScript.GoldRewardMultiplier, "{1}")
     AddSliderOptionST("LOC_EDIT_MULTIPLIER___GarrisonSize", "$sab_mcm_locationedit_slider_garrison_size_mult", editedLocationScript.GarrisonSizeMultiplier, "{1}")
 
+    AddEmptyOption()
+    AddMenuOptionST("LOC_EDIT_LEFTSIDE_MENU", "$sab_mcm_locationedit_menu_leftside", leftSideMenuOptions[displayedLeftSideMenu])
+    AddEmptyOption()
+
+    if displayedLeftSideMenu == 0
+        ; set up a list of the current loc units.
+        ; show a message if there are no units
+        AddHeaderOption("$sab_mcm_locationedit_header_curgarrison")
+        int jUnitDatasArray = MainPage.MainQuest.UnitDataHandler.jSABUnitDatasArray
+        int jLocUnitsMap = editedLocationScript.jOwnedUnitsMap
+        int nextUnitIndex = JIntMap.nextKey(jLocUnitsMap, -1, -1)
+        bool atLeastOneUnitEntry = false
+        while nextUnitIndex != -1
+            int nextUnitCount = jIntMap.getInt(jLocUnitsMap, nextUnitIndex)
+            if nextUnitCount > 0
+                int jUnitData = JArray.getObj(jUnitDatasArray, nextUnitIndex)
+                if jUnitData != 0
+                    AddTextOptionST("LOC_CURTROOP___" + nextUnitIndex, nextUnitCount + " " + JMap.getStr(jUnitData, "Name", "Recruit"), "")
+                    atLeastOneUnitEntry = true
+                endif
+            endif
+
+            nextUnitIndex = JIntMap.nextKey(jLocUnitsMap, nextUnitIndex, -1)
+        endwhile
+
+        if !atLeastOneUnitEntry
+            AddTextOptionST("EMPTY_LOC_PLACEHOLDER___CUR", " - ", "")
+        endif
+
+        AddEmptyOption()
+        ; set up a list of the STARTING loc units.
+        ; show a message if there are no units
+        AddHeaderOption("$sab_mcm_locationedit_header_startgarrison")
+
+        if editedLocationScript.jStartingUnitsMap == 0
+            editedLocationScript.jStartingUnitsMap = jValue.releaseAndRetain(editedLocationScript.jStartingUnitsMap, jIntMap.object(), "ShoutAndBlade")
+        endif
+
+        jLocUnitsMap = editedLocationScript.jStartingUnitsMap
+        nextUnitIndex = JIntMap.nextKey(jLocUnitsMap, -1, -1)
+        atLeastOneUnitEntry = false
+        while nextUnitIndex != -1
+            int nextUnitCount = jIntMap.getInt(jLocUnitsMap, nextUnitIndex)
+            if nextUnitCount > 0
+                int jUnitData = JArray.getObj(jUnitDatasArray, nextUnitIndex)
+                if jUnitData != 0
+                    AddSliderOptionST("LOC_STARTINGTROOP___" + nextUnitIndex, JMap.getStr(jUnitData, "Name", "Recruit"), nextUnitCount)
+                    atLeastOneUnitEntry = true
+                endif
+            endif
+
+            nextUnitIndex = JIntMap.nextKey(jLocUnitsMap, nextUnitIndex, -1)
+        endwhile
+
+        if !atLeastOneUnitEntry
+            AddTextOptionST("EMPTY_LOC_PLACEHOLDER___STARTING", " - ", "")
+        endif
+
+        AddEmptyOption()
+        ; options for editing starting/cur garrison:
+        ; - add units to starting garrison
+        ; - set cur garrison to starting garrison
+        AddHeaderOption("$sab_mcm_locationedit_header_editstartgarrison")
+        AddSliderOptionST("LOC_EDIT_UNIT_MENU_PAGE___STARTGARRISON", "$sab_mcm_unitedit_slider_menupage", MainPage.editedUnitsMenuPage + 1)
+        AddMenuOptionST("LOC_EDIT_UNIT_RECRUIT_MENU", "$sab_mcm_locationedit_menu_garrunit", MainPage.GetMCMUnitDisplayByUnitIndex(unitToAddToStartingGarr))
+        AddSliderOptionST("LOC_EDIT_UNIT_GARR_SLIDER", "$sab_mcm_locationedit_slider_garrunit_add", 0, "")
+
+        AddEmptyOption()
+
+        AddTextOptionST("LOC_EDIT_SET_TO_STARTGARR", "$sab_mcm_locationedit_button_set_to_startgarr", "")
+        AddEmptyOption()
+        AddTextOptionST("LOC_EDIT_SET_STARTGARR_TO_CUR", "$sab_mcm_locationedit_button_set_startgarr_to_cur", "")
+
+    elseif displayedLeftSideMenu == 1
+        ; options for editing and displaying info on positions:
+        ; -- set location (should warn that it can be destructive)
+        ;   - prevent change if player's loc is none
+        ;   - warn if loc is not a placeholder one
+        ; - add interior cell as this loc's
+        ; - warnings list: must set this or that marker etc
+        ; all options should be grayed out if this location isn't marked as editable
+        Actor plyr = Game.GetPlayer()
+        Location curLoc = plyr.GetCurrentLocation()
+        String locName = "none"
+        if curLoc != None
+            locName = curLoc.GetName()
+        endif
+        AddTextOptionST("LOC_EDIT_CUSTOM_PLYR_CUR_LOC", "$sab_mcm_locationedit_text_plyr_cur_loc", locName)
+        AddTextOptionST("LOC_EDIT_CUSTOM_SET_LOC", "$sab_mcm_locationedit_button_set_custom_loc", "")
+
+        AddEmptyOption()
+
+        ; -- set xmarker positions: location's marker, moveDest, distCalc
+        ;   - for each one, also display player's cur distance to marker
+        AddMarkerHandlerFunctions(plyr, editedLocationScript.GetReference(), "loc_marker")
+
+        AddEmptyOption()
+
+        AddMarkerHandlerFunctions(plyr, editedLocationScript.MoveDestination, "loc_marker_movedest")
+
+        AddEmptyOption()
+
+        AddMarkerHandlerFunctions(plyr, editedLocationScript.DistCalculationReference, "loc_marker_distcalc")
+
+        AddEmptyOption()
+        ; - add extra is nearby marker
+        ;   - should have a "is nearby?" display here. if nearby, you can't add another extra, but you can remove
+        bool playerIsInside = editedLocationScript.IsRefInThisLocationsInteriors(plyr)
+        bool isNearby = playerIsInside || editedLocationScript.IsRefNearbyOutside(plyr)
+        Cell curPlyrCell = plyr.GetParentCell()
+
+        AddTextOptionST("LOC_EDIT_CUSTOM_NEARBY", "$sab_mcm_locationedit_text_is_nearby_loc", isNearby)
+        if isNearby && !curPlyrCell.IsInterior()
+            AddTextOptionST("LOC_EDIT_CUSTOM_EXTRA_NEARMARKER___remove", "$sab_mcm_locationedit_button_custom_loc_remove_extramarker", "")
+        elseif !curPlyrCell.IsInterior()
+            AddTextOptionST("LOC_EDIT_CUSTOM_EXTRA_NEARMARKER___add", "$sab_mcm_locationedit_button_custom_loc_add_extramarker", "")
+        endif
+    endif
     
-
-    ; set up a list of the current loc units.
-    ; show a message if there are no units
-    AddHeaderOption("$sab_mcm_locationedit_header_curgarrison")
-    int jUnitDatasArray = MainPage.MainQuest.UnitDataHandler.jSABUnitDatasArray
-    int jLocUnitsMap = editedLocationScript.jOwnedUnitsMap
-    int nextUnitIndex = JIntMap.nextKey(jLocUnitsMap, -1, -1)
-    bool atLeastOneUnitEntry = false
-    while nextUnitIndex != -1
-        int nextUnitCount = jIntMap.getInt(jLocUnitsMap, nextUnitIndex)
-        if nextUnitCount > 0
-            int jUnitData = JArray.getObj(jUnitDatasArray, nextUnitIndex)
-            if jUnitData != 0
-                AddTextOptionST("LOC_CURTROOP___" + nextUnitIndex, nextUnitCount + " " + JMap.getStr(jUnitData, "Name", "Recruit"), "")
-                atLeastOneUnitEntry = true
-            endif
-        endif
-
-        nextUnitIndex = JIntMap.nextKey(jLocUnitsMap, nextUnitIndex, -1)
-    endwhile
-
-    if !atLeastOneUnitEntry
-        AddTextOptionST("EMPTY_LOC_PLACEHOLDER___CUR", " - ", "")
-    endif
-
-    AddEmptyOption()
-    ; set up a list of the STARTING loc units.
-    ; show a message if there are no units
-    AddHeaderOption("$sab_mcm_locationedit_header_startgarrison")
-
-    if editedLocationScript.jStartingUnitsMap == 0
-        editedLocationScript.jStartingUnitsMap = jValue.releaseAndRetain(editedLocationScript.jStartingUnitsMap, jIntMap.object(), "ShoutAndBlade")
-    endif
-
-    jLocUnitsMap = editedLocationScript.jStartingUnitsMap
-    nextUnitIndex = JIntMap.nextKey(jLocUnitsMap, -1, -1)
-    atLeastOneUnitEntry = false
-    while nextUnitIndex != -1
-        int nextUnitCount = jIntMap.getInt(jLocUnitsMap, nextUnitIndex)
-        if nextUnitCount > 0
-            int jUnitData = JArray.getObj(jUnitDatasArray, nextUnitIndex)
-            if jUnitData != 0
-                AddSliderOptionST("LOC_STARTINGTROOP___" + nextUnitIndex, JMap.getStr(jUnitData, "Name", "Recruit"), nextUnitCount)
-                atLeastOneUnitEntry = true
-            endif
-        endif
-
-        nextUnitIndex = JIntMap.nextKey(jLocUnitsMap, nextUnitIndex, -1)
-    endwhile
-
-    if !atLeastOneUnitEntry
-        AddTextOptionST("EMPTY_LOC_PLACEHOLDER___STARTING", " - ", "")
-    endif
-
-    AddEmptyOption()
-    ; options for editing starting/cur garrison:
-    ; - add units to starting garrison
-    ; - set cur garrison to starting garrison
-    AddHeaderOption("$sab_mcm_locationedit_header_editstartgarrison")
-    AddSliderOptionST("LOC_EDIT_UNIT_MENU_PAGE___STARTGARRISON", "$sab_mcm_unitedit_slider_menupage", MainPage.editedUnitsMenuPage + 1)
-    AddMenuOptionST("LOC_EDIT_UNIT_RECRUIT_MENU", "$sab_mcm_locationedit_menu_garrunit", MainPage.GetMCMUnitDisplayByUnitIndex(unitToAddToStartingGarr))
-    AddSliderOptionST("LOC_EDIT_UNIT_GARR_SLIDER", "$sab_mcm_locationedit_slider_garrunit_add", 0, "")
-
-    AddEmptyOption()
-
-    AddTextOptionST("LOC_EDIT_SET_TO_STARTGARR", "$sab_mcm_locationedit_button_set_to_startgarr", "")
-    AddEmptyOption()
-    AddTextOptionST("LOC_EDIT_SET_STARTGARR_TO_CUR", "$sab_mcm_locationedit_button_set_startgarr_to_cur", "")
-
     SetCursorPosition(1)
 
     AddToggleOptionST("LOC_EDIT_TOGGLE_SAVE_OWNERSHIPS", "$sab_mcm_locationedit_toggle_save_ownerships", saveOwnerships)
@@ -199,6 +257,15 @@ Function SetupPage()
     AddTextOptionST("LOC_RECALC_NEARBY", "$sab_mcm_locationedit_recalculate_nearbyloc", "")
     
 EndFunction
+
+function AddMarkerHandlerFunctions(ObjectReference playerRef, ObjectReference marker, String markerType)
+    float plyrDistance = playerRef.GetDistance(marker)
+    AddTextOptionST("LOC_EDIT_CUSTOM_MARKERDIST___" + markerType, "$sab_mcm_locationedit_button_custom_" + markerType + "_dist", plyrDistance)
+    AddTextOptionST("LOC_EDIT_CUSTOM_SET_MARKER___" + markerType, "$sab_mcm_locationedit_button_set_custom_" + markerType, "")
+endfunction
+
+
+
 
 
 state LOC_EDIT_CUR_LOC
@@ -638,6 +705,163 @@ state LOC_EDIT_SET_STARTGARR_TO_CUR
 		SetInfoText("$sab_mcm_locationedit_button_set_startgarr_to_cur_desc")
 	endEvent
 endstate 
+
+
+state LOC_EDIT_LEFTSIDE_MENU
+
+	event OnMenuOpenST(string state_id)
+		SetMenuDialogStartIndex(displayedLeftSideMenu)
+		SetMenuDialogDefaultIndex(displayedLeftSideMenu)
+		SetMenuDialogOptions(leftSideMenuOptions)
+	endEvent
+
+	event OnMenuAcceptST(string state_id, int index)
+        displayedLeftSideMenu = index
+		SetMenuOptionValueST(leftSideMenuOptions[displayedLeftSideMenu])
+        ForcePageReset()
+	endEvent
+
+	event OnDefaultST(string state_id)
+        displayedLeftSideMenu = 0
+		SetMenuOptionValueST(leftSideMenuOptions[displayedLeftSideMenu])
+        ForcePageReset()
+	endEvent
+
+	event OnHighlightST(string state_id)
+        MainPage.ToggleQuickHotkey(true)
+		SetInfoText("$sab_mcm_locationedit_menu_leftside_desc")
+	endEvent
+    
+endstate
+
+state LOC_EDIT_CUSTOM_PLYR_CUR_LOC
+    event OnSelectST(string state_id)
+        ; nothing
+	endEvent
+
+    event OnDefaultST(string state_id)
+        ; nothing
+    endevent
+
+	event OnHighlightST(string state_id)
+        MainPage.ToggleQuickHotkey(true)
+		SetInfoText("$sab_mcm_locationedit_text_plyr_cur_loc_desc")
+	endEvent
+
+endState
+
+state LOC_EDIT_CUSTOM_SET_LOC
+    event OnSelectST(string state_id)
+        ; - set location (should warn that it can be destructive)
+        ;   - prevent change if player's loc is none
+        ;   - warn if loc is not a placeholder one
+        Location curLoc = Game.GetPlayer().GetCurrentLocation()
+
+        if curLoc == None
+            ShowMessage("$sab_mcm_locationedit_popup_set_custom_loc_invalid", false)
+            return
+        endif
+
+        bool warnBeforeChange = false
+        if editedLocationScript.IsPlaceholderLocation()
+            warnBeforeChange = true
+        endif
+
+        if !warnBeforeChange || ShowMessage("$sab_mcm_locationedit_popup_msg_confirm_set_custom_loc")
+            ; set location! the old loc's data will be removed when we save loc data again
+            editedLocationScript.DisableLocation()
+            editedLocationScript.ThisLocation = curLoc
+            ShowMessage("$sab_mcm_locationedit_popup_set_custom_loc_done", false)
+        endif
+        ForcePageReset()
+	endEvent
+
+    event OnDefaultST(string state_id)
+        ; nothing
+    endevent
+
+	event OnHighlightST(string state_id)
+        MainPage.ToggleQuickHotkey(true)
+		SetInfoText("$sab_mcm_locationedit_button_set_custom_loc_desc")
+	endEvent
+endstate
+
+
+state LOC_EDIT_CUSTOM_MARKERDIST
+    event OnSelectST(string state_id)
+        ; nothing
+	endEvent
+
+    event OnDefaultST(string state_id)
+        ; nothing
+    endevent
+
+	event OnHighlightST(string state_id)
+        MainPage.ToggleQuickHotkey(true)
+		SetInfoText("$sab_mcm_locationedit_button_custom_"+ state_id +"_dist")
+	endEvent
+
+endState
+
+state LOC_EDIT_CUSTOM_SET_MARKER
+    event OnSelectST(string state_id)
+        ; figure out which marker we're editing. default to main marker
+        ObjectReference marker = editedLocationScript.GetReference()
+
+        if state_id == "loc_marker_movedest"
+            marker = editedLocationScript.MoveDestination
+        elseif state_id == "loc_marker_distcalc"
+            marker = editedLocationScript.DistCalculationReference
+        endif
+
+        marker.MoveTo(Game.GetPlayer())
+        
+        ForcePageReset()
+	endEvent
+
+    event OnDefaultST(string state_id)
+        ; nothing
+    endevent
+
+	event OnHighlightST(string state_id)
+        MainPage.ToggleQuickHotkey(true)
+		SetInfoText("$sab_mcm_locationedit_button_set_custom_"+ state_id +"_desc")
+	endEvent
+endstate
+
+state LOC_EDIT_CUSTOM_EXTRA_NEARMARKER
+    event OnSelectST(string state_id)
+        if state_id == "add"
+            ; create new marker at player's pos
+            ObjectReference newMarker = Game.GetPlayer().PlaceAtMe(XMarker, 1)
+
+            editedLocationScript.AddExtraNearbyMarker(newMarker)
+        else
+            ; find nearest marker and remove it
+            if editedLocationScript.RemoveNearestExtraNearbyMarker(Game.GetPlayer())
+                ; message box?
+            endif
+        endif
+        
+        ForcePageReset()
+	endEvent
+
+    event OnDefaultST(string state_id)
+        ; nothing
+    endevent
+
+	event OnHighlightST(string state_id)
+        MainPage.ToggleQuickHotkey(true)
+
+        if state_id == "add"
+            SetInfoText("$sab_mcm_locationedit_button_custom_loc_add_extramarker_desc")
+        else
+            SetInfoText("$sab_mcm_locationedit_button_custom_loc_remove_extramarker_desc")
+        endif
+		
+	endEvent
+endstate
+
 
 
 state LOC_EDIT_TOGGLE_SAVE_OWNERSHIPS
