@@ -140,11 +140,11 @@ EndFunction
 Function SetLocationEnabled(SAB_LocationScript locScript, bool enable)
 
     while isBusyUpdatingLocationData
-        Debug.Trace("[SAB] queued location enable is waiting")
+        Debug.Trace("[SAB] queued location enable/disable is waiting")
         Utility.Wait(0.1)
     endwhile
 
-    int jLocDataMap = jMap.getObj(jLocationsConfigMap, locScript.ThisLocation.GetFormID())
+    int jLocDataMap = jMap.getObj(jLocationsConfigMap, locScript.GetLocId())
     int locationOwnerFacIndex = -1
 
     if jLocDataMap != 0
@@ -533,7 +533,29 @@ Function WriteEditableLocDatasToJmap()
             int jDistCalcPosMap = locScript.GetJObjectRepresentingMarkerPosition(locScript.DistCalculationReference)
             jMap.setObj(jLocDataMap, "jDistCalcPosMap", jDistCalcPosMap)
 
-            
+            ; extra markers
+            int jWrittenExtraMarkersArr = jArray.object()
+            jMap.setObj(jLocDataMap, "jExtraMarkersArr", jWrittenExtraMarkersArr)
+
+            locScript.GuardExtraMarkersArray()
+            int jLocExtraMarkersArr = locScript.jExtraNearbyOutsideMarkersArr
+            int k = jArray.count(jLocExtraMarkersArr) ;j's are all over, so I preferred to use k here haha
+
+            while k > 0
+                k -= 1
+
+                ObjectReference extraMarker = jArray.getForm(jLocExtraMarkersArr, k) as ObjectReference
+                if extraMarker != None
+                    int jExtraMarkerPosMap = locScript.GetJObjectRepresentingMarkerPosition(extraMarker)
+                    jArray.addObj(jWrittenExtraMarkersArr, jExtraMarkerPosMap)
+                endif
+            endwhile
+
+
+            ; interior cells
+            locScript.GuardInteriorCellsJArray()
+            jMap.setObj(jLocDataMap, "jInteriorCellsArr", locScript.jInteriorCellsArr)
+
         endif
         
 

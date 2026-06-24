@@ -75,7 +75,7 @@ Function SetupPage()
     editedLocationIdentifiersArray = locHandler.CreateStringArrayWithLocationIdentifiers()
 
     if editedLocationIdentifiersArray.Length <= 0
-        AddTextOptionST("NO_LOCS_FOUND", "$sab_mcm_locationedit_text_no_locs_found", "")
+        AddTextOptionST("LOC_EDIT_NOOP___sab_mcm_locationedit_text_no_locs_found_desc", "$sab_mcm_locationedit_text_no_locs_found", "")
         return
     endif
 
@@ -183,43 +183,67 @@ Function SetupPage()
         ;   - warn if loc is not a placeholder one
         ; - add interior cell as this loc's
         ; - warnings list: must set this or that marker etc
-        ; all options should be grayed out if this location isn't marked as editable
+        ; all options should be grayed out or hidden if this location isn't marked as editable
         Actor plyr = Game.GetPlayer()
         Location curLoc = plyr.GetCurrentLocation()
         String locName = "none"
         if curLoc != None
             locName = curLoc.GetName()
         endif
-        AddTextOptionST("LOC_EDIT_CUSTOM_PLYR_CUR_LOC", "$sab_mcm_locationedit_text_plyr_cur_loc", locName)
-        AddTextOptionST("LOC_EDIT_CUSTOM_SET_LOC", "$sab_mcm_locationedit_button_set_custom_loc", "")
 
-        AddEmptyOption()
+        bool locIsEditable = editedLocationScript.isChangeable
 
-        ; -- set xmarker positions: location's marker, moveDest, distCalc
-        ;   - for each one, also display player's cur distance to marker
-        AddMarkerHandlerFunctions(plyr, editedLocationScript.GetReference(), "loc_marker")
+        if !locIsEditable
+            AddTextOptionST("LOC_EDIT_NOOP___sab_mcm_locationedit_text_not_editable_desc", "$sab_mcm_locationedit_text_not_editable", "")
+        else
+            AddTextOptionST("LOC_EDIT_NOOP___sab_mcm_locationedit_text_plyr_cur_loc_desc", "$sab_mcm_locationedit_text_plyr_cur_loc", locName)
+            AddTextOptionST("LOC_EDIT_CUSTOM_SET_LOC", "$sab_mcm_locationedit_button_set_custom_loc", "")
 
-        AddEmptyOption()
+            AddEmptyOption()
 
-        AddMarkerHandlerFunctions(plyr, editedLocationScript.MoveDestination, "loc_marker_movedest")
+            ; -- set xmarker positions: location's marker, moveDest, distCalc
+            ;   - for each one, also display player's cur distance to marker
+            AddMarkerHandlerFunctions(plyr, editedLocationScript.GetReference(), "loc_marker")
 
-        AddEmptyOption()
+            AddEmptyOption()
 
-        AddMarkerHandlerFunctions(plyr, editedLocationScript.DistCalculationReference, "loc_marker_distcalc")
+            AddMarkerHandlerFunctions(plyr, editedLocationScript.MoveDestination, "loc_marker_movedest")
 
-        AddEmptyOption()
-        ; - add extra is nearby marker
-        ;   - should have a "is nearby?" display here. if nearby, you can't add another extra, but you can remove
-        bool playerIsInside = editedLocationScript.IsRefInThisLocationsInteriors(plyr)
-        bool isNearby = playerIsInside || editedLocationScript.IsRefNearbyOutside(plyr)
-        Cell curPlyrCell = plyr.GetParentCell()
+            AddEmptyOption()
 
-        AddTextOptionST("LOC_EDIT_CUSTOM_NEARBY", "$sab_mcm_locationedit_text_is_nearby_loc", isNearby)
-        if isNearby && !curPlyrCell.IsInterior()
-            AddTextOptionST("LOC_EDIT_CUSTOM_EXTRA_NEARMARKER___remove", "$sab_mcm_locationedit_button_custom_loc_remove_extramarker", "")
-        elseif !curPlyrCell.IsInterior()
-            AddTextOptionST("LOC_EDIT_CUSTOM_EXTRA_NEARMARKER___add", "$sab_mcm_locationedit_button_custom_loc_add_extramarker", "")
+            AddMarkerHandlerFunctions(plyr, editedLocationScript.DistCalculationReference, "loc_marker_distcalc")
+
+            AddEmptyOption()
+            ; - add extra is nearby marker
+            ;   - should have a "is nearby?" display here. if nearby, you can't add another extra, but you can remove
+            bool playerIsInside = editedLocationScript.IsRefInThisLocationsInteriors(plyr)
+            bool isNearby = playerIsInside || editedLocationScript.IsRefNearbyOutside(plyr)
+            Cell curPlyrCell = plyr.GetParentCell()
+            bool isInterior = curPlyrCell.IsInterior()
+
+            AddTextOptionST("LOC_EDIT_CUSTOM_NEARBY", "$sab_mcm_locationedit_text_is_nearby_loc", isNearby)
+
+            int numExtraMarkers = editedLocationScript.GetNumExtraNearbyOutsideMarkers()
+            AddTextOptionST("LOC_EDIT_NOOP___sab_mcm_locationedit_button_custom_loc_num_extramarkers_desc", "$sab_mcm_locationedit_button_custom_loc_num_extramarkers", numExtraMarkers)
+            if isNearby && !isInterior
+                AddTextOptionST("LOC_EDIT_CUSTOM_EXTRA_NEARMARKER___remove", "$sab_mcm_locationedit_button_custom_loc_remove_extramarker", "")
+            elseif !isInterior
+                AddTextOptionST("LOC_EDIT_CUSTOM_EXTRA_NEARMARKER___add", "$sab_mcm_locationedit_button_custom_loc_add_extramarker", "")
+            endif
+
+            ; - add/remove interior cells from this loc
+            if isInterior
+                int numInteriorCells = editedLocationScript.GetNumInteriorCells()
+                AddTextOptionST("LOC_EDIT_NOOP___sab_mcm_locationedit_button_custom_loc_num_interiorcells_desc", "$sab_mcm_locationedit_button_custom_loc_num_interiorcells", numInteriorCells)
+                if isNearby
+                    AddTextOptionST("LOC_EDIT_CUSTOM_INTERIORCELL___remove", "$sab_mcm_locationedit_button_custom_loc_remove_interiorcell", "")
+                else
+                    AddTextOptionST("LOC_EDIT_CUSTOM_INTERIORCELL___add", "$sab_mcm_locationedit_button_custom_loc_add_interiorcell", "")
+                endif
+            endif
         endif
+
+        
     endif
     
     SetCursorPosition(1)
@@ -264,8 +288,13 @@ function AddMarkerHandlerFunctions(ObjectReference playerRef, ObjectReference ma
     AddTextOptionST("LOC_EDIT_CUSTOM_SET_MARKER___" + markerType, "$sab_mcm_locationedit_button_set_custom_" + markerType, "")
 endfunction
 
-
-
+; localized entry that does nothing (besides enabling the menu close via hotkey and showing its description)
+state LOC_EDIT_NOOP
+    event OnHighlightST(string state_id)
+        MainPage.ToggleQuickHotkey(true)
+		SetInfoText("$"+state_id)
+	endEvent
+endstate
 
 
 state LOC_EDIT_CUR_LOC
@@ -356,6 +385,9 @@ state LOC_EDIT_ENABLED
         bool newValue = !editedLocationScript.isEnabled
         int newValueInt = 0
 
+        MainPage.isLoadingData = true
+        ShowMessage("$sab_mcm_shared_popup_msg_long_process_started", false)
+
         MainPage.MainQuest.LocationDataHandler.SetLocationEnabled(editedLocationScript, newValue)
 
         if newValue
@@ -369,13 +401,20 @@ state LOC_EDIT_ENABLED
             jMap.setObj(jLocationsDataMap, editedLocationScript.GetLocId(), jLocDataMap)
         endif
 
-        jMap.setInt(jLocDataMap, "OwnerFactionIndex", newValueInt)
-        SetToggleOptionValueST(newValue)
+        jMap.setInt(jLocDataMap, "IsEnabled", newValueInt)
+        
+        Debug.Trace("SAB: loc enable/disable complete!")
+        Debug.Notification("SAB: loc enable/disable complete!")
+        MainPage.isLoadingData = false
+        ForcePageReset()
 	endEvent
 
     event OnDefaultST(string state_id)
         bool newValue = true
         int newValueInt = 1
+
+        MainPage.isLoadingData = true
+        ShowMessage("$sab_mcm_shared_popup_msg_long_process_started", false)
 
         MainPage.MainQuest.LocationDataHandler.SetLocationEnabled(editedLocationScript, newValue)
 
@@ -386,8 +425,12 @@ state LOC_EDIT_ENABLED
             jMap.setObj(jLocationsDataMap, editedLocationScript.GetLocId(), jLocDataMap)
         endif
 
-        jMap.setInt(jLocDataMap, "OwnerFactionIndex", newValueInt)
-        SetToggleOptionValueST(newValue)
+        jMap.setInt(jLocDataMap, "IsEnabled", newValueInt)
+
+        Debug.Trace("SAB: loc enable/disable complete!")
+        Debug.Notification("SAB: loc enable/disable complete!")
+        MainPage.isLoadingData = false
+        ForcePageReset()
     endevent
 
 	event OnHighlightST(string state_id)
@@ -511,15 +554,6 @@ state LOC_EDIT_MULTIPLIER
 	endEvent
 endState
 
-state NO_LOCS_FOUND
-
-	event OnHighlightST(string state_id)
-        MainPage.ToggleQuickHotkey(true)
-		SetInfoText("$sab_mcm_locationedit_text_no_locs_found_desc")
-	endEvent
-
-endstate
-
 state LOC_NEARBY
 
 	event OnHighlightST(string state_id)
@@ -531,8 +565,13 @@ endstate
 
 state LOC_RECALC_NEARBY
     event OnSelectST(string state_id)
+        MainPage.isLoadingData = true
+        ShowMessage("$sab_mcm_shared_popup_msg_long_process_started", false)
         MainPage.MainQuest.LocationDataHandler.CalculateLocationDistances()
-        ShowMessage("$sab_mcm_locationedit_recalculate_nearbyloc_desc", false)
+        Debug.Trace("SAB: Recalculate loc distances complete!")
+        Debug.Notification("SAB: Recalculate loc distances complete!")
+        MainPage.isLoadingData = false
+        ForcePageReset()
 	endEvent
 
 	event OnHighlightST(string state_id)
@@ -734,24 +773,11 @@ state LOC_EDIT_LEFTSIDE_MENU
     
 endstate
 
-state LOC_EDIT_CUSTOM_PLYR_CUR_LOC
-    event OnSelectST(string state_id)
-        ; nothing
-	endEvent
-
-    event OnDefaultST(string state_id)
-        ; nothing
-    endevent
-
-	event OnHighlightST(string state_id)
-        MainPage.ToggleQuickHotkey(true)
-		SetInfoText("$sab_mcm_locationedit_text_plyr_cur_loc_desc")
-	endEvent
-
-endState
-
 state LOC_EDIT_CUSTOM_SET_LOC
     event OnSelectST(string state_id)
+        if !editedLocationScript.isChangeable
+            return
+        endif
         ; - set location (should warn that it can be destructive)
         ;   - prevent change if player's loc is none
         ;   - warn if loc is not a placeholder one
@@ -763,15 +789,33 @@ state LOC_EDIT_CUSTOM_SET_LOC
         endif
 
         bool warnBeforeChange = false
-        if editedLocationScript.IsPlaceholderLocation()
+        if !editedLocationScript.IsPlaceholderLocation()
             warnBeforeChange = true
         endif
 
         if !warnBeforeChange || ShowMessage("$sab_mcm_locationedit_popup_msg_confirm_set_custom_loc")
             ; set location! the old loc's data will be removed when we save loc data again
-            editedLocationScript.DisableLocation()
+            MainPage.isLoadingData = true
+            ShowMessage("$sab_mcm_shared_popup_msg_long_process_started", false)
+
+            MainPage.MainQuest.LocationDataHandler.SetLocationEnabled(editedLocationScript, false)
+            jMap.removeKey(jLocationsDataMap, editedLocationScript.GetLocId())
+
             editedLocationScript.ThisLocation = curLoc
-            ShowMessage("$sab_mcm_locationedit_popup_set_custom_loc_done", false)
+
+            int jLocDataMap = JMap.getObj(jLocationsDataMap, editedLocationScript.GetLocId())
+
+            if jLocDataMap == 0
+                jLocDataMap = jMap.object()
+                jMap.setObj(jLocationsDataMap, editedLocationScript.GetLocId(), jLocDataMap)
+            endif
+
+            jMap.setInt(jLocDataMap, "IsEnabled", 0)
+
+            Debug.Trace("SAB: custom loc change complete!")
+            Debug.Notification("SAB: custom loc change complete!")
+            MainPage.isLoadingData = false
+            
         endif
         ForcePageReset()
 	endEvent
@@ -788,23 +832,18 @@ endstate
 
 
 state LOC_EDIT_CUSTOM_MARKERDIST
-    event OnSelectST(string state_id)
-        ; nothing
-	endEvent
-
-    event OnDefaultST(string state_id)
-        ; nothing
-    endevent
-
 	event OnHighlightST(string state_id)
         MainPage.ToggleQuickHotkey(true)
 		SetInfoText("$sab_mcm_locationedit_button_custom_"+ state_id +"_dist")
 	endEvent
-
 endState
 
 state LOC_EDIT_CUSTOM_SET_MARKER
     event OnSelectST(string state_id)
+        if !editedLocationScript.isChangeable
+            return
+        endif
+
         ; figure out which marker we're editing. default to main marker
         ObjectReference marker = editedLocationScript.GetReference()
 
@@ -831,6 +870,10 @@ endstate
 
 state LOC_EDIT_CUSTOM_EXTRA_NEARMARKER
     event OnSelectST(string state_id)
+        if !editedLocationScript.isChangeable
+            return
+        endif
+
         if state_id == "add"
             ; create new marker at player's pos
             ObjectReference newMarker = Game.GetPlayer().PlaceAtMe(XMarker, 1)
@@ -862,6 +905,45 @@ state LOC_EDIT_CUSTOM_EXTRA_NEARMARKER
 	endEvent
 endstate
 
+state LOC_EDIT_CUSTOM_INTERIORCELL
+    event OnSelectST(string state_id)
+        if !editedLocationScript.isChangeable
+            return
+        endif
+
+        Cell curPlyrCell = Game.GetPlayer().GetParentCell()
+        bool isInterior = curPlyrCell.IsInterior()
+
+        if !curPlyrCell || !isInterior
+            return
+        endif
+
+        if state_id == "add"
+            editedLocationScript.AddInteriorCell(curPlyrCell)
+        else
+            if editedLocationScript.RemoveInteriorCell(curPlyrCell)
+                ; message box?
+            endif
+        endif
+        
+        ForcePageReset()
+	endEvent
+
+    event OnDefaultST(string state_id)
+        ; nothing
+    endevent
+
+	event OnHighlightST(string state_id)
+        MainPage.ToggleQuickHotkey(true)
+
+        if state_id == "add"
+            SetInfoText("$sab_mcm_locationedit_button_custom_loc_add_interiorcell_desc")
+        else
+            SetInfoText("$sab_mcm_locationedit_button_custom_loc_remove_interiorcell_desc")
+        endif
+		
+	endEvent
+endstate
 
 
 state LOC_EDIT_TOGGLE_SAVE_OWNERSHIPS
@@ -889,6 +971,7 @@ state LOC_EDIT_SAVE
         endif
         MainPage.MainQuest.LocationDataHandler.WriteCurrentLocNamesToJmap()
         MainPage.MainQuest.LocationDataHandler.WriteCurrentLocStartGarrsToJmap()
+        MainPage.MainQuest.LocationDataHandler.WriteEditableLocDatasToJmap()
         JValue.writeToFile(MainPage.MainQuest.LocationDataHandler.jLocationsConfigMap, filePath)
         ShowMessage("Save: " + filePath, false)
 	endEvent

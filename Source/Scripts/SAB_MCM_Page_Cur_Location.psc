@@ -67,7 +67,7 @@ Function SetupPage()
 EndFunction
 
 Function SetupOptionsForLoc(SAB_LocationScript loc, int locIndexInLocUpdater)
-    string locName = loc.GetName()
+    string locName = loc.GetLocName()
     AddHeaderOption(locName)
     AddEmptyOption()
 

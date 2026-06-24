@@ -217,28 +217,6 @@ state MAIN_TEST_LOAD
             Debug.Notification("SAB: unit data load failed!")
         endif
 
-        string factionFilePath = JContainers.userDirectory() + "SAB/factionData.json"
-        int jReadFactionData = JValue.readFromFile(factionFilePath)
-        if jReadFactionData != 0
-            MainQuest.FactionDataHandler.jSABFactionDatasArray = JValue.releaseAndRetain(MainQuest.FactionDataHandler.jSABFactionDatasArray, jReadFactionData, "ShoutAndBlade")
-            MainQuest.FactionDataHandler.EnsureArrayCounts()
-            MainQuest.FactionDataHandler.UpdateAllFactionQuestsAccordingToJMap()
-            loadSuccesses += 1
-            Debug.Notification("SAB: faction data load complete! (" + loadSuccesses + " of " + expectedLoadSuccesses + ")")
-        else
-            Debug.Notification("SAB: Faction data load failed!")
-        endif
-
-        string locationFilePath = JContainers.userDirectory() + "SAB/locationData.json"
-        int jReadLocationData = JValue.readFromFile(locationFilePath)
-        if jReadLocationData != 0
-            MainQuest.LocationDataHandler.jLocationsConfigMap = JValue.releaseAndRetain(MainQuest.LocationDataHandler.jLocationsConfigMap, jReadLocationData, "ShoutAndBlade")
-            MainQuest.LocationDataHandler.UpdateLocationsAccordingToJMap()
-            loadSuccesses += 1
-            Debug.Notification("SAB: location data load complete! (" + loadSuccesses + " of " + expectedLoadSuccesses + ")")
-        else
-            Debug.Notification("SAB: location data load failed!")
-        endif
 
         string diploFacsFilePath = JContainers.userDirectory() + "SAB/diplomacyData_factions.json"
         string diploPlayerFilePath = JContainers.userDirectory() + "SAB/diplomacyData_player.json"
@@ -275,6 +253,32 @@ state MAIN_TEST_LOAD
         else
             Debug.Notification("SAB: diplomacy data load failed!")
         endif
+
+
+        string factionFilePath = JContainers.userDirectory() + "SAB/factionData.json"
+        int jReadFactionData = JValue.readFromFile(factionFilePath)
+        if jReadFactionData != 0
+            MainQuest.FactionDataHandler.jSABFactionDatasArray = JValue.releaseAndRetain(MainQuest.FactionDataHandler.jSABFactionDatasArray, jReadFactionData, "ShoutAndBlade")
+            MainQuest.FactionDataHandler.EnsureArrayCounts()
+            MainQuest.FactionDataHandler.UpdateAllFactionQuestsAccordingToJMap()
+            loadSuccesses += 1
+            Debug.Notification("SAB: faction data load complete! (" + loadSuccesses + " of " + expectedLoadSuccesses + ")")
+        else
+            Debug.Notification("SAB: Faction data load failed!")
+        endif
+
+        string locationFilePath = JContainers.userDirectory() + "SAB/locationData.json"
+        int jReadLocationData = JValue.readFromFile(locationFilePath)
+        if jReadLocationData != 0
+            MainQuest.LocationDataHandler.jLocationsConfigMap = JValue.releaseAndRetain(MainQuest.LocationDataHandler.jLocationsConfigMap, jReadLocationData, "ShoutAndBlade")
+            MainQuest.LocationDataHandler.UpdateLocationsAccordingToJMap()
+            loadSuccesses += 1
+            Debug.Notification("SAB: location data load complete! (" + loadSuccesses + " of " + expectedLoadSuccesses + ")")
+        else
+            Debug.Notification("SAB: location data load failed!")
+        endif
+
+        
 
         if loadSuccesses == expectedLoadSuccesses
             Debug.TraceAndBox("Data for all SAB modules were loaded successfully! SAB menus can be opened normally now.")
