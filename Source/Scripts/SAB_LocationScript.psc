@@ -90,9 +90,7 @@ Function Setup(SAB_FactionScript factionScriptRef, float curGameTime = 0.0)
 
 	isEnabled = true
 
-	if factionScriptRef != None
-		BeTakenByFaction(factionScriptRef, false)
-	endif
+	BeTakenByFaction(factionScriptRef, false)
 EndFunction
 
 ; makes this location neutral and removes it from all update queues
@@ -855,10 +853,10 @@ int function GetJObjectRepresentingMarkerPosition(ObjectReference marker)
 
 	int jReturnedMap = jMap.object()
 
-	jMap.setForm(jCmderSpawnMap, "ParentCell", marker.GetParentCell())
-	jMap.setFlt(jCmderSpawnMap, "PosX", marker.GetPositionX())
-	jMap.setFlt(jCmderSpawnMap, "PosY", marker.GetPositionY())
-	jMap.setFlt(jCmderSpawnMap, "PosZ", marker.GetPositionZ())
+	jMap.setForm(jReturnedMap, "ParentCell", marker.GetParentCell())
+	jMap.setFlt(jReturnedMap, "PosX", marker.GetPositionX())
+	jMap.setFlt(jReturnedMap, "PosY", marker.GetPositionY())
+	jMap.setFlt(jReturnedMap, "PosZ", marker.GetPositionZ())
 
 	return jReturnedMap
 endfunction
@@ -897,6 +895,18 @@ function GuardInteriorCellsJArray()
 	endif
 endfunction
 
+
+int Function GetNumExtraNearbyOutsideMarkers()
+	GuardExtraMarkersArray()
+
+	return jArray.count(jExtraNearbyOutsideMarkersArr)
+endfunction
+
+int Function GetNumInteriorCells()
+	GuardInteriorCellsJArray()
+
+	return jArray.count(jInteriorCellsArr)
+endfunction
 
 int Function GetMaxOwnedUnitsAmount()
 	int calculatedMax = (JDB.solveInt(".ShoutAndBlade.locationOptions.maxOwnedUnits", 45) * GarrisonSizeMultiplier) as int
