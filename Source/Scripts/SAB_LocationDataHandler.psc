@@ -18,6 +18,8 @@ Keyword Property SAB_PlaceholderLocationKeyword Auto
 bool initialSetupDone = false
 bool isBusyUpdatingLocationData = false
 bool isBusyAddingNewLocsToBaseArray = false
+bool isBusySortingLocNames = false
+bool isBusySortingEnabledLocNames = false
 
 bool shouldRecalculateDistances = false
 bool shouldRebuildEnabledLocations = false
@@ -28,6 +30,12 @@ int Property NextEnabledLocationIndex = 0 Auto Hidden
 
 ; a jMap, mapped by location name, containing jMaps with some configurable data on locations
 int Property jLocationsConfigMap Auto Hidden
+
+; a jArray with objects with loc names and their indexes in the locations array
+int jLocationsSortedByNameArr
+
+; a jArray with objects with loc names and their indexes in the enabled locations array
+int jEnabledLocationsSortedByNameArr
 
 ; a jArray of forms (quests), that we should cast to SAB_LocationDataAddon
 int jregisteredAddonsArray
@@ -41,6 +49,12 @@ Function Initialize()
 
     jregisteredAddonsArray = jArray.object()
     JValue.retain(jregisteredAddonsArray, "ShoutAndBlade")
+
+    jLocationsSortedByNameArr = jArray.object()
+    JValue.retain(jLocationsSortedByNameArr, "ShoutAndBlade")
+
+    jEnabledLocationsSortedByNameArr = jArray.object()
+    JValue.retain(jEnabledLocationsSortedByNameArr, "ShoutAndBlade")
 
     JDB.solveFormSetter(".ShoutAndBlade_global.locDataHandler", self, true)
 
@@ -88,7 +102,11 @@ Function AddNewLocationsFromAddon(SAB_LocationDataAddon addon, int addonIndex)
         SAB_LocationScript newLoc = newLocations[i]
         if newLoc != None
             If GetLocationIndexById(newLoc.GetLocId()) == -1 || newLoc.isChangeable
-                Locations.RegisterAliasForUpdates(newLoc)
+                int locIndex = Locations.RegisterAliasForUpdates(newLoc)
+                int jlocNameEntry = jMap.object()
+                jMap.setStr(jlocNameEntry, "locName", newLoc.GetLocName())
+                jMap.setInt(jlocNameEntry, "locIndex", locIndex)
+                jArray.addObj(jLocationsSortedByNameArr, jlocNameEntry)
                 hasMadeChanges = true
                 NextLocationIndex = Locations.GetTopIndex() + 1
                 debug.Trace("SAB: added new location " + newLoc.GetLocName())
@@ -97,6 +115,9 @@ Function AddNewLocationsFromAddon(SAB_LocationDataAddon addon, int addonIndex)
             i += 1
         endif
     endwhile
+
+    ; sort loc names array
+    SortLocsNamesList(jLocationsSortedByNameArr)
 
     isBusyAddingNewLocsToBaseArray = false
 
@@ -139,6 +160,11 @@ EndFunction
 ; enables or disables the target location
 Function SetLocationEnabled(SAB_LocationScript locScript, bool enable)
 
+    if enable == locScript.isEnabled
+        ; no action to be made!
+        return
+    endif
+
     while isBusyUpdatingLocationData
         Debug.Trace("[SAB] queued location enable/disable is waiting")
         Utility.Wait(0.1)
@@ -167,6 +193,7 @@ Function SetLocationEnabled(SAB_LocationScript locScript, bool enable)
         endif
     endif
 
+    ; this is suboptimal, I think... we shouldn't have to rebuild if we're just adding an enabled loc
     RebuildEnabledLocationsArray()
     CalculateLocationDistances()
     
@@ -192,12 +219,18 @@ Function RebuildEnabledLocationsArray()
     int i = 0
     NextEnabledLocationIndex = 0
     EnabledLocations.UnregisterAllAliases()
+    jArray.clear(jEnabledLocationsSortedByNameArr)
 
     while i != -1 && i < NextLocationIndex
         SAB_LocationScript locScript = Locations.GetUpdatedAliasAtIndex(i) as SAB_LocationScript
         if locScript != None
             if locScript.isEnabled
-                EnabledLocations.RegisterAliasForUpdates(locScript)
+                int locIndex = EnabledLocations.RegisterAliasForUpdates(locScript)
+                
+                int jlocNameEntry = jMap.object()
+                jMap.setStr(jlocNameEntry, "locName", locScript.GetLocName())
+                jMap.setInt(jlocNameEntry, "locIndex", locIndex)
+                jArray.addObj(jEnabledLocationsSortedByNameArr, jlocNameEntry)
             endif
         endif
 
@@ -206,6 +239,9 @@ Function RebuildEnabledLocationsArray()
 
     NextEnabledLocationIndex = EnabledLocations.GetTopIndex()
 
+    ; sort loc names array
+    SortLocsNamesList(jEnabledLocationsSortedByNameArr)
+
     Debug.Trace("[SAB] rebuild enabled locations - end")
 
     isBusyUpdatingLocationData = false
@@ -213,6 +249,94 @@ Function RebuildEnabledLocationsArray()
 
 EndFunction
 
+function RebuildSortedLocNamesArrays()
+    int i = 0
+    jArray.clear(jLocationsSortedByNameArr)
+    jArray.clear(jEnabledLocationsSortedByNameArr)
+
+    while i != -1 && i < NextLocationIndex
+        SAB_LocationScript locScript = Locations.GetUpdatedAliasAtIndex(i) as SAB_LocationScript
+        if locScript != None
+            int jlocNameEntry = jMap.object()
+            jMap.setStr(jlocNameEntry, "locName", locScript.GetLocName())
+            jMap.setInt(jlocNameEntry, "locIndex", i)
+            jArray.addObj(jLocationsSortedByNameArr, jlocNameEntry)
+
+            if locScript.isEnabled
+                int locIndexInEnableds = GetEnabledLocationIndex(locScript)
+
+                int jlocNameEntry = jMap.object()
+                jMap.setStr(jlocNameEntry, "locName", locScript.GetLocName())
+                jMap.setInt(jlocNameEntry, "locIndex", locIndexInEnableds)
+                jArray.addObj(jEnabledLocationsSortedByNameArr, jlocNameEntry)
+            endif
+        endif
+
+        i += 1
+    endwhile
+
+    ; finally sort loc names array
+    SortLocsNamesList(jLocationsSortedByNameArr)
+    SortLocsNamesList(jEnabledLocationsSortedByNameArr)
+endfunction
+
+function SortLocsNamesList(int jLocsArr)
+    ; an attempt at copying comb sort from wikipedia
+    int arrSize = jArray.count(jLocsArr)
+    int gap = arrSize
+    float shrinkFactor = 1.3
+    bool sorted = false
+    int i = 0
+    int elX = 0
+    int elY = 0
+    string fallbackStr = "???"
+    string elXName = ""
+    string elYName = ""
+    int elXValue = 0
+    int elYValue = 0
+
+    while !sorted
+        gap = Math.Floor(gap / shrinkFactor)
+        if gap <= 1
+            gap = 1
+            sorted = true ; we set this back to false if we find a required swap in this iteration
+        elseif gap == 9 || gap == 10
+            gap = 11 ; "rule of 11", said to mitigate "turtle" issues, where an element is at the opposite of where it should be
+        endif
+
+        ; comb iteration!
+        i = 0
+        while i + gap < arrSize
+            elX = jArray.GetObj(jLocsArr, i)
+            elY = jArray.GetObj(jLocsArr, i + gap)
+            elXName = jMap.GetStr(elX, "locName", fallbackStr)
+            elYName = jMap.GetStr(elY, "locName", fallbackStr)
+            ; this only gets the value of the first letter of the name, sadly
+            elXValue = StringUtil.AsOrd(elXName)
+            elYValue = StringUtil.AsOrd(elYName)
+
+            if elXValue > elYValue
+                jArray.swapItems(jLocsArr, i, i + gap)
+                sorted = false ; if this never happens, it's sorted!
+            elseif elXValue == elYValue
+                ; ok, first letter is the same, what now?
+                ; if this is a big enough name, let's get letter in index 5,
+                ; so that we can sort the "fort X" locs a bit
+                if StringUtil.GetLength(elXName) > 5 && StringUtil.GetLength(elYName > 5)
+                    elXValue = StringUtil.AsOrd(StringUtil.GetNthChar(elXName, 5))
+                    elYValue = StringUtil.AsOrd(StringUtil.GetNthChar(elYName, 5))
+
+                    if elXValue > elYValue
+                        jArray.swapItems(jLocsArr, i, i + gap)
+                        sorted = false
+                    endif
+                endif
+            endif
+
+            i += 1
+        endwhile
+    endwhile
+endfunction
 
 ; updates each enabled location's cached references to their closest enabled locations.
 ; should be run again whenever a location is added/removed, to make sure the faction AIs know where it's better to go
@@ -564,16 +688,12 @@ Function WriteEditableLocDatasToJmap()
 
 EndFunction
 
-
-
-
 ; creates a string array with location IDs accompanied by their names
 string[] Function CreateStringArrayWithLocationIdentifiers(int page = 0)
 
     int jStringsArr = jArray.object()
     jValue.retain(jStringsArr, "ShoutAndBlade")
 
-    SAB_UpdatedReferenceAlias[] refsInPage = Locations.GetUpdatedAliasArrayAtIndex(page * 128)
     int i = 0
     int endingIndex = NextLocationIndex
     if (page + 1) * 128 < endingIndex
@@ -581,12 +701,20 @@ string[] Function CreateStringArrayWithLocationIdentifiers(int page = 0)
     endif
 
     while i < endingIndex
-        SAB_LocationScript locScript = refsInPage[i] as SAB_LocationScript
-        If locScript != None
-            string locName = locScript.GetLocName()
+        int jlocEntryMap = jArray.getObj(jLocationsSortedByNameArr, i)
+        if jlocEntryMap != 0
+            string locName = jMap.getStr(jlocEntryMap, "locName", "???")
+            ; add extra prefix for editable locs... is this loc editable?
+            int locIndex = jMap.getInt(jlocEntryMap, "locIndex", -1)
+            if locIndex != -1
+                if GetLocationByIndex(locIndex).isChangeable
+                    locName = "(E) " + locName
+                endif
+            endif
+
             ; add loc's name to the jarray
-            jArray.addStr(jStringsArr, ((i + 1) as string) + " - " + locName)
-        EndIf
+            jArray.addStr(jStringsArr, locName)
+        endif
 
         i += 1
     endwhile
@@ -617,7 +745,6 @@ string[] Function CreateStringArrayWithEnabledLocationIdentifiers(int page = 0)
     int jStringsArr = jArray.object()
     jValue.retain(jStringsArr, "ShoutAndBlade")
 
-    SAB_UpdatedReferenceAlias[] refsInPage = EnabledLocations.GetUpdatedAliasArrayAtIndex(page * 128)
     int i = 0
     int endingIndex = NextLocationIndex
     if (page + 1) * 128 < endingIndex
@@ -625,12 +752,12 @@ string[] Function CreateStringArrayWithEnabledLocationIdentifiers(int page = 0)
     endif
 
     while i < endingIndex
-        SAB_LocationScript locScript = refsInPage[i] as SAB_LocationScript
-        If locScript != None
-            string locName = locScript.GetLocName()
+        int jlocEntryMap = jArray.getObj(jEnabledLocationsSortedByNameArr, i)
+        if jlocEntryMap != 0
+            string locName = jMap.getStr(jlocEntryMap, "locName", "???")
             ; add loc's name to the jarray
-            jArray.addStr(jStringsArr, ((i + 1) as string) + " - " + locName)
-        EndIf
+            jArray.addStr(jStringsArr, locName)
+        endif
 
         i += 1
     endwhile
@@ -726,6 +853,24 @@ SAB_LocationScript Function GetLocationByName(string name)
 
     return None
 EndFunction
+
+SAB_LocationScript function GetLocationByIndexInSortedNamesArr(int index)
+    int jlocNameEntry = jArray.getObj(jLocationsSortedByNameArr, index)
+    if jlocNameEntry == 0
+        return None
+    endif
+
+    return GetLocationByIndex(jMap.getInt(jlocNameEntry, "locIndex", -1))
+endfunction
+
+SAB_LocationScript function GetEnabledLocationByIndexInSortedNamesArr(int index)
+    int jlocNameEntry = jArray.getObj(jEnabledLocationsSortedByNameArr, index)
+    if jlocNameEntry == 0
+        return None
+    endif
+
+    return GetEnabledLocationByIndex(jMap.getInt(jlocNameEntry, "locIndex", -1))
+endfunction
 
 SAB_LocationScript Function GetLocationById(string Id)
     int i = 0

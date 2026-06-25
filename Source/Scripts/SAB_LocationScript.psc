@@ -794,6 +794,17 @@ bool function RemoveNearestExtraNearbyMarker(ObjectReference referencePos)
 	return false
 endfunction
 
+function ClearExtraNearbyMarkersArr()
+	if !isChangeable
+		Debug.Trace("[SAB] attempted to ClearExtraNearbyMarkers to non-editable location " + GetLocName())
+		return 
+	endif
+
+	GuardExtraMarkersArray()
+	jArray.clear(jExtraNearbyOutsideMarkersArr)
+
+endfunction
+
 
 function AddInteriorCell(Cell targetCell)
 	if !isChangeable
@@ -824,6 +835,17 @@ bool function RemoveInteriorCell(Cell targetCell)
 
 	return false
 endFunction
+
+function ClearInteriorCellsArr()
+	if !isChangeable
+		Debug.Trace("[SAB] attempted to ClearInteriorCellsArr to non-editable location " + GetLocName())
+		return
+	endif
+
+	GuardInteriorCellsJArray()
+	jArray.clear(jInteriorCellsArr)
+
+endfunction
 
 
 function ApplyJObjectRepresentingMarkerPosition(ObjectReference marker, int jPosMap = -1)

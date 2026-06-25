@@ -6,6 +6,7 @@ string[] editedFactionIdentifiersArray
 
 string[] editedLocationIdentifiersArray
 int editedLocationIndex = 0
+int editedLocationPage = 0
 int jLocationsDataMap
 int unitToAddToStartingGarr = 0
 SAB_LocationScript editedLocationScript
@@ -72,7 +73,7 @@ Function SetupPage()
 
     SAB_LocationDataHandler locHandler = MainPage.MainQuest.LocationDataHandler
 
-    editedLocationIdentifiersArray = locHandler.CreateStringArrayWithLocationIdentifiers()
+    editedLocationIdentifiersArray = locHandler.CreateStringArrayWithLocationIdentifiers(editedLocationPage)
 
     if editedLocationIdentifiersArray.Length <= 0
         AddTextOptionST("LOC_EDIT_NOOP___sab_mcm_locationedit_text_no_locs_found_desc", "$sab_mcm_locationedit_text_no_locs_found", "")
@@ -83,8 +84,20 @@ Function SetupPage()
 
     jLocationsDataMap = locHandler.jLocationsConfigMap
 
-    editedLocationScript = locHandler.GetLocationByIndex(editedLocationIndex)
+    editedLocationScript = locHandler.GetLocationByIndexInSortedNamesArr(editedLocationIndex + 128 * editedLocationPage)
 
+    if editedLocationScript == None
+        ; we've got to find a fallback!
+        editedLocationScript = locHandler.GetLocationByIndex(0)
+
+        if editedLocationScript == None
+            ; last resort: show error and don't show rest of the page
+            AddTextOptionST("LOC_EDIT_NOOP___sab_mcm_locationedit_text_no_locs_found_desc", "$sab_mcm_locationedit_text_no_locs_found", "")
+            return
+        endif
+    endif
+
+    AddSliderOptionST("LOC_EDIT_MENU_PAGE", "$sab_mcm_unitedit_slider_menupage", editedLocationPage + 1)
     AddMenuOptionST("LOC_EDIT_CUR_LOC", "$sab_mcm_locationedit_menu_currentloc", editedLocationScript.GetLocName())
 
     AddInputOptionST("LOC_EDIT_LOC_DISPLAYNAME", "$sab_mcm_locationedit_input_loc_name", editedLocationScript.GetLocName())
@@ -231,15 +244,24 @@ Function SetupPage()
                 AddTextOptionST("LOC_EDIT_CUSTOM_EXTRA_NEARMARKER___add", "$sab_mcm_locationedit_button_custom_loc_add_extramarker", "")
             endif
 
+            if numExtraMarkers > 0
+                AddTextOptionST("LOC_EDIT_CUSTOM_EXTRA_NEARMARKER___clear", "$sab_mcm_locationedit_button_custom_loc_clear_extramarker", "")
+            endif
+
             ; - add/remove interior cells from this loc
+            int numInteriorCells = editedLocationScript.GetNumInteriorCells()
+            AddTextOptionST("LOC_EDIT_NOOP___sab_mcm_locationedit_button_custom_loc_num_interiorcells_desc", "$sab_mcm_locationedit_button_custom_loc_num_interiorcells", numInteriorCells)
+
             if isInterior
-                int numInteriorCells = editedLocationScript.GetNumInteriorCells()
-                AddTextOptionST("LOC_EDIT_NOOP___sab_mcm_locationedit_button_custom_loc_num_interiorcells_desc", "$sab_mcm_locationedit_button_custom_loc_num_interiorcells", numInteriorCells)
                 if isNearby
                     AddTextOptionST("LOC_EDIT_CUSTOM_INTERIORCELL___remove", "$sab_mcm_locationedit_button_custom_loc_remove_interiorcell", "")
                 else
                     AddTextOptionST("LOC_EDIT_CUSTOM_INTERIORCELL___add", "$sab_mcm_locationedit_button_custom_loc_add_interiorcell", "")
                 endif
+            endif
+
+            if numInteriorCells > 0
+                AddTextOptionST("LOC_EDIT_CUSTOM_INTERIORCELL___clear", "$sab_mcm_locationedit_button_custom_loc_clear_interiorcell", "")
             endif
         endif
 
@@ -297,10 +319,37 @@ state LOC_EDIT_NOOP
 endstate
 
 
+state LOC_EDIT_MENU_PAGE
+	event OnSliderOpenST(string state_id)
+		SetSliderDialogStartValue(editedLocationPage + 1)
+		SetSliderDialogDefaultValue(1)
+
+        int numLocs = MainPage.MainQuest.LocationDataHandler.NextLocationIndex
+        int numPages = Math.Ceiling((numLocs as float) / 128)
+		SetSliderDialogRange(1, numPages)
+		SetSliderDialogInterval(1)
+	endEvent
+
+	event OnSliderAcceptST(string state_id, float value)
+		editedLocationPage = (value as int) - 1
+		SetSliderOptionValueST(editedLocationPage + 1)
+	endEvent
+
+	event OnDefaultST(string state_id)
+		editedLocationPage = 0
+		SetSliderOptionValueST(editedLocationPage + 1)
+	endEvent
+
+	event OnHighlightST(string state_id)
+        MainPage.ToggleQuickHotkey(true)
+		SetInfoText("$sab_mcm_locationedit_slider_menupage_desc")
+	endEvent
+endState
+
 state LOC_EDIT_CUR_LOC
 
 	event OnMenuOpenST(string state_id)
-		SetMenuDialogStartIndex(editedLocationIndex)
+		; SetMenuDialogStartIndex(0)
 		SetMenuDialogDefaultIndex(0)
 		SetMenuDialogOptions(editedLocationIdentifiersArray)
 	endEvent
@@ -459,6 +508,8 @@ state LOC_EDIT_LOC_DISPLAYNAME
         JMap.setStr(jLocDataMap, "OverrideDisplayName", inputs)
         SetInputOptionValueST(inputs)
 
+        MainPage.MainQuest.LocationDataHandler.RebuildSortedLocNamesArrays()
+
         ;force a reset to update other fields that use the name
         ForcePageReset()
 	endEvent
@@ -476,6 +527,8 @@ state LOC_EDIT_LOC_DISPLAYNAME
         editedLocationScript.OverrideDisplayName = inputs
         JMap.setStr(jLocDataMap, "OverrideDisplayName", inputs)
         SetInputOptionValueST(inputs)
+
+        MainPage.MainQuest.LocationDataHandler.RebuildSortedLocNamesArrays()
 
         ;force a reset to update other fields that use the name
         ForcePageReset()
@@ -879,10 +932,15 @@ state LOC_EDIT_CUSTOM_EXTRA_NEARMARKER
             ObjectReference newMarker = Game.GetPlayer().PlaceAtMe(XMarker, 1)
 
             editedLocationScript.AddExtraNearbyMarker(newMarker)
-        else
+        elseif state_id == "remove"
             ; find nearest marker and remove it
             if editedLocationScript.RemoveNearestExtraNearbyMarker(Game.GetPlayer())
                 ; message box?
+            endif
+        else
+            ; confirm clearing... then clear!
+            if ShowMessage("$sab_mcm_locationedit_popup_msg_confirm_clear_extramarkers")
+                editedLocationScript.ClearExtraNearbyMarkersArr()
             endif
         endif
         
@@ -898,8 +956,10 @@ state LOC_EDIT_CUSTOM_EXTRA_NEARMARKER
 
         if state_id == "add"
             SetInfoText("$sab_mcm_locationedit_button_custom_loc_add_extramarker_desc")
-        else
+        elseif state_id == "remove"
             SetInfoText("$sab_mcm_locationedit_button_custom_loc_remove_extramarker_desc")
+        else
+            SetInfoText("$sab_mcm_locationedit_button_custom_loc_clear_extramarker_desc")
         endif
 		
 	endEvent
@@ -914,15 +974,22 @@ state LOC_EDIT_CUSTOM_INTERIORCELL
         Cell curPlyrCell = Game.GetPlayer().GetParentCell()
         bool isInterior = curPlyrCell.IsInterior()
 
-        if !curPlyrCell || !isInterior
-            return
-        endif
-
         if state_id == "add"
+            if !curPlyrCell || !isInterior
+                return
+            endif
             editedLocationScript.AddInteriorCell(curPlyrCell)
-        else
+        elseif state_id == "remove"
+            if !curPlyrCell || !isInterior
+                return
+            endif
             if editedLocationScript.RemoveInteriorCell(curPlyrCell)
                 ; message box?
+            endif
+        else
+            ; confirm clearing... then clear!
+            if ShowMessage("$sab_mcm_locationedit_popup_msg_confirm_clear_interiorcells")
+                editedLocationScript.ClearInteriorCellsArr()
             endif
         endif
         
@@ -938,8 +1005,10 @@ state LOC_EDIT_CUSTOM_INTERIORCELL
 
         if state_id == "add"
             SetInfoText("$sab_mcm_locationedit_button_custom_loc_add_interiorcell_desc")
-        else
+        elseif state_id == "remove"
             SetInfoText("$sab_mcm_locationedit_button_custom_loc_remove_interiorcell_desc")
+        else
+            SetInfoText("$sab_mcm_locationedit_button_custom_loc_clear_interiorcell_desc")
         endif
 		
 	endEvent
