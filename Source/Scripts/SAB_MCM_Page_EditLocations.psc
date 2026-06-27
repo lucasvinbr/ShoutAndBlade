@@ -11,13 +11,11 @@ int jLocationsDataMap
 int unitToAddToStartingGarr = 0
 SAB_LocationScript editedLocationScript
 
+bool lockSelectedLoc = false
 bool saveOwnerships = false
 
 string[] leftSideMenuOptions
 int displayedLeftSideMenu = 0
-
-; the cell in which all markers are in, before we start moving them
-Cell Property MarkersHolderCell auto
 
 ; the marker we use as base for creating new ones
 ObjectReference Property XMarker auto
@@ -73,6 +71,11 @@ Function SetupPage()
 
     SAB_LocationDataHandler locHandler = MainPage.MainQuest.LocationDataHandler
 
+    if locHandler.GetIsBusyEditingLocData()
+        AddTextOptionST("LOC_EDIT_NOOP___sab_mcm_locationedit_text_locations_loading_desc", "$sab_mcm_locationedit_text_locations_loading", "")
+        return
+    endif
+
     editedLocationIdentifiersArray = locHandler.CreateStringArrayWithLocationIdentifiers(editedLocationPage)
 
     if editedLocationIdentifiersArray.Length <= 0
@@ -84,7 +87,15 @@ Function SetupPage()
 
     jLocationsDataMap = locHandler.jLocationsConfigMap
 
-    editedLocationScript = locHandler.GetLocationByIndexInSortedNamesArr(editedLocationIndex + 128 * editedLocationPage)
+    if editedLocationIndex >= editedLocationIdentifiersArray.Length
+        editedLocationIndex = 0
+    endif
+
+    if !lockSelectedLoc
+        editedLocationScript = locHandler.GetLocationByIndexInSortedNamesArr(editedLocationIndex + 128 * editedLocationPage)
+    endif
+
+    lockSelectedLoc = false
 
     if editedLocationScript == None
         ; we've got to find a fallback!
@@ -109,7 +120,7 @@ Function SetupPage()
         ownerFacName = editedLocationScript.factionScript.GetFactionName()
     endif
 
-    AddToggleOptionST("LOC_EDIT_ENABLED", "$sab_mcm_locationedit_toggle_enabled", editedLocationScript.isEnabled)
+    AddToggleOptionST("LOC_EDIT_ENABLED", "$sab_mcm_locationedit_toggle_enabled", editedLocationScript.isCurrentlyEnabled)
 
     AddMenuOptionST("LOC_EDIT_LOC_OWNER", "$sab_mcm_locationedit_menu_ownership", ownerFacName)
     
@@ -292,7 +303,7 @@ Function SetupPage()
         int locIndex = jArray.getInt(jNearbyLocsArray, i, -1)
             
         if locIndex >= 0
-            SAB_LocationScript locScript = locHandler.GetLocationByIndex(locIndex)
+            SAB_LocationScript locScript = locHandler.GetEnabledLocationByIndex(locIndex)
             if locScript != None
                 string locName = locScript.GetLocName()
                 AddTextOptionST("LOC_NEARBY___" + locName, "$sab_mcm_locationedit_nearbyloc", locName)
@@ -333,11 +344,16 @@ state LOC_EDIT_MENU_PAGE
 	event OnSliderAcceptST(string state_id, float value)
 		editedLocationPage = (value as int) - 1
 		SetSliderOptionValueST(editedLocationPage + 1)
+
+        ; page must be rebuilt for the locs menu to be rebuilt as well
+        ForcePageReset()
 	endEvent
 
 	event OnDefaultST(string state_id)
 		editedLocationPage = 0
 		SetSliderOptionValueST(editedLocationPage + 1)
+
+        ForcePageReset()
 	endEvent
 
 	event OnHighlightST(string state_id)
@@ -349,14 +365,19 @@ endState
 state LOC_EDIT_CUR_LOC
 
 	event OnMenuOpenST(string state_id)
-		; SetMenuDialogStartIndex(0)
+        if editedLocationIndex >= editedLocationIdentifiersArray.Length
+            SetMenuDialogStartIndex(0)
+        else
+            SetMenuDialogStartIndex(editedLocationIndex)
+        endif
+		
 		SetMenuDialogDefaultIndex(0)
 		SetMenuDialogOptions(editedLocationIdentifiersArray)
 	endEvent
 
 	event OnMenuAcceptST(string state_id, int index)
 		editedLocationIndex = index
-		SetMenuOptionValueST(index)
+		SetMenuOptionValueST(editedLocationIndex)
         ForcePageReset()
 	endEvent
 
@@ -431,13 +452,15 @@ endstate
 
 state LOC_EDIT_ENABLED
     event OnSelectST(string state_id)
-        bool newValue = !editedLocationScript.isEnabled
+        bool newValue = !editedLocationScript.isCurrentlyEnabled
         int newValueInt = 0
 
         MainPage.isLoadingData = true
         ShowMessage("$sab_mcm_shared_popup_msg_long_process_started", false)
+        ;force a page reset to disable all action buttons!
+        ForcePageReset()
 
-        MainPage.MainQuest.LocationDataHandler.SetLocationEnabled(editedLocationScript, newValue)
+        MainPage.MainQuest.LocationDataHandler.SetLocationEnabled(editedLocationScript, newValue, true)
 
         if newValue
             newValueInt = 1
@@ -459,27 +482,7 @@ state LOC_EDIT_ENABLED
 	endEvent
 
     event OnDefaultST(string state_id)
-        bool newValue = true
-        int newValueInt = 1
-
-        MainPage.isLoadingData = true
-        ShowMessage("$sab_mcm_shared_popup_msg_long_process_started", false)
-
-        MainPage.MainQuest.LocationDataHandler.SetLocationEnabled(editedLocationScript, newValue)
-
-        int jLocDataMap = JMap.getObj(jLocationsDataMap, editedLocationScript.GetLocId())
-
-        if jLocDataMap == 0
-            jLocDataMap = jMap.object()
-            jMap.setObj(jLocationsDataMap, editedLocationScript.GetLocId(), jLocDataMap)
-        endif
-
-        jMap.setInt(jLocDataMap, "IsEnabled", newValueInt)
-
-        Debug.Trace("SAB: loc enable/disable complete!")
-        Debug.Notification("SAB: loc enable/disable complete!")
-        MainPage.isLoadingData = false
-        ForcePageReset()
+        ; nothing
     endevent
 
 	event OnHighlightST(string state_id)
@@ -531,6 +534,7 @@ state LOC_EDIT_LOC_DISPLAYNAME
         MainPage.MainQuest.LocationDataHandler.RebuildSortedLocNamesArrays()
 
         ;force a reset to update other fields that use the name
+        lockSelectedLoc = true
         ForcePageReset()
 	endEvent
 
@@ -620,6 +624,9 @@ state LOC_RECALC_NEARBY
     event OnSelectST(string state_id)
         MainPage.isLoadingData = true
         ShowMessage("$sab_mcm_shared_popup_msg_long_process_started", false)
+        ;force a page reset to disable all action buttons!
+        ForcePageReset()
+
         MainPage.MainQuest.LocationDataHandler.CalculateLocationDistances()
         Debug.Trace("SAB: Recalculate loc distances complete!")
         Debug.Notification("SAB: Recalculate loc distances complete!")
@@ -848,10 +855,13 @@ state LOC_EDIT_CUSTOM_SET_LOC
 
         if !warnBeforeChange || ShowMessage("$sab_mcm_locationedit_popup_msg_confirm_set_custom_loc")
             ; set location! the old loc's data will be removed when we save loc data again
+            
             MainPage.isLoadingData = true
             ShowMessage("$sab_mcm_shared_popup_msg_long_process_started", false)
+            ;force a page reset to disable all action buttons!
+            ForcePageReset()
 
-            MainPage.MainQuest.LocationDataHandler.SetLocationEnabled(editedLocationScript, false)
+            MainPage.MainQuest.LocationDataHandler.SetLocationEnabled(editedLocationScript, false, true)
             jMap.removeKey(jLocationsDataMap, editedLocationScript.GetLocId())
 
             editedLocationScript.ThisLocation = curLoc
@@ -868,9 +878,12 @@ state LOC_EDIT_CUSTOM_SET_LOC
             Debug.Trace("SAB: custom loc change complete!")
             Debug.Notification("SAB: custom loc change complete!")
             MainPage.isLoadingData = false
-            
+
+            lockSelectedLoc = true
+            ForcePageReset()
+
         endif
-        ForcePageReset()
+        
 	endEvent
 
     event OnDefaultST(string state_id)
@@ -907,6 +920,8 @@ state LOC_EDIT_CUSTOM_SET_MARKER
         endif
 
         marker.MoveTo(Game.GetPlayer())
+
+        lockSelectedLoc = true
         
         ForcePageReset()
 	endEvent
@@ -929,7 +944,7 @@ state LOC_EDIT_CUSTOM_EXTRA_NEARMARKER
 
         if state_id == "add"
             ; create new marker at player's pos
-            ObjectReference newMarker = Game.GetPlayer().PlaceAtMe(XMarker, 1)
+            ObjectReference newMarker = Game.GetPlayer().PlaceAtMe(XMarker.GetBaseObject(), 1)
 
             editedLocationScript.AddExtraNearbyMarker(newMarker)
         elseif state_id == "remove"
@@ -943,6 +958,8 @@ state LOC_EDIT_CUSTOM_EXTRA_NEARMARKER
                 editedLocationScript.ClearExtraNearbyMarkersArr()
             endif
         endif
+
+        lockSelectedLoc = true
         
         ForcePageReset()
 	endEvent
@@ -992,6 +1009,8 @@ state LOC_EDIT_CUSTOM_INTERIORCELL
                 editedLocationScript.ClearInteriorCellsArr()
             endif
         endif
+
+        lockSelectedLoc = true
         
         ForcePageReset()
 	endEvent

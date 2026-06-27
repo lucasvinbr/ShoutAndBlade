@@ -45,8 +45,10 @@ float Property GarrisonSizeMultiplier = 1.0 Auto Hidden
 ObjectReference Property DistCalculationReference Auto
 { (Optional) if not None, this object will be used as reference when calculating distances between locations. if not set, the base alias reference will be used }
 
-bool Property isEnabled = true Auto
+bool Property startsEnabled = true Auto
 { keep this enabled, unless, for some reason, you don't want the loc to start as part of the mod as soon as possible. The player will have to enable it manually }
+
+bool Property isCurrentlyEnabled = false Auto Hidden
 
 bool Property isChangeable = false Auto
 { if true, the player will be able to set this location script to point to wherever they want to }
@@ -88,14 +90,14 @@ Function Setup(SAB_FactionScript factionScriptRef, float curGameTime = 0.0)
 		JValue.retain(jKnownVacantNearbyCmderSlots, "ShoutAndBlade")
 	endif
 
-	isEnabled = true
+	isCurrentlyEnabled = true
 
 	BeTakenByFaction(factionScriptRef, false)
 EndFunction
 
 ; makes this location neutral and removes it from all update queues
 Function DisableLocation()
-	isEnabled = false
+	isCurrentlyEnabled = false
 	BecomeNeutral(false)
 	ToggleNearbyUpdates(false)
 	AliasUpdater.UnregisterAliasFromUpdates(indexInUpdater)
@@ -105,7 +107,7 @@ Function DisableLocation()
 EndFunction
 
 Function BeTakenByFaction(SAB_FactionScript factionScriptRef, bool notify = true)
-	if !isEnabled
+	if !isCurrentlyEnabled
 		Debug.Trace("[SAB] location " + GetLocName() + " couldn't be taken by the " + jMap.getStr(factionScript.jFactionData, "name", "Faction") + " because it is disabled")
 		return
 	endif
@@ -201,7 +203,7 @@ Function ToggleNearbyUpdates(bool updatesEnabled)
 	
 	; debug.Trace("location: toggleNearbyUpdates " + updatesEnabled)
 	; debug.Trace("location: indexInCloseByUpdater " + indexInCloseByUpdater)
-	if updatesEnabled && isEnabled
+	if updatesEnabled && isCurrentlyEnabled
 		isNearby = true
 		if indexInCloseByUpdater == -1
 			indexInCloseByUpdater = -2
@@ -230,7 +232,7 @@ EndFunction
 
 bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 
-	if !isEnabled
+	if !isCurrentlyEnabled
 		return false
 	endif
 
@@ -329,7 +331,7 @@ endfunction
 
 bool function RunCloseByUpdate()
 
-	if !isEnabled
+	if !isCurrentlyEnabled
 		return false
 	endif
 
@@ -751,13 +753,13 @@ EndFunction
 
 
 Event OnAttachedToCell()
-	if !isNearby && isEnabled && IsRefNearbyOutside(playerActor)
+	if !isNearby && isCurrentlyEnabled && IsRefNearbyOutside(playerActor)
 		ToggleNearbyUpdates(true)
 	endif
 EndEvent
 
 Event OnCellAttach()
-	if !isNearby && isEnabled && IsRefNearbyOutside(playerActor)
+	if !isNearby && isCurrentlyEnabled && IsRefNearbyOutside(playerActor)
 		ToggleNearbyUpdates(true)
 	endif
 EndEvent
@@ -788,6 +790,7 @@ bool function RemoveNearestExtraNearbyMarker(ObjectReference referencePos)
 
 	if nearestMarker != None
 		jArray.eraseForm(jExtraNearbyOutsideMarkersArr, nearestMarker)
+		nearestMarker.Delete()
 		return true
 	endif
 
@@ -801,6 +804,18 @@ function ClearExtraNearbyMarkersArr()
 	endif
 
 	GuardExtraMarkersArray()
+
+	int i = jArray.count(jExtraNearbyOutsideMarkersArr)
+
+	while i > 0
+		i -= 1
+
+		ObjectReference marker = jArray.getForm(jExtraNearbyOutsideMarkersArr, i) as ObjectReference
+		if marker != None
+			marker.Delete()
+		endif
+	endwhile
+
 	jArray.clear(jExtraNearbyOutsideMarkersArr)
 
 endfunction
@@ -848,15 +863,15 @@ function ClearInteriorCellsArr()
 endfunction
 
 
-function ApplyJObjectRepresentingMarkerPosition(ObjectReference marker, int jPosMap = -1)
+bool function ApplyJObjectRepresentingMarkerPosition(ObjectReference marker, int jPosMap = -1)
 	if marker == None || jPosMap == -1 || jPosMap == 0
-		return
+		return false
 	endif
 
 	Cell parentCell = jMap.getForm(jPosMap, "ParentCell") as Cell
 	if parentCell == None
 		Debug.Trace("[SAB] got invalid parent cell for a marker of location " + GetLocName())
-		return
+		return false
 	endif
 
 	ObjectReference targetLocationRef = None
@@ -866,6 +881,7 @@ function ApplyJObjectRepresentingMarkerPosition(ObjectReference marker, int jPos
 	marker.MoveTo(targetLocationRef)
 	marker.SetPosition(jMap.getFlt(jPosMap, "PosX"), jMap.getFlt(jPosMap, "PosY"), jMap.getFlt(jPosMap, "PosZ"))
 
+	return true
 endfunction
 
 int function GetJObjectRepresentingMarkerPosition(ObjectReference marker)
@@ -969,4 +985,33 @@ EndFunction
 bool Function IsPlaceholderLocation()
 	SAB_LocationDataHandler locHandler = SAB_LocationDataHandler.GetFromJdb()
 	return ThisLocation.HasKeyword(locHandler.SAB_PlaceholderLocationKeyword)
+endfunction
+
+bool function IsMarkerInMarkerStorageCell(ObjectReference marker)
+	if marker != None
+		Cell markerCell = marker.GetParentCell()
+		if markerCell != None
+			SAB_LocationDataHandler locHandler = SAB_LocationDataHandler.GetFromJdb()
+			return markerCell == locHandler.MarkersHolderCell
+		endif
+	endif
+	
+	Debug.Trace("[SAB] ran IsMarkerInMarkerStorageCell with none marker")
+	return false
+endfunction
+
+; this is true for any non-editable loc; for the editables, they must look like a valid loc:
+; no relevant markers in the placeholder location
+bool function ShouldBeSaved()
+	if !isChangeable
+		return true
+	endif
+
+	; the loc can still "survive" without a valid distcalc... always better to set it though!
+	if IsMarkerInMarkerStorageCell(GetReference()) || IsMarkerInMarkerStorageCell(MoveDestination)
+		return false
+	endif
+
+	return true
+
 endfunction

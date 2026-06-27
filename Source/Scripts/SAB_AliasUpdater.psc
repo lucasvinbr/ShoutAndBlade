@@ -221,7 +221,7 @@ int Function GetTopIndex()
 	return topFilledIndex
 EndFunction
 
-; gets (creates, if necessary) one of the containers for arrays of aliases. 0 for elements one, 1 for elements two... 3 or anything else for elements four
+; gets (creates, if necessary) one of the containers for arrays of aliases. 0 for elements one, 1 for elements two...
 SAB_RefAliasContainer Function GetOrCreateAliasContainerAtIndex(int arrayIndex)
 	If SAB_ActiveElementsContainers[arrayIndex] == None
 		SAB_RefAliasContainer newContainer = (AliasContainerSpawnPoint.PlaceAtMe(SAB_AliasContainerObject) as Form) as SAB_RefAliasContainer

@@ -90,7 +90,7 @@ Function SetupLocationStatistics()
     SAB_UnitDataHandler unitDataHandler = MainPage.MainQuest.UnitDataHandler
     SAB_LocationDataHandler locHandler = MainPage.MainQuest.LocationDataHandler
 
-    int locIndex = locHandler.NextLocationIndex
+    int locIndex = locHandler.NextEnabledLocationIndex
     int slotsPerEntry = 6
     int entriesPerPage = Math.Floor(110 / slotsPerEntry)
 
@@ -98,8 +98,8 @@ Function SetupLocationStatistics()
     if isReloadingCurInfoSet
         while locIndex > 0
             locIndex -= 1
-            SAB_LocationScript locScript = locHandler.GetLocationByIndex(locIndex)
-            if locScript != None && locScript.isEnabled
+            SAB_LocationScript locScript = locHandler.GetEnabledLocationByIndex(locIndex)
+            if locScript != None && locScript.isCurrentlyEnabled
                 int jNewEntryMap = jMap.object()
                 jArray.addObj(jdisplayedDataArray, jNewEntryMap)
 
@@ -216,6 +216,12 @@ Function SetupDebugStatistics()
     AddTextOptionST("STATS_DISPLAY___NEARBYLOCS_ALIAS", "$sab_mcm_stats_menu_statspage_debug_nearbylocs_aliases", MainPage.MainQuest.SpawnersUpdater.LocationUpdater.numActives)
     int nearbyLocsTopFilledIndex = MainPage.MainQuest.SpawnersUpdater.LocationUpdater.GetTopIndex()
     AddTextOptionST("STATS_DISPLAY___NEARBYLOCS_ALIAS_TOPFILLEDINDEX", "$sab_mcm_stats_menu_statspage_debug_nearbylocs_topfilledindex", nearbyLocsTopFilledIndex)
+
+    SAB_LocationDataHandler locHandler = MainPage.MainQuest.LocationDataHandler
+    int totallocs = locHandler.NextLocationIndex
+    int totallocs_enabled = locHandler.NextEnabledLocationIndex
+    AddTextOptionST("STATS_DISPLAY___TOTAL_LOCS", "$sab_mcm_stats_menu_statspage_debug_totallocs_aliases", totallocs)
+    AddTextOptionST("STATS_DISPLAY___TOTAL_LOCS_ENABLED", "$sab_mcm_stats_menu_statspage_debug_totallocs_aliases_enabled", totallocs_enabled)
 
     Actor plyrRef = game.GetPlayer()
 

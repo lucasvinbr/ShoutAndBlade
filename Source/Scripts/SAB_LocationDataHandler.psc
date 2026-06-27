@@ -19,8 +19,8 @@ bool initialSetupDone = false
 bool isBusyUpdatingLocationData = false
 bool isBusyAddingNewLocsToBaseArray = false
 bool isBusySortingLocNames = false
-bool isBusySortingEnabledLocNames = false
 
+bool shouldReSortLocNames = false
 bool shouldRecalculateDistances = false
 bool shouldRebuildEnabledLocations = false
 bool isReaddingAllLocations = false
@@ -30,6 +30,9 @@ int Property NextEnabledLocationIndex = 0 Auto Hidden
 
 ; a jMap, mapped by location name, containing jMaps with some configurable data on locations
 int Property jLocationsConfigMap Auto Hidden
+
+; the cell in which all markers are in, before we start moving them
+Cell Property MarkersHolderCell auto
 
 ; a jArray with objects with loc names and their indexes in the locations array
 int jLocationsSortedByNameArr
@@ -101,7 +104,7 @@ Function AddNewLocationsFromAddon(SAB_LocationDataAddon addon, int addonIndex)
     while i != -1 && i < newLocations.Length
         SAB_LocationScript newLoc = newLocations[i]
         if newLoc != None
-            If GetLocationIndexById(newLoc.GetLocId()) == -1 || newLoc.isChangeable
+            If GetLocationIndexById(newLoc.GetLocId()) == -1
                 int locIndex = Locations.RegisterAliasForUpdates(newLoc)
                 int jlocNameEntry = jMap.object()
                 jMap.setStr(jlocNameEntry, "locName", newLoc.GetLocName())
@@ -109,21 +112,25 @@ Function AddNewLocationsFromAddon(SAB_LocationDataAddon addon, int addonIndex)
                 jArray.addObj(jLocationsSortedByNameArr, jlocNameEntry)
                 hasMadeChanges = true
                 NextLocationIndex = Locations.GetTopIndex() + 1
+
+                ; enable this loc if it starts enabled.
+                ; editable locs always start disabled!
+                SetLocationEnabled(newLoc, newLoc.startsEnabled && !newLoc.isChangeable, false)
+
                 debug.Trace("SAB: added new location " + newLoc.GetLocName())
             EndIf
 
             i += 1
         endif
     endwhile
-
-    ; sort loc names array
-    SortLocsNamesList(jLocationsSortedByNameArr)
-
+    
+    debug.Notification("SAB: added new location(s)")
     isBusyAddingNewLocsToBaseArray = false
 
     If hasMadeChanges
         RebuildEnabledLocationsArray()
         CalculateLocationDistances()
+        RebuildSortedLocNamesArrays()
     EndIf
     
 EndFunction
@@ -158,9 +165,9 @@ Function ReaddLocationsFromAddons()
 EndFunction
 
 ; enables or disables the target location
-Function SetLocationEnabled(SAB_LocationScript locScript, bool enable)
+Function SetLocationEnabled(SAB_LocationScript locScript, bool enable, bool runDistanceRebuilds = true)
 
-    if enable == locScript.isEnabled
+    if enable == locScript.isCurrentlyEnabled
         ; no action to be made!
         return
     endif
@@ -184,18 +191,21 @@ Function SetLocationEnabled(SAB_LocationScript locScript, bool enable)
     endif
 
     if enable
-        if !locScript.isEnabled
+        if !locScript.isCurrentlyEnabled
             locScript.Setup(ownerFactionScript)
         endif
     else
-        if locScript.isEnabled
+        if locScript.isCurrentlyEnabled
             locScript.DisableLocation()
         endif
     endif
 
-    ; this is suboptimal, I think... we shouldn't have to rebuild if we're just adding an enabled loc
-    RebuildEnabledLocationsArray()
-    CalculateLocationDistances()
+    if runDistanceRebuilds
+        ; this is suboptimal, I think... we shouldn't have to rebuild if we're just adding an enabled loc
+        RebuildEnabledLocationsArray()
+        CalculateLocationDistances()
+        RebuildSortedLocNamesArrays()
+    endif
     
 EndFunction
 
@@ -215,6 +225,7 @@ Function RebuildEnabledLocationsArray()
     shouldRebuildEnabledLocations = false
 
     Debug.Trace("[SAB] rebuild enabled locations - start")
+    debug.Notification("[SAB] rebuild enabled locations - start")
 
     int i = 0
     NextEnabledLocationIndex = 0
@@ -224,7 +235,7 @@ Function RebuildEnabledLocationsArray()
     while i != -1 && i < NextLocationIndex
         SAB_LocationScript locScript = Locations.GetUpdatedAliasAtIndex(i) as SAB_LocationScript
         if locScript != None
-            if locScript.isEnabled
+            if locScript.isCurrentlyEnabled
                 int locIndex = EnabledLocations.RegisterAliasForUpdates(locScript)
                 
                 int jlocNameEntry = jMap.object()
@@ -239,17 +250,32 @@ Function RebuildEnabledLocationsArray()
 
     NextEnabledLocationIndex = EnabledLocations.GetTopIndex()
 
-    ; sort loc names array
-    SortLocsNamesList(jEnabledLocationsSortedByNameArr)
-
     Debug.Trace("[SAB] rebuild enabled locations - end")
+    debug.Notification("[SAB] rebuild enabled locations - end")
 
     isBusyUpdatingLocationData = false
+
     OnDoneUpdatingLocationData()
 
 EndFunction
 
 function RebuildSortedLocNamesArrays()
+
+    if isBusyUpdatingLocationData
+        if !shouldReSortLocNames
+            Debug.Trace("[SAB] rebuild sorted loc names is now scheduled")
+        endif
+        
+        shouldReSortLocNames = true
+        return
+    endif
+
+    isBusyUpdatingLocationData = true
+    shouldReSortLocNames = false
+
+    Debug.Trace("[SAB] rebuild sorted loc names - start")
+    debug.Notification("[SAB] rebuild sorted loc names - start")
+
     int i = 0
     jArray.clear(jLocationsSortedByNameArr)
     jArray.clear(jEnabledLocationsSortedByNameArr)
@@ -262,7 +288,7 @@ function RebuildSortedLocNamesArrays()
             jMap.setInt(jlocNameEntry, "locIndex", i)
             jArray.addObj(jLocationsSortedByNameArr, jlocNameEntry)
 
-            if locScript.isEnabled
+            if locScript.isCurrentlyEnabled
                 int locIndexInEnableds = GetEnabledLocationIndex(locScript)
 
                 int jlocNameEntry = jMap.object()
@@ -278,6 +304,13 @@ function RebuildSortedLocNamesArrays()
     ; finally sort loc names array
     SortLocsNamesList(jLocationsSortedByNameArr)
     SortLocsNamesList(jEnabledLocationsSortedByNameArr)
+
+    Debug.Trace("[SAB] rebuild sorted loc names - end")
+    debug.Notification("[SAB] rebuild sorted loc names - end")
+
+    isBusyUpdatingLocationData = false
+    OnDoneUpdatingLocationData()
+
 endfunction
 
 function SortLocsNamesList(int jLocsArr)
@@ -356,6 +389,7 @@ Function CalculateLocationDistances()
     shouldRecalculateDistances = false
 
     Debug.Trace("[SAB] recalculate location distances - start")
+    debug.Notification("[SAB] recalculate location distances - start")
 
     int i = 0
     int j = 0
@@ -463,6 +497,7 @@ Function CalculateLocationDistances()
     jValue.zeroLifetime(jlocationDistancesMap)
 
     Debug.Trace("[SAB] recalculate location distances - end")
+    debug.Notification("[SAB] recalculate location distances - end")
 
     isBusyUpdatingLocationData = false
 
@@ -479,6 +514,10 @@ Function OnDoneUpdatingLocationData()
     if shouldRecalculateDistances
         CalculateLocationDistances()
     endif
+
+    if shouldReSortLocNames
+        RebuildSortedLocNamesArrays()
+    endif
 EndFunction
 
 
@@ -486,26 +525,43 @@ EndFunction
 Function UpdateLocationsAccordingToJMap()
     int i = jMap.count(jLocationsConfigMap)
     bool hasChangedEnabledLocations = false
+    int jLocDataMap = 0
 
     While (i > 0)
         i -= 1
         
         string locId = jMap.getNthKey(jLocationsConfigMap, i)
+        jLocDataMap = jMap.getObj(jLocationsConfigMap, locId)
 
+        Debug.Trace("[SAB] load loc with id " + locId)
+        Debug.Trace("[SAB] loc's name is " + jMap.getStr(jLocDataMap, "OverrideDisplayName", "(no OverrideDisplayName set)"))
+
+        bool isEditableLoc = jMap.getInt(jLocDataMap, "isEditable", 0) > 0
         SAB_LocationScript locScript = GetLocationById(locId)
 
+        if locScript == None && isEditableLoc
+            ; we're loading an editable loc that hasn't been assigned a script yet! Let's assign
+            Debug.Trace("[SAB] loc is editable! assigning an unused script now")
+            locScript = GetAnUnusedChangeableLocation()
+            Location newLoc = JString.decodeFormStringToForm(locId) as Location
+            if newLoc != None && locScript != None
+                locScript.ThisLocation = newLoc
+                Debug.Trace("[SAB] location found and assigned!")
+            endif
+        endif
+
         if locScript != None
-            int jLocDataMap = jMap.getObj(jLocationsConfigMap, locId)
-
             if jLocDataMap != 0
-                bool enableLoc = jMap.getInt(jLocDataMap, "IsEnabled", 1) != 0 && !locScript.IsPlaceholderLocation()
+                Debug.Trace("[SAB] loc data ok, fetching stuff from it now")
+                bool enableLoc = jMap.getInt(jLocDataMap, "IsEnabled", 1) != 0
 
-                if locScript.isEnabled != enableLoc
+                if locScript.isCurrentlyEnabled != enableLoc
                     hasChangedEnabledLocations = true
-                    SetLocationEnabled(locScript, enableLoc)
+                    SetLocationEnabled(locScript, enableLoc, false)
                 endif
 
                 if enableLoc
+                    Debug.Trace("[SAB] this loc is enabled!")
                     int ownerFacIndex = jMap.getInt(jLocDataMap, "OwnerFactionIndex", -1)
 
                     if ownerFacIndex > -1 
@@ -528,7 +584,76 @@ Function UpdateLocationsAccordingToJMap()
                 locScript.OverrideDisplayName = jMap.getStr(jLocDataMap, "OverrideDisplayName")
                 locScript.jStartingUnitsMap = jValue.releaseAndRetain(locScript.jStartingUnitsMap, jMap.getObj(jLocDataMap, "jStartingGarrison"), "ShoutAndBlade")
 
+                if isEditableLoc
+                    Debug.Trace("[SAB] this loc is editable! Assign markers now")
+                    ; assign markers!
+                    int jmarkerMap = jMap.getObj(jLocDataMap, "jRefPosMap")
+                    if jmarkerMap != 0
+                        locScript.ApplyJObjectRepresentingMarkerPosition(locScript.GetReference(), jmarkerMap)
+                    endif
+
+                    jmarkerMap = jMap.getObj(jLocDataMap, "jMoveDestPosMap")
+                    if jmarkerMap != 0
+                        locScript.ApplyJObjectRepresentingMarkerPosition(locScript.MoveDestination, jmarkerMap)
+                    endif
+
+                    jmarkerMap = jMap.getObj(jLocDataMap, "jDistCalcPosMap")
+                    if jmarkerMap != 0
+                        locScript.ApplyJObjectRepresentingMarkerPosition(locScript.DistCalculationReference, jmarkerMap)
+                    endif
+                    
+                    ; extra markers
+                    locScript.GuardExtraMarkersArray()
+
+                    int jWrittenExtraMarkersArr = jMap.getObj(jLocDataMap, "jExtraMarkersArr")
+                    
+                    int jLocExtraMarkersArr = locScript.jExtraNearbyOutsideMarkersArr
+                    int k = jArray.count(jWrittenExtraMarkersArr) ;j's are all over, so I preferred to use k here haha
+                    int jWrittenMarkerData = 0
+
+                    while k > 0
+                        k -= 1
+                        
+                        jWrittenMarkerData = jarray.getObj(jWrittenExtraMarkersArr, k)
+                        if jWrittenMarkerData != 0
+                            ; create new marker and set its pos
+                            ; clone one of the markers!
+                            ObjectReference newMarker = locScript.MoveDestination.PlaceAtMe(locScript.MoveDestination.GetBaseObject())
+                            if !locScript.ApplyJObjectRepresentingMarkerPosition(newMarker, jWrittenMarkerData)
+                                ; the position applying failed, delete this marker
+                                newMarker.Delete()
+                            else
+                                jArray.addForm(jLocExtraMarkersArr, newMarker)
+                            endif
+                        endif
+                    endwhile
+
+
+                    ; interior cells
+                    locScript.GuardInteriorCellsJArray()
+
+                    int jWrittenInteriorCellsArr = jMap.getObj(jLocDataMap, "jInteriorCellsArr")
+
+                    if jWrittenInteriorCellsArr != 0
+                        k = jArray.count(jWrittenInteriorCellsArr)
+
+                        while k > 0
+                            k -= 1
+
+                            Cell newCell = jArray.getForm(jWrittenInteriorCellsArr, k) as Cell
+                            if newCell != None
+                                locScript.AddInteriorCell(newCell)
+                            endif
+                        endwhile
+                        
+                    endif
+                    
+                endif
+            else
+                Debug.Trace("[SAB] jlocdatamap is invalid! abort")
             endif
+        else
+            Debug.Trace("[SAB] locscript is none! abort")
         endif
         
     EndWhile
@@ -536,6 +661,7 @@ Function UpdateLocationsAccordingToJMap()
     if hasChangedEnabledLocations
         RebuildEnabledLocationsArray()
         CalculateLocationDistances()
+        RebuildSortedLocNamesArrays()
     endif
 EndFunction
 
@@ -637,7 +763,7 @@ Function WriteEditableLocDatasToJmap()
 
     while i < NextLocationIndex
         SAB_LocationScript locScript = Locations.GetUpdatedAliasAtIndex(i) as SAB_LocationScript
-        if locScript != None && locScript.isChangeable
+        if locScript != None && locScript.isChangeable && locScript.ShouldBeSaved()
             int jLocDataMap = JMap.getObj(jLocationsConfigMap, locScript.GetLocId())
 
             if jLocDataMap == 0
@@ -694,9 +820,10 @@ string[] Function CreateStringArrayWithLocationIdentifiers(int page = 0)
     int jStringsArr = jArray.object()
     jValue.retain(jStringsArr, "ShoutAndBlade")
 
-    int i = 0
+    int startingIndex = page * 128
+    int i = startingIndex
     int endingIndex = NextLocationIndex
-    if (page + 1) * 128 < endingIndex
+    if ((page + 1) * 128) < endingIndex
         endingIndex = (page + 1) * 128
     endif
 
@@ -724,11 +851,14 @@ string[] Function CreateStringArrayWithLocationIdentifiers(int page = 0)
     ; return string array
     string[] namesArray = Utility.CreateStringArray(jArray.count(jStringsArr))
 
-    i = 0
+    i = startingIndex
+    int i_clamped
     endingIndex = jArray.count(jStringsArr)
 
     while(i < endingIndex)
-        namesArray[i] = jArray.getStr(jStringsArr, i)
+        i_clamped = i % 128
+
+        namesArray[i_clamped] = jArray.getStr(jStringsArr, i_clamped)
 
         i += 1
     endwhile
@@ -745,8 +875,9 @@ string[] Function CreateStringArrayWithEnabledLocationIdentifiers(int page = 0)
     int jStringsArr = jArray.object()
     jValue.retain(jStringsArr, "ShoutAndBlade")
 
-    int i = 0
-    int endingIndex = NextLocationIndex
+    int startingIndex = page * 128
+    int i = startingIndex
+    int endingIndex = NextEnabledLocationIndex
     if (page + 1) * 128 < endingIndex
         endingIndex = (page + 1) * 128
     endif
@@ -767,11 +898,14 @@ string[] Function CreateStringArrayWithEnabledLocationIdentifiers(int page = 0)
     ; return string array
     string[] namesArray = Utility.CreateStringArray(jArray.count(jStringsArr))
 
-    i = 0
+    i = startingIndex
+    int i_clamped
     endingIndex = jArray.count(jStringsArr)
 
     while(i < endingIndex)
-        namesArray[i] = jArray.getStr(jStringsArr, i)
+        i_clamped = i % 128
+
+        namesArray[i_clamped] = jArray.getStr(jStringsArr, i_clamped)
 
         i += 1
     endwhile
@@ -903,6 +1037,22 @@ int Function GetLocationIndexById(string Id)
     return -1
 EndFunction
 
+; returns one of the disabled, apparently not edited changeable locs, or none
+SAB_LocationScript function GetAnUnusedChangeableLocation()
+    int i = 0
+    SAB_LocationScript locScript = None
+
+    while i < NextLocationIndex
+        locScript = Locations.GetUpdatedAliasAtIndex(i) as SAB_LocationScript
+        if locScript != None && locScript.isChangeable && !locScript.isCurrentlyEnabled && !locScript.ShouldBeSaved()
+            return locScript
+        endif
+        i += 1
+    endwhile
+
+    return None
+endfunction
+
 
 int Function GetNextIndexForLocationAddon()
 
@@ -921,6 +1071,7 @@ EndFunction
 ; locationData jmap entries:
 
 ; int IsEnabled - key exists = enabled
+; int isEditable - greater than 0 = is editable. don't set this to true for locs not set up via the MCM!
 ; string OverrideDisplayName
 ; float GarrisonSizeMultiplier
 ; float GoldRewardMultiplier
