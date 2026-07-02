@@ -41,6 +41,7 @@ bool function ApplyJObjectRepresentingMarkerPosition(ObjectReference marker, int
             return false
         endif
 
+        ; requires Dylbills Papyrus Functions - https://www.nexusmods.com/skyrimspecialedition/mods/65410
         Cell[] allCellsOfWorld = DbSkseFunctions.GetAllExteriorCells(None, markerWorld)
         if allCellsOfWorld.Length <= 0
             Debug.Trace("[SAB] no valid cells found in valid worldspace for ApplyJObjectRepresentingMarkerPosition! aborting")
