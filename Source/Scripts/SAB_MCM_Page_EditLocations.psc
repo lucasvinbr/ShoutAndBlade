@@ -864,6 +864,7 @@ state LOC_EDIT_CUSTOM_SET_LOC
             MainPage.MainQuest.LocationDataHandler.SetLocationEnabled(editedLocationScript, false, true)
             jMap.removeKey(jLocationsDataMap, editedLocationScript.GetLocId())
 
+            ; TODO prevent setting location to this one if a loc with this id already exists
             editedLocationScript.ThisLocation = curLoc
 
             int jLocDataMap = JMap.getObj(jLocationsDataMap, editedLocationScript.GetLocId())
@@ -911,15 +912,19 @@ state LOC_EDIT_CUSTOM_SET_MARKER
         endif
 
         ; figure out which marker we're editing. default to main marker
+        string markerJDataName = "jRefPosMap"
         ObjectReference marker = editedLocationScript.GetReference()
 
         if state_id == "loc_marker_movedest"
             marker = editedLocationScript.MoveDestination
+            markerJDataName = "jMoveDestPosMap"
         elseif state_id == "loc_marker_distcalc"
             marker = editedLocationScript.DistCalculationReference
+            markerJDataName = "jDistCalcPosMap"
         endif
 
         marker.MoveTo(Game.GetPlayer())
+        MainPage.MainQuest.LocationDataHandler.WriteEditableLocMarkerDataToJmap(editedLocationScript, marker, markerJDataName)
 
         lockSelectedLoc = true
         
@@ -1082,6 +1087,7 @@ state LOC_EDIT_SAVE_WITH_GARR
         endif
         MainPage.MainQuest.LocationDataHandler.WriteCurrentLocNamesToJmap()
         MainPage.MainQuest.LocationDataHandler.WriteCurrentLocGarrsToStartGarrsJmap()
+        MainPage.MainQuest.LocationDataHandler.WriteEditableLocDatasToJmap()
         JValue.writeToFile(MainPage.MainQuest.LocationDataHandler.jLocationsConfigMap, filePath)
         ShowMessage("Save: " + filePath, false)
 	endEvent

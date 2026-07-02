@@ -124,7 +124,7 @@ Function AddNewLocationsFromAddon(SAB_LocationDataAddon addon, int addonIndex)
         endif
     endwhile
     
-    debug.Notification("SAB: added new location(s)")
+    debug.Notification("SAB: added new location(s) from " + addon.GetName())
     isBusyAddingNewLocsToBaseArray = false
 
     If hasMadeChanges
@@ -589,17 +589,17 @@ Function UpdateLocationsAccordingToJMap()
                     ; assign markers!
                     int jmarkerMap = jMap.getObj(jLocDataMap, "jRefPosMap")
                     if jmarkerMap != 0
-                        locScript.ApplyJObjectRepresentingMarkerPosition(locScript.GetReference(), jmarkerMap)
+                        SAB_Utils.ApplyJObjectRepresentingMarkerPosition(locScript.GetReference(), jmarkerMap)
                     endif
 
                     jmarkerMap = jMap.getObj(jLocDataMap, "jMoveDestPosMap")
                     if jmarkerMap != 0
-                        locScript.ApplyJObjectRepresentingMarkerPosition(locScript.MoveDestination, jmarkerMap)
+                        SAB_Utils.ApplyJObjectRepresentingMarkerPosition(locScript.MoveDestination, jmarkerMap)
                     endif
 
                     jmarkerMap = jMap.getObj(jLocDataMap, "jDistCalcPosMap")
                     if jmarkerMap != 0
-                        locScript.ApplyJObjectRepresentingMarkerPosition(locScript.DistCalculationReference, jmarkerMap)
+                        SAB_Utils.ApplyJObjectRepresentingMarkerPosition(locScript.DistCalculationReference, jmarkerMap)
                     endif
                     
                     ; extra markers
@@ -619,7 +619,7 @@ Function UpdateLocationsAccordingToJMap()
                             ; create new marker and set its pos
                             ; clone one of the markers!
                             ObjectReference newMarker = locScript.MoveDestination.PlaceAtMe(locScript.MoveDestination.GetBaseObject())
-                            if !locScript.ApplyJObjectRepresentingMarkerPosition(newMarker, jWrittenMarkerData)
+                            if !SAB_Utils.ApplyJObjectRepresentingMarkerPosition(newMarker, jWrittenMarkerData)
                                 ; the position applying failed, delete this marker
                                 newMarker.Delete()
                             else
@@ -639,10 +639,14 @@ Function UpdateLocationsAccordingToJMap()
 
                         while k > 0
                             k -= 1
-
-                            Cell newCell = jArray.getForm(jWrittenInteriorCellsArr, k) as Cell
+                            
+                            Form newCellForm = jArray.getForm(jWrittenInteriorCellsArr, k)
+	                        Debug.Trace("[SAB] load interiorcell form: " + newCellForm)
+                            Cell newCell = newCellForm as Cell
                             if newCell != None
                                 locScript.AddInteriorCell(newCell)
+                            else
+                                Debug.Trace("[SAB] got invalid interior cell for location " + locScript.GetLocName())
                             endif
                         endwhile
                         
@@ -672,7 +676,7 @@ Function WriteCurrentLocOwnershipsToJmap()
 
     while i < NextLocationIndex
         SAB_LocationScript locScript = Locations.GetUpdatedAliasAtIndex(i) as SAB_LocationScript
-        if locScript != None
+        if locScript != None && (!locScript.isChangeable || locScript.AppearsToHaveBeenEdited())
             int jLocDataMap = JMap.getObj(jLocationsConfigMap, locScript.GetLocId())
 
             if jLocDataMap == 0
@@ -694,7 +698,7 @@ Function WriteCurrentLocNamesToJmap()
 
     while i < NextLocationIndex
         SAB_LocationScript locScript = Locations.GetUpdatedAliasAtIndex(i) as SAB_LocationScript
-        if locScript != None
+        if locScript != None && (!locScript.isChangeable || locScript.AppearsToHaveBeenEdited())
             int jLocDataMap = JMap.getObj(jLocationsConfigMap, locScript.GetLocId())
 
             if jLocDataMap == 0
@@ -716,7 +720,7 @@ Function WriteCurrentLocStartGarrsToJmap()
 
     while i < NextLocationIndex
         SAB_LocationScript locScript = Locations.GetUpdatedAliasAtIndex(i) as SAB_LocationScript
-        if locScript != None
+        if locScript != None && (!locScript.isChangeable || locScript.AppearsToHaveBeenEdited())
             int jLocDataMap = JMap.getObj(jLocationsConfigMap, locScript.GetLocId())
 
             if jLocDataMap == 0
@@ -739,7 +743,7 @@ Function WriteCurrentLocGarrsToStartGarrsJmap()
 
     while i < NextLocationIndex
         SAB_LocationScript locScript = Locations.GetUpdatedAliasAtIndex(i) as SAB_LocationScript
-        if locScript != None
+        if locScript != None && (!locScript.isChangeable || locScript.AppearsToHaveBeenEdited())
             int jLocDataMap = JMap.getObj(jLocationsConfigMap, locScript.GetLocId())
 
             if jLocDataMap == 0
@@ -763,7 +767,7 @@ Function WriteEditableLocDatasToJmap()
 
     while i < NextLocationIndex
         SAB_LocationScript locScript = Locations.GetUpdatedAliasAtIndex(i) as SAB_LocationScript
-        if locScript != None && locScript.isChangeable && locScript.ShouldBeSaved()
+        if locScript != None && locScript.isChangeable && locScript.AppearsToHaveBeenEdited()
             int jLocDataMap = JMap.getObj(jLocationsConfigMap, locScript.GetLocId())
 
             if jLocDataMap == 0
@@ -772,35 +776,9 @@ Function WriteEditableLocDatasToJmap()
             endif
     
             jMap.setInt(jLocDataMap, "isEditable", 1)
-            
-            ; marker positions...
-            int jRefPosMap = locScript.GetJObjectRepresentingMarkerPosition(locScript.GetReference())
-            jMap.setObj(jLocDataMap, "jRefPosMap", jRefPosMap)
 
-            int jMoveDestPosMap = locScript.GetJObjectRepresentingMarkerPosition(locScript.MoveDestination)
-            jMap.setObj(jLocDataMap, "jMoveDestPosMap", jMoveDestPosMap)
-
-            int jDistCalcPosMap = locScript.GetJObjectRepresentingMarkerPosition(locScript.DistCalculationReference)
-            jMap.setObj(jLocDataMap, "jDistCalcPosMap", jDistCalcPosMap)
-
-            ; extra markers
-            int jWrittenExtraMarkersArr = jArray.object()
-            jMap.setObj(jLocDataMap, "jExtraMarkersArr", jWrittenExtraMarkersArr)
-
-            locScript.GuardExtraMarkersArray()
-            int jLocExtraMarkersArr = locScript.jExtraNearbyOutsideMarkersArr
-            int k = jArray.count(jLocExtraMarkersArr) ;j's are all over, so I preferred to use k here haha
-
-            while k > 0
-                k -= 1
-
-                ObjectReference extraMarker = jArray.getForm(jLocExtraMarkersArr, k) as ObjectReference
-                if extraMarker != None
-                    int jExtraMarkerPosMap = locScript.GetJObjectRepresentingMarkerPosition(extraMarker)
-                    jArray.addObj(jWrittenExtraMarkersArr, jExtraMarkerPosMap)
-                endif
-            endwhile
-
+            ; marker-related stuff are written at the time of addition/removal,
+            ; as getting the cell of a marker when we're not in that cell can return none
 
             ; interior cells
             locScript.GuardInteriorCellsJArray()
@@ -813,6 +791,109 @@ Function WriteEditableLocDatasToJmap()
     endwhile
 
 EndFunction
+
+
+Function WriteEditableLocMarkerDataToJmap(SAB_LocationScript locScript, ObjectReference marker, string jDataMapName)
+    if !locScript.isChangeable
+        return
+    endif
+
+    int jLocDataMap = JMap.getObj(jLocationsConfigMap, locScript.GetLocId())
+
+    if jLocDataMap == 0
+        jLocDataMap = jMap.object()
+        jMap.setObj(jLocationsConfigMap, locScript.GetLocId(), jLocDataMap)
+    endif
+
+    if jDataMapName == "jExtraMarkersArr"
+        ; special handle to add this marker to the extra markers arr
+        int jExtraMarkersArr = jMap.GetObj(jLocDataMap, jDataMapName)
+        if jExtraMarkersArr == 0
+            jExtraMarkersArr = jArray.object()
+            jMap.setObj(jLocDataMap, jDataMapName, jExtraMarkersArr)
+        endif
+
+        jArray.addObj(jExtraMarkersArr, SAB_Utils.GetJObjectRepresentingMarkerPosition(marker))
+    else
+        jMap.setObj(jLocDataMap, jDataMapName, SAB_Utils.GetJObjectRepresentingMarkerPosition(marker))
+    endif
+endfunction
+
+function RemoveEditableLocExtraMarkerFromJmap(SAB_LocationScript locScript, ObjectReference marker)
+    if !locScript.isChangeable
+        return
+    endif
+
+    int jLocDataMap = JMap.getObj(jLocationsConfigMap, locScript.GetLocId())
+
+    if jLocDataMap == 0
+        jLocDataMap = jMap.object()
+        jMap.setObj(jLocationsConfigMap, locScript.GetLocId(), jLocDataMap)
+    endif
+
+    int jExtraMarkersArr = jMap.GetObj(jLocDataMap, "jExtraMarkersArr")
+    if jExtraMarkersArr == 0
+        jExtraMarkersArr = jArray.object()
+        jMap.setObj(jLocDataMap, "jExtraMarkersArr", jExtraMarkersArr)
+    endif
+
+    ; get the marker's jData, then compare it to each one already written. Remove the best match
+    int jtargetMarkerData = SAB_Utils.GetJObjectRepresentingMarkerPosition(marker)
+    JValue.retain(jtargetMarkerData, "ShoutAndBlade")
+
+    int i = jArray.count(jExtraMarkersArr)
+    int jMarkerData = 0
+    while i > 0
+        i -= 1
+
+        jMarkerData = jArray.getObj(jExtraMarkersArr, i)
+        if jMarkerData != 0
+            Cell tMarkerCell = jMap.getForm(jtargetMarkerData, "ParentCell") as Cell
+            Cell markerCell = jMap.getForm(jMarkerData, "ParentCell") as Cell
+            if tMarkerCell == markerCell
+                float tPosValue = jMap.getFlt(jtargetMarkerData, "PosX")
+                float posValue = jMap.getFlt(jMarkerData, "PosX")
+                float threshold = 20.0
+                if Math.abs(tPosValue - posValue) <= threshold
+                    tPosValue = jMap.getFlt(jtargetMarkerData, "PosY")
+                    posValue = jMap.getFlt(jMarkerData, "PosY")
+                    if Math.abs(tPosValue - posValue) <= threshold
+                        tPosValue = jMap.getFlt(jtargetMarkerData, "PosZ")
+                        posValue = jMap.getFlt(jMarkerData, "PosZ")
+                        if Math.abs(tPosValue - posValue) <= threshold
+                            ; ok, close enough, remove it!
+                            jArray.eraseIndex(jMarkerData, i)
+                        endif
+                    endif
+                endif
+            endif
+        endif
+    endwhile
+
+    JValue.release(jtargetMarkerData)
+    JValue.zeroLifetime(jtargetMarkerData)
+endfunction
+
+function ClearEditableLocExtraMarkersArr(SAB_LocationScript locScript)
+    if !locScript.isChangeable
+        return
+    endif
+
+    int jLocDataMap = JMap.getObj(jLocationsConfigMap, locScript.GetLocId())
+
+    if jLocDataMap == 0
+        jLocDataMap = jMap.object()
+        jMap.setObj(jLocationsConfigMap, locScript.GetLocId(), jLocDataMap)
+    endif
+
+    int jExtraMarkersArr = jMap.GetObj(jLocDataMap, "jExtraMarkersArr")
+    if jExtraMarkersArr == 0
+        jExtraMarkersArr = jArray.object()
+        jMap.setObj(jLocDataMap, "jExtraMarkersArr", jExtraMarkersArr)
+    endif
+
+    jArray.clear(jExtraMarkersArr)
+endfunction
 
 ; creates a string array with location IDs accompanied by their names
 string[] Function CreateStringArrayWithLocationIdentifiers(int page = 0)

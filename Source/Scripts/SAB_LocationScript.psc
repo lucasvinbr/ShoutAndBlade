@@ -775,6 +775,9 @@ Function AddExtraNearbyMarker(ObjectReference marker)
 
 	jArray.addForm(jExtraNearbyOutsideMarkersArr, marker)
 
+	SAB_LocationDataHandler locHandler = SAB_LocationDataHandler.GetFromJdb()
+	locHandler.WriteEditableLocMarkerDataToJmap(self, marker, "jExtraMarkersArr")
+
 EndFunction
 
 ; returns true if a marker was removed
@@ -790,6 +793,10 @@ bool function RemoveNearestExtraNearbyMarker(ObjectReference referencePos)
 
 	if nearestMarker != None
 		jArray.eraseForm(jExtraNearbyOutsideMarkersArr, nearestMarker)
+
+		SAB_LocationDataHandler locHandler = SAB_LocationDataHandler.GetFromJdb()
+		locHandler.RemoveEditableLocExtraMarkerFromJmap(self, nearestMarker)
+
 		nearestMarker.Delete()
 		return true
 	endif
@@ -817,6 +824,9 @@ function ClearExtraNearbyMarkersArr()
 	endwhile
 
 	jArray.clear(jExtraNearbyOutsideMarkersArr)
+
+	SAB_LocationDataHandler locHandler = SAB_LocationDataHandler.GetFromJdb()
+	locHandler.ClearEditableLocExtraMarkersArr(self)
 
 endfunction
 
@@ -863,42 +873,6 @@ function ClearInteriorCellsArr()
 endfunction
 
 
-bool function ApplyJObjectRepresentingMarkerPosition(ObjectReference marker, int jPosMap = -1)
-	if marker == None || jPosMap == -1 || jPosMap == 0
-		return false
-	endif
-
-	Cell parentCell = jMap.getForm(jPosMap, "ParentCell") as Cell
-	if parentCell == None
-		Debug.Trace("[SAB] got invalid parent cell for a marker of location " + GetLocName())
-		return false
-	endif
-
-	ObjectReference targetLocationRef = None
-	; find some ref in the target cell, so that we can move the marker to it
-	targetLocationRef = parentCell.GetNthRef(0)
-	
-	marker.MoveTo(targetLocationRef)
-	marker.SetPosition(jMap.getFlt(jPosMap, "PosX"), jMap.getFlt(jPosMap, "PosY"), jMap.getFlt(jPosMap, "PosZ"))
-
-	return true
-endfunction
-
-int function GetJObjectRepresentingMarkerPosition(ObjectReference marker)
-	if marker == None
-		return -1
-	endif
-
-	int jReturnedMap = jMap.object()
-
-	jMap.setForm(jReturnedMap, "ParentCell", marker.GetParentCell())
-	jMap.setFlt(jReturnedMap, "PosX", marker.GetPositionX())
-	jMap.setFlt(jReturnedMap, "PosY", marker.GetPositionY())
-	jMap.setFlt(jReturnedMap, "PosZ", marker.GetPositionZ())
-
-	return jReturnedMap
-endfunction
-
 ; makes sure the extra markers jArray is set up
 function GuardExtraMarkersArray()
 	if jExtraNearbyOutsideMarkersArr == -1 || jExtraNearbyOutsideMarkersArr == 0
@@ -913,6 +887,7 @@ function GuardExtraMarkersArray()
 
 			jArray.addForm(jExtraNearbyOutsideMarkersArr, ExtraIsNearbyOutsideMarkers[i])
 		EndWhile
+		
 	endif
 endfunction
 
@@ -987,31 +962,46 @@ bool Function IsPlaceholderLocation()
 	return ThisLocation.HasKeyword(locHandler.SAB_PlaceholderLocationKeyword)
 endfunction
 
-bool function IsMarkerInMarkerStorageCell(ObjectReference marker)
+bool function IsMarkerInMarkerStorageCell(ObjectReference marker, bool valueToReturnIfCellIsNone = true)
 	if marker != None
 		Cell markerCell = marker.GetParentCell()
 		if markerCell != None
 			SAB_LocationDataHandler locHandler = SAB_LocationDataHandler.GetFromJdb()
 			return markerCell == locHandler.MarkersHolderCell
 		endif
+		return valueToReturnIfCellIsNone
 	endif
 	
 	Debug.Trace("[SAB] ran IsMarkerInMarkerStorageCell with none marker")
-	return false
+	return valueToReturnIfCellIsNone
 endfunction
 
 ; this is true for any non-editable loc; for the editables, they must look like a valid loc:
-; no relevant markers in the placeholder location
+; no relevant markers in the placeholder location. (this isn't very trustworthy, as cell checks will return none if not on a loaded cell)
 bool function ShouldBeSaved()
 	if !isChangeable
 		return true
 	endif
 
 	; the loc can still "survive" without a valid distcalc... always better to set it though!
-	if IsMarkerInMarkerStorageCell(GetReference()) || IsMarkerInMarkerStorageCell(MoveDestination)
+	if IsMarkerInMarkerStorageCell(GetReference(), true) || IsMarkerInMarkerStorageCell(MoveDestination, true)
 		return false
 	endif
 
 	return true
 
+endfunction
+
+; true if this editable loc seems to have been tweaked by the player, and thus we should save its data when saving loc data
+bool function AppearsToHaveBeenEdited()
+	if !isChangeable
+		return false
+	endif
+
+	; I think this is the best sign that we were doing something with this loc
+	if GetLocName() != "zSAB placeholder location"
+		return true
+	elseif isCurrentlyEnabled
+		return true
+	endif
 endfunction

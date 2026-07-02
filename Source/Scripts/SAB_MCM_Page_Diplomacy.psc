@@ -429,6 +429,9 @@ state FAC_EDIT_LOAD
         string filePathFacLocks = JContainers.userDirectory() + "SAB/diplomacyData_factions_locks.json"
         string filePathPlayerDiploLocks = JContainers.userDirectory() + "SAB/diplomacyData_player_locks.json"
         MainPage.isLoadingData = true
+        ShowMessage("$sab_mcm_shared_popup_msg_load_started", false)
+        ;force a page reset to disable all action buttons!
+        ForcePageReset()
         int jReadData = JValue.readFromFile(filePath)
         int jReadDataPlayerDiplo = JValue.readFromFile(filePathPlayerDiplo)
         int jReadDataFacLocks = JValue.readFromFile(filePathFacLocks)
@@ -439,9 +442,6 @@ state FAC_EDIT_LOAD
         JValue.retain(jReadDataFacLocks, "ShoutAndBlade")
         JValue.retain(jReadDataPlayerDiploLocks, "ShoutAndBlade")
         if jReadData != 0 && jReadDataPlayerDiplo != 0
-            ShowMessage("$sab_mcm_shared_popup_msg_load_started", false)
-            ;force a page reset to disable all action buttons!
-            ForcePageReset()
             SAB_DiplomacyDataHandler DiplomacyHandler = MainPage.MainQuest.DiplomacyHandler
             DiplomacyHandler.jSABFactionRelationsMap = JValue.releaseAndRetain(DiplomacyHandler.jSABFactionRelationsMap, jReadData, "ShoutAndBlade")
             DiplomacyHandler.jSABPlayerRelationsMap = JValue.releaseAndRetain(DiplomacyHandler.jSABPlayerRelationsMap, jReadDataPlayerDiplo, "ShoutAndBlade")
