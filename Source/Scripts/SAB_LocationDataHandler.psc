@@ -395,18 +395,17 @@ Function CalculateLocationDistances()
     int j = 0
     int k = 0
     bool hasCreatedDistArrayEntry = false
+    ObjectReference baseRef = None
+    SAB_LocationScript locScript = None
 
-    int jlocationDistancesMap = jIntMap.object()
-    JValue.retain(jlocationDistancesMap, "ShoutAndBlade")
+    int jLocationPositionsArr = jArray.objectWithSize(NextEnabledLocationIndex)
+    JValue.retain(jLocationPositionsArr, "ShoutAndBlade")
 
-    ; fill the distances map with distances between each location
+    ; fill the positions arr with the position of each location's distance check ref
     while i < NextEnabledLocationIndex
-        
-        ; debug.Trace(EnabledLocations[i])
-        SAB_LocationScript locScript = EnabledLocations.GetUpdatedAliasAtIndex(i) as SAB_LocationScript
+        locScript = EnabledLocations.GetUpdatedAliasAtIndex(i) as SAB_LocationScript
         if locScript != None
-            ObjectReference baseRef = locScript.GetReference()
-            ; debug.Trace(baseRef)
+            baseRef = locScript.GetReference()
     
             while !baseRef
                 ; during the new game initialization, some aliases may take longer to be properly filled
@@ -414,87 +413,125 @@ Function CalculateLocationDistances()
                 baseRef = locScript.GetReference()
                 ; debug.Trace(baseRef)
             endwhile
-            
+
             baseRef = locScript.GetDistanceCheckReference()
-    
-            int jDistMapsFromI = jIntMap.object()
-            JIntMap.setObj(jlocationDistancesMap, i, jDistMapsFromI)
-    
-            ; also prepare the "top 3 closest to cur loc" jArray
-            int jDistancesArray = jArray.object()
-            JValue.retain(jDistancesArray, "ShoutAndBlade")
-    
-            int jClosestIndexesArray = jArray.object()
-            JValue.retain(jClosestIndexesArray, "ShoutAndBlade")
-            
-            j = 0
-            while j < NextEnabledLocationIndex
-                if i != j
-                    ; check if we haven't already checked the distance between j and i
-                    int jDistMapsFromJ = JIntMap.getObj(jlocationDistancesMap, j)
-                    float distance = 0.0
-    
-                    if jDistMapsFromJ != 0
-                        distance = JIntMap.getFlt(jDistMapsFromJ, i)
-                    endif
-    
-                    if distance == 0.0
-                        SAB_LocationScript otherLocScript = EnabledLocations.GetUpdatedAliasAtIndex(j) as SAB_LocationScript
-                        if otherLocScript != None
-                            distance = baseRef.GetDistance(otherLocScript.GetDistanceCheckReference())
-                        endif
-                    endif
-    
-                    if distance != 0.0
-                        ; add distance and loc index to the sorted distances arrays
-                        hasCreatedDistArrayEntry = false
-                        k = jValue.count(jDistancesArray) - 1
-                        while k >= 0
-                            ; keep going until we find a stored distance that is smaller.
-                            ; if we find it, store the new distance right after it
-                            if jArray.getFlt(jDistancesArray, k) < distance
-                                JArray.addFlt(jDistancesArray, distance, k + 1)
-                                JArray.addInt(jClosestIndexesArray, j, k + 1)
-                                hasCreatedDistArrayEntry = true
-                                ; break
-                                k = -1
-                            endif
-                            k -= 1
-                        endwhile
+            ; use an array, because, according to the jcontainers wiki, it's faster than a map,
+            ; and we know which value goes where
+            int jPosInfoArr = jArray.objectWithSize(2)
+            jArray.setFlt(jPosInfoArr, 0, baseRef.GetPositionX())
+            jArray.setFlt(jPosInfoArr, 1, baseRef.GetPositionY())
 
-                        ; if we couldn't find a smaller distance than the new one, it's the new smallest one!
-                        if !hasCreatedDistArrayEntry
-                            JArray.addFlt(jDistancesArray, distance, 0)
-                            JArray.addInt(jClosestIndexesArray, j, 0)
-                        endif
-
-
-                        JIntMap.setFlt(jDistMapsFromI, j, distance)
-                    endif
-                    
-                endif
-                j += 1
-                ;Utility.Wait(0.1)
-            endwhile
-    
-            ; store the (limited to 3 elements) closest locations array in the location script
-            int jTopClosestLocationsArray = jArray.subArray(jClosestIndexesArray, 0, 3)
-            jValue.retain(jTopClosestLocationsArray, "ShoutAndBlade")
-            locScript.jNearbyLocationsArray = jTopClosestLocationsArray
-    
-            jValue.release(jDistancesArray)
-            jValue.zeroLifetime(jDistancesArray)
-    
-            jValue.release(jClosestIndexesArray)
-            jValue.zeroLifetime(jClosestIndexesArray)
+            jArray.setObj(jLocationPositionsArr, i, jPosInfoArr)
         endif
+
+        i += 1
+    endwhile
+
+    int jlocationDistancesArr = jArray.objectWithSize(NextEnabledLocationIndex)
+    JValue.retain(jlocationDistancesArr, "ShoutAndBlade")
+
+    int jThisLocPosArr = 0
+    int jThatLocPosArr = 0
+    int jDistancesFromThisLoc = 0
+    int jDistancesFromJ = 0
+
+    int jBestDistancesArray = 0
+    int jClosestIndexesArray = 0
+
+    float locsDist = 0.0
+
+    ; fill the distances map with distances between each location
+    i = 0
+    while i < NextEnabledLocationIndex
         
+        ; debug.Trace(EnabledLocations[i])
+        locScript = EnabledLocations.GetUpdatedAliasAtIndex(i) as SAB_LocationScript
+        if locScript != None
+            jThisLocPosArr = jArray.getObj(jLocationPositionsArr, i)
+
+            if jThisLocPosArr != 0
+                jDistancesFromThisLoc = jArray.objectWithSize(NextEnabledLocationIndex)
+                jArray.setObj(jlocationDistancesArr, i, jDistancesFromThisLoc)
+
+                ; also prepare the "top 3 closest to cur loc" jArrays
+                jBestDistancesArray = jArray.object()
+                JValue.retain(jBestDistancesArray, "ShoutAndBlade")
+        
+                jClosestIndexesArray = jArray.object()
+                JValue.retain(jClosestIndexesArray, "ShoutAndBlade")
+
+                j = 0
+                while j < NextEnabledLocationIndex
+                    if i != j
+                        ; check if we haven't already checked the distance between j and i
+                        jDistancesFromJ = jArray.getObj(jlocationDistancesArr, j)
+                        locsDist = 0.0
+        
+                        if jDistancesFromJ != 0
+                            locsDist = jArray.getFlt(jDistancesFromJ, i)
+                        endif
+        
+                        if locsDist == 0.0
+                            ; calc distance between loc positions...
+                            ; we'll try to use a (probably) cheap x dist + y dist check
+                            jThatLocPosArr = jArray.getObj(jLocationPositionsArr, j)
+                            if jThatLocPosArr != 0
+                                locsDist = Math.abs(jArray.getFlt(jThisLocPosArr, 0) - jArray.getFlt(jThatLocPosArr, 0)) + Math.abs(jArray.getFlt(jThisLocPosArr, 1) - jArray.getFlt(jThatLocPosArr, 1))
+                            endif
+                        endif
+        
+                        if locsDist != 0.0
+                            ; add distance and loc index to the sorted distances arrays
+                            hasCreatedDistArrayEntry = false
+                            k = jValue.count(jBestDistancesArray) - 1
+                            while k >= 0
+                                ; keep going until we find a stored distance that is smaller.
+                                ; if we find it, store the new distance right after it
+                                if jArray.getFlt(jBestDistancesArray, k) < locsDist
+                                    JArray.addFlt(jBestDistancesArray, locsDist, k + 1)
+                                    JArray.addInt(jClosestIndexesArray, j, k + 1)
+                                    hasCreatedDistArrayEntry = true
+                                    ; break
+                                    k = -1
+                                endif
+                                k -= 1
+                            endwhile
+
+                            ; if we couldn't find a smaller distance than the new one, it's the new smallest one!
+                            if !hasCreatedDistArrayEntry
+                                JArray.addFlt(jBestDistancesArray, locsDist, 0)
+                                JArray.addInt(jClosestIndexesArray, j, 0)
+                            endif
+
+
+                            jArray.setFlt(jDistancesFromThisLoc, j, locsDist)
+                        endif
+                        
+                    endif
+                    j += 1
+                    ;Utility.Wait(0.1)
+                endwhile
+
+                ; store the (limited to 3 elements) closest locations array in the location script
+                locScript.jNearbyLocationsArray = jValue.releaseAndRetain(locScript.jNearbyLocationsArray, jArray.subArray(jClosestIndexesArray, 0, 3), "ShoutAndBlade")
+        
+                jValue.release(jBestDistancesArray)
+                jValue.zeroLifetime(jBestDistancesArray)
+        
+                jValue.release(jClosestIndexesArray)
+                jValue.zeroLifetime(jClosestIndexesArray)
+            endif
+        
+        endif
         i += 1
         ;Utility.Wait(0.1)
     endwhile
 
-    jValue.release(jlocationDistancesMap)
-    jValue.zeroLifetime(jlocationDistancesMap)
+    jValue.release(jlocationDistancesArr)
+    jValue.zeroLifetime(jlocationDistancesArr)
+
+    jValue.release(jLocationPositionsArr)
+    jValue.zeroLifetime(jLocationPositionsArr)
 
     Debug.Trace("[SAB] recalculate location distances - end")
     debug.Notification("[SAB] recalculate location distances - end")

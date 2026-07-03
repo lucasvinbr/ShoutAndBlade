@@ -32,7 +32,7 @@ bool function ApplyJObjectRepresentingMarkerPosition(ObjectReference marker, int
 
 	Cell parentCell = parentCellForm as Cell
 	if parentCell == None
-		Debug.Trace("[SAB] got invalid parent cell for ApplyJObjectRepresentingMarkerPosition")
+		; Debug.Trace("[SAB] got invalid parent cell for ApplyJObjectRepresentingMarkerPosition")
         ; try the worldspace path!
         ; find a way to place the marker in the worldspace, then set its position
         Worldspace markerWorld = worldForm as Worldspace

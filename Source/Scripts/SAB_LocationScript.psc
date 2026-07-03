@@ -721,6 +721,8 @@ ObjectReference Function GetDistanceCheckReference()
 	else
 		return GetReference()
 	endif
+
+	return None
 EndFunction
 
 
