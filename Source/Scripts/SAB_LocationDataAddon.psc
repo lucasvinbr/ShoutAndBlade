@@ -45,21 +45,11 @@ event OnInit()
         Utility.Wait(1.0)
     endwhile
 
-    InitializeLocations()
+    ; InitializeLocations()
 
     LocationHandlerScript.AddNewLocationsFromAddon(self, indexInRegisteredAddons)
 
 endevent
-
-Function ReaddLocations()
-    while !LocationHandlerScript.IsDoneSettingUp()
-        Utility.Wait(1.0)
-    endwhile
-
-    InitializeLocations()
-
-    LocationHandlerScript.AddNewLocationsFromAddon(self, indexInRegisteredAddons)
-EndFunction
 
 Function SetIndexInRegisteredAddons(int indexInRegAddons)
     indexInRegisteredAddons = indexInRegAddons

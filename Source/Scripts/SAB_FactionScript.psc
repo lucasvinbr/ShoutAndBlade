@@ -836,6 +836,7 @@ EndFunction
 ReferenceAlias Function SpawnUnitForTroopContainer(SAB_TroopContainerScript troopContainer, int unitIndex, ObjectReference spawnLocation, ObjectReference moveDestAfterSpawn, float containerSetupTime, int cmderFollowRank = -1, bool moveNow = true)
 	
 	if moveDestAfterSpawn == None
+		debug.Trace("[SAB] spawn unit for container: moveDestAfterSpawn is none")
 		return None
 	endif
 
@@ -925,6 +926,7 @@ EndFunction
 
 Function DeployPendingUnits(ObjectReference spawnPoint, bool setAlert)
 	if spawnPoint == None
+		debug.Trace("[SAB] DeployPendingUnits: spawnPoint is none")
 		return
 	endif
 

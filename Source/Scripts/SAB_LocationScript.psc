@@ -1006,4 +1006,6 @@ bool function AppearsToHaveBeenEdited()
 	elseif isCurrentlyEnabled
 		return true
 	endif
+
+	return false
 endfunction

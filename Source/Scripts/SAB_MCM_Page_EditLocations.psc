@@ -288,19 +288,16 @@ Function SetupPage()
     AddTextOptionST("LOC_EDIT_LOAD", "$sab_mcm_locationedit_button_load", "")
 
     AddEmptyOption()
-
-    ; for debug/ bugfixing purposes only. Doesn't recognize new locs in already registered addons
-    ; AddTextOptionST("LOC_RELOAD_ADDONS", "$sab_mcm_locationedit_button_reload_addons", "")
-
     AddEmptyOption()
 
     int jNearbyLocsArray = editedLocationScript.jNearbyLocationsArray
     int i = jArray.count(jNearbyLocsArray)
+    int locIndex = 0
 
     While i > 0
         i -= 1
 
-        int locIndex = jArray.getInt(jNearbyLocsArray, i, -1)
+        locIndex = jArray.getInt(jNearbyLocsArray, i, -1)
             
         if locIndex >= 0
             SAB_LocationScript locScript = locHandler.GetEnabledLocationByIndex(locIndex)
@@ -312,6 +309,18 @@ Function SetupPage()
     EndWhile
 
     AddTextOptionST("LOC_RECALC_NEARBY", "$sab_mcm_locationedit_recalculate_nearbyloc", "")
+
+    AddEmptyOption()
+    AddEmptyOption()
+
+    locIndex = editedLocationScript.indexInUpdater
+    AddTextOptionST("LOC_EDIT_NOOP___sab_mcm_locationedit_text_locindex_updater_desc", "$sab_mcm_locationedit_text_locindex_updater", locIndex)
+
+    locIndex = editedLocationScript.indexInCloseByUpdater
+    AddTextOptionST("LOC_EDIT_NOOP___sab_mcm_locationedit_text_locindex_nearbies_updater_desc", "$sab_mcm_locationedit_text_locindex_nearbies_updater", locIndex)
+
+    AddTextOptionST("LOC_EDIT_NOOP___sab_mcm_locationedit_text_loc_currently_enabled_desc", "$sab_mcm_locationedit_text_loc_currently_enabled", editedLocationScript.isCurrentlyEnabled)
+    AddTextOptionST("LOC_EDIT_NOOP___sab_mcm_locationedit_text_loc_currently_nearby_desc", "$sab_mcm_locationedit_text_loc_currently_nearby", editedLocationScript.isNearby)
     
 EndFunction
 
@@ -1059,14 +1068,9 @@ endstate
 state LOC_EDIT_SAVE
     event OnSelectST(string state_id)
         string filePath = JContainers.userDirectory() + "SAB/locationData.json"
-        if saveOwnerships
-            MainPage.MainQuest.LocationDataHandler.WriteCurrentLocOwnershipsToJmap()
-        endif
-        MainPage.MainQuest.LocationDataHandler.WriteCurrentLocNamesToJmap()
-        MainPage.MainQuest.LocationDataHandler.WriteCurrentLocStartGarrsToJmap()
-        MainPage.MainQuest.LocationDataHandler.WriteEditableLocDatasToJmap()
+        MainPage.MainQuest.LocationDataHandler.WriteLocDatasToJmap(saveOwnerships, false)
         JValue.writeToFile(MainPage.MainQuest.LocationDataHandler.jLocationsConfigMap, filePath)
-        ShowMessage("Save: " + filePath, false)
+        ShowMessage("Saved: " + filePath, false)
 	endEvent
 
     event OnDefaultST(string state_id)
@@ -1082,14 +1086,9 @@ endstate
 state LOC_EDIT_SAVE_WITH_GARR
     event OnSelectST(string state_id)
         string filePath = JContainers.userDirectory() + "SAB/locationData.json"
-        if saveOwnerships
-            MainPage.MainQuest.LocationDataHandler.WriteCurrentLocOwnershipsToJmap()
-        endif
-        MainPage.MainQuest.LocationDataHandler.WriteCurrentLocNamesToJmap()
-        MainPage.MainQuest.LocationDataHandler.WriteCurrentLocGarrsToStartGarrsJmap()
-        MainPage.MainQuest.LocationDataHandler.WriteEditableLocDatasToJmap()
+        MainPage.MainQuest.LocationDataHandler.WriteLocDatasToJmap(saveOwnerships, true)
         JValue.writeToFile(MainPage.MainQuest.LocationDataHandler.jLocationsConfigMap, filePath)
-        ShowMessage("Save: " + filePath, false)
+        ShowMessage("Saved: " + filePath, false)
 	endEvent
 
     event OnDefaultST(string state_id)
@@ -1131,29 +1130,5 @@ state LOC_EDIT_LOAD
 	event OnHighlightST(string state_id)
         MainPage.ToggleQuickHotkey(true)
 		SetInfoText("$sab_mcm_factionedit_button_load_desc")
-	endEvent
-endstate
-
-
-state LOC_RELOAD_ADDONS
-    event OnSelectST(string state_id)
-        if MainPage.MainQuest.LocationDataHandler.GetIsBusyEditingLocData()
-            ShowMessage("$sab_mcm_locationedit_popup_cannot_reload_addons_busy", false)
-        else
-            ShowMessage("$sab_mcm_locationedit_popup_reload_addons_started", false)
-            MainPage.MainQuest.LocationDataHandler.ReaddLocationsFromAddons()
-            ShowMessage("$sab_mcm_locationedit_popup_reload_addons_done", false)
-            Debug.Trace("SAB: rebuild locations done!")
-            Debug.Notification("SAB: rebuild locations done!")
-        endif
-	endEvent
-
-    event OnDefaultST(string state_id)
-        ; nothing
-    endevent
-
-	event OnHighlightST(string state_id)
-        MainPage.ToggleQuickHotkey(true)
-		SetInfoText("$sab_mcm_locationedit_button_reload_addons_desc")
 	endEvent
 endstate

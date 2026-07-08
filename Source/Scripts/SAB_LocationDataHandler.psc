@@ -62,6 +62,8 @@ Function Initialize()
     JDB.solveFormSetter(".ShoutAndBlade_global.locDataHandler", self, true)
 
     initialSetupDone = true
+
+    CalculateLocationDistances()
 EndFunction
 
 SAB_LocationDataHandler function GetFromJdb() global
@@ -73,15 +75,10 @@ bool Function IsDoneSettingUp()
 EndFunction
 
 
-event OnInit()
-    CalculateLocationDistances()
-endevent
-
-
 Function AddNewLocationsFromAddon(SAB_LocationDataAddon addon, int addonIndex)
 
     if addonIndex < 0
-        ; register addon in an array, so that we can call for a re-add of locations
+        ; register addon in an array
         int indexForAddon = GetNextIndexForLocationAddon()
 
         jArray.setForm(jregisteredAddonsArray, indexForAddon, addon)
@@ -91,7 +88,7 @@ Function AddNewLocationsFromAddon(SAB_LocationDataAddon addon, int addonIndex)
 
     while isBusyAddingNewLocsToBaseArray
         Debug.Trace("[SAB]  queued new addon location registration is waiting")
-        Utility.Wait(0.1)
+        Utility.Wait(1.5)
     endwhile
 
     isBusyAddingNewLocsToBaseArray = true
@@ -99,10 +96,11 @@ Function AddNewLocationsFromAddon(SAB_LocationDataAddon addon, int addonIndex)
     SAB_LocationScript[] newLocations = addon.NewLocations
     int i = 0
     bool hasMadeChanges = false
+    SAB_LocationScript newLoc = None
 
     ; set up locations
     while i != -1 && i < newLocations.Length
-        SAB_LocationScript newLoc = newLocations[i]
+        newLoc = newLocations[i]
         if newLoc != None
             If GetLocationIndexById(newLoc.GetLocId()) == -1
                 int locIndex = Locations.RegisterAliasForUpdates(newLoc)
@@ -121,6 +119,8 @@ Function AddNewLocationsFromAddon(SAB_LocationDataAddon addon, int addonIndex)
             EndIf
 
             i += 1
+        else
+            debug.Trace("SAB: addon " + addon + " has a none loc script in its list?!")
         endif
     endwhile
     
@@ -133,35 +133,6 @@ Function AddNewLocationsFromAddon(SAB_LocationDataAddon addon, int addonIndex)
         RebuildSortedLocNamesArrays()
     EndIf
     
-EndFunction
-
-Function ReaddLocationsFromAddons()
-
-    if isReaddingAllLocations
-        return
-    endif
-
-    isReaddingAllLocations = true
-
-    Locations.UnregisterAllAliases()
-    EnabledLocations.UnregisterAllAliases()
-
-    int topIndex = GetNextIndexForLocationAddon()
-    int i = 0
-
-    while i < topIndex
-        SAB_LocationDataAddon addonScript = jArray.getForm(jregisteredAddonsArray, i) as SAB_LocationDataAddon
-        if addonScript != None
-            Debug.Trace("[SAB] addon reload: readd " + addonScript)
-            addonScript.ReaddLocations()
-        else
-            Debug.Trace("[SAB] addon reload: could not load addon quest form")
-        endif
-
-        i += 1
-    endwhile
-
-    isReaddingAllLocations = false
 EndFunction
 
 ; enables or disables the target location
@@ -707,30 +678,8 @@ Function UpdateLocationsAccordingToJMap()
 EndFunction
 
 
-Function WriteCurrentLocOwnershipsToJmap()
-    
-    int i = 0
+function WriteLocDatasToJmap(bool writeOwnerships, bool writeCurrGarrsInsteadOfStarting)
 
-    while i < NextLocationIndex
-        SAB_LocationScript locScript = Locations.GetUpdatedAliasAtIndex(i) as SAB_LocationScript
-        if locScript != None && (!locScript.isChangeable || locScript.AppearsToHaveBeenEdited())
-            int jLocDataMap = JMap.getObj(jLocationsConfigMap, locScript.GetLocId())
-
-            if jLocDataMap == 0
-                jLocDataMap = jMap.object()
-                jMap.setObj(jLocationsConfigMap, locScript.GetLocId(), jLocDataMap)
-            endif
-    
-            jMap.setInt(jLocDataMap, "OwnerFactionIndex", FactionDataHandler.GetFactionIndex(locScript.factionScript))
-        endif
-
-        i += 1
-    endwhile
-
-EndFunction
-
-Function WriteCurrentLocNamesToJmap()
-    
     int i = 0
 
     while i < NextLocationIndex
@@ -744,91 +693,34 @@ Function WriteCurrentLocNamesToJmap()
             endif
     
             jMap.setStr(jLocDataMap, "OverrideDisplayName", locScript.GetLocName())
-        endif
-        
-        i += 1
-    endwhile
 
-EndFunction
-
-Function WriteCurrentLocStartGarrsToJmap()
-    
-    int i = 0
-
-    while i < NextLocationIndex
-        SAB_LocationScript locScript = Locations.GetUpdatedAliasAtIndex(i) as SAB_LocationScript
-        if locScript != None && (!locScript.isChangeable || locScript.AppearsToHaveBeenEdited())
-            int jLocDataMap = JMap.getObj(jLocationsConfigMap, locScript.GetLocId())
-
-            if jLocDataMap == 0
-                jLocDataMap = jMap.object()
-                jMap.setObj(jLocationsConfigMap, locScript.GetLocId(), jLocDataMap)
+            if writeOwnerships
+                jMap.setInt(jLocDataMap, "OwnerFactionIndex", FactionDataHandler.GetFactionIndex(locScript.factionScript))
             endif
-    
-            jMap.setObj(jLocDataMap, "jStartingGarrison", locScript.jStartingUnitsMap)
-        endif
-        
-
-        i += 1
-    endwhile
-
-EndFunction
-
-Function WriteCurrentLocGarrsToStartGarrsJmap()
-    
-    int i = 0
-
-    while i < NextLocationIndex
-        SAB_LocationScript locScript = Locations.GetUpdatedAliasAtIndex(i) as SAB_LocationScript
-        if locScript != None && (!locScript.isChangeable || locScript.AppearsToHaveBeenEdited())
-            int jLocDataMap = JMap.getObj(jLocationsConfigMap, locScript.GetLocId())
-
-            if jLocDataMap == 0
-                jLocDataMap = jMap.object()
-                jMap.setObj(jLocationsConfigMap, locScript.GetLocId(), jLocDataMap)
+            
+            if writeCurrGarrsInsteadOfStarting
+                jMap.setObj(jLocDataMap, "jStartingGarrison", locScript.jOwnedUnitsMap)
+            else
+                jMap.setObj(jLocDataMap, "jStartingGarrison", locScript.jStartingUnitsMap)
             endif
-    
-            jMap.setObj(jLocDataMap, "jStartingGarrison", locScript.jOwnedUnitsMap)
-        endif
-        
 
-        i += 1
-    endwhile
+            if locScript.isChangeable
+                jMap.setInt(jLocDataMap, "isEditable", 1)
 
-EndFunction
+                ; marker-related stuff are written at the time of addition/removal,
+                ; as getting the cell of a marker when we're not in that cell can return none
 
-; writes data related to editable locs: marker positions, the "is editable" flag (which should be always on) etc
-Function WriteEditableLocDatasToJmap()
-    
-    int i = 0
-
-    while i < NextLocationIndex
-        SAB_LocationScript locScript = Locations.GetUpdatedAliasAtIndex(i) as SAB_LocationScript
-        if locScript != None && locScript.isChangeable && locScript.AppearsToHaveBeenEdited()
-            int jLocDataMap = JMap.getObj(jLocationsConfigMap, locScript.GetLocId())
-
-            if jLocDataMap == 0
-                jLocDataMap = jMap.object()
-                jMap.setObj(jLocationsConfigMap, locScript.GetLocId(), jLocDataMap)
+                ; interior cells
+                locScript.GuardInteriorCellsJArray()
+                jMap.setObj(jLocDataMap, "jInteriorCellsArr", locScript.jInteriorCellsArr)
             endif
-    
-            jMap.setInt(jLocDataMap, "isEditable", 1)
-
-            ; marker-related stuff are written at the time of addition/removal,
-            ; as getting the cell of a marker when we're not in that cell can return none
-
-            ; interior cells
-            locScript.GuardInteriorCellsJArray()
-            jMap.setObj(jLocDataMap, "jInteriorCellsArr", locScript.jInteriorCellsArr)
 
         endif
-        
 
         i += 1
     endwhile
 
-EndFunction
-
+endfunction
 
 Function WriteEditableLocMarkerDataToJmap(SAB_LocationScript locScript, ObjectReference marker, string jDataMapName)
     if !locScript.isChangeable
