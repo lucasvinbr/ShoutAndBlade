@@ -523,6 +523,7 @@ state LOC_EDIT_LOC_DISPLAYNAME
         MainPage.MainQuest.LocationDataHandler.RebuildSortedLocNamesArrays()
 
         ;force a reset to update other fields that use the name
+        lockSelectedLoc = true
         ForcePageReset()
 	endEvent
 

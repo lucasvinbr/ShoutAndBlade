@@ -79,8 +79,8 @@ function RunUpdate(float curGameTime = 0.0, int updateIndexToUse = 0)
 
 		if aliasToUpdate != None
 			hasUpdatedAnElement = aliasToUpdate.RunUpdate(curGameTime, updateIndexToUse)
-		else
-			debug.Trace(GetName() + " - tried to update alias with index " + updatedAliasIndex + " but it was None")
+		; else
+			; debug.Trace(GetName() + " - tried to update alias with index " + updatedAliasIndex + " but it was None")
 		endif
 		; if hasUpdatedAnElement
 		; 	debug.Trace(GetName() + " - updated alias with index " + updatedAliasIndex)

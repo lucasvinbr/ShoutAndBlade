@@ -837,6 +837,8 @@ string[] Function CreateStringArrayWithLocationIdentifiers(int page = 0)
         endingIndex = (page + 1) * 128
     endif
 
+    ; Debug.Trace("[SAB] get locs name from " + startingIndex + " to " + endingIndex)
+
     while i < endingIndex
         int jlocEntryMap = jArray.getObj(jLocationsSortedByNameArr, i)
         if jlocEntryMap != 0
@@ -859,11 +861,11 @@ string[] Function CreateStringArrayWithLocationIdentifiers(int page = 0)
     ; create actual string array with the jarray's size
     ; fill string array with jarray's contents
     ; return string array
+    ; Debug.Trace("[SAB] create locs string array with " + jArray.count(jStringsArr) + " entries")
     string[] namesArray = Utility.CreateStringArray(jArray.count(jStringsArr))
 
     i = startingIndex
     int i_clamped
-    endingIndex = jArray.count(jStringsArr)
 
     while(i < endingIndex)
         i_clamped = i % 128
@@ -910,7 +912,6 @@ string[] Function CreateStringArrayWithEnabledLocationIdentifiers(int page = 0)
 
     i = startingIndex
     int i_clamped
-    endingIndex = jArray.count(jStringsArr)
 
     while(i < endingIndex)
         i_clamped = i % 128
