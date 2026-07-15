@@ -1008,6 +1008,12 @@ SAB_LocationScript function GetLocationByIndexInSortedNamesArr(int index)
     return GetLocationByIndex(jMap.getInt(jlocNameEntry, "locIndex", -1))
 endfunction
 
+SAB_LocationScript function GetLocationByPagedIndexInSortedNamesArr(int index, int page = 0)
+    index = index + (page * 128)
+    
+    return GetLocationByIndexInSortedNamesArr(index)
+endfunction
+
 SAB_LocationScript function GetEnabledLocationByIndexInSortedNamesArr(int index)
     int jlocNameEntry = jArray.getObj(jEnabledLocationsSortedByNameArr, index)
     if jlocNameEntry == 0

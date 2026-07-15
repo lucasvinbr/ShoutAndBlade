@@ -11,7 +11,6 @@ int jLocationsDataMap
 int unitToAddToStartingGarr = 0
 SAB_LocationScript editedLocationScript
 
-bool lockSelectedLoc = false
 bool saveOwnerships = false
 
 string[] leftSideMenuOptions
@@ -91,14 +90,9 @@ Function SetupPage()
         editedLocationIndex = 0
     endif
 
-    if !lockSelectedLoc
-        editedLocationScript = locHandler.GetLocationByIndexInSortedNamesArr(editedLocationIndex + 128 * editedLocationPage)
-    endif
-
-    lockSelectedLoc = false
-
     if editedLocationScript == None
         ; we've got to find a fallback!
+        editedLocationIndex = 0
         editedLocationScript = locHandler.GetLocationByIndex(0)
 
         if editedLocationScript == None
@@ -387,12 +381,14 @@ state LOC_EDIT_CUR_LOC
 	event OnMenuAcceptST(string state_id, int index)
 		editedLocationIndex = index
 		SetMenuOptionValueST(editedLocationIndex)
+        editedLocationScript = MainPage.MainQuest.LocationDataHandler.GetLocationByPagedIndexInSortedNamesArr(editedLocationIndex, editedLocationPage)
         ForcePageReset()
 	endEvent
 
 	event OnDefaultST(string state_id)
 		editedLocationIndex = 0
 		SetMenuOptionValueST(editedLocationIndex)
+        editedLocationScript = MainPage.MainQuest.LocationDataHandler.GetLocationByPagedIndexInSortedNamesArr(editedLocationIndex, editedLocationPage)
         ForcePageReset()
 	endEvent
 
@@ -523,7 +519,6 @@ state LOC_EDIT_LOC_DISPLAYNAME
         MainPage.MainQuest.LocationDataHandler.RebuildSortedLocNamesArrays()
 
         ;force a reset to update other fields that use the name
-        lockSelectedLoc = true
         ForcePageReset()
 	endEvent
 
@@ -544,7 +539,6 @@ state LOC_EDIT_LOC_DISPLAYNAME
         MainPage.MainQuest.LocationDataHandler.RebuildSortedLocNamesArrays()
 
         ;force a reset to update other fields that use the name
-        lockSelectedLoc = true
         ForcePageReset()
 	endEvent
 
@@ -890,7 +884,6 @@ state LOC_EDIT_CUSTOM_SET_LOC
             Debug.Notification("SAB: custom loc change complete!")
             MainPage.isLoadingData = false
 
-            lockSelectedLoc = true
             ForcePageReset()
 
         endif
@@ -935,8 +928,6 @@ state LOC_EDIT_CUSTOM_SET_MARKER
 
         marker.MoveTo(Game.GetPlayer())
         MainPage.MainQuest.LocationDataHandler.WriteEditableLocMarkerDataToJmap(editedLocationScript, marker, markerJDataName)
-
-        lockSelectedLoc = true
         
         ForcePageReset()
 	endEvent
@@ -973,8 +964,6 @@ state LOC_EDIT_CUSTOM_EXTRA_NEARMARKER
                 editedLocationScript.ClearExtraNearbyMarkersArr()
             endif
         endif
-
-        lockSelectedLoc = true
         
         ForcePageReset()
 	endEvent
@@ -1024,8 +1013,6 @@ state LOC_EDIT_CUSTOM_INTERIORCELL
                 editedLocationScript.ClearInteriorCellsArr()
             endif
         endif
-
-        lockSelectedLoc = true
         
         ForcePageReset()
 	endEvent

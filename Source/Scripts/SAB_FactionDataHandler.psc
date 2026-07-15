@@ -137,6 +137,8 @@ EndFunction
 
 ; for each faction, attempts to set up their quest using the data stored in jSABUnitDatasArray
 Function UpdateAllFactionQuestsAccordingToJMap()
+    Debug.Trace("SAB: update all factions - start")
+    Debug.Notification("SAB: update all factions - start")
     int i = jArray.count(jSABFactionDatasArray)
 
     While (i > 0)
@@ -170,7 +172,8 @@ Function UpdateAllFactionQuestsAccordingToJMap()
         endif
         
     EndWhile
-    
+    Debug.Trace("SAB: update all factions - done!")
+    Debug.Notification("SAB: update all factions - done!")
     ; SetupRaceGendersLvlActorAccordingToUnitData(jTestGuyData, SAB_UnitLooks_TestGuy)
     ; SetupGearListAccordingToUnitData(jTestGuyData, SAB_UnitGear_TestGuy)
 EndFunction

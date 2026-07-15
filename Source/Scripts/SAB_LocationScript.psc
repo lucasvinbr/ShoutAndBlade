@@ -542,7 +542,7 @@ bool Function IsRefInThisLocationsInteriors(ObjectReference ref)
 
 	Cell refCell = ref.GetParentCell()
 
-	if refCell == None
+	if refCell == None || !refCell.IsInterior()
 		return false
 	endif
 
@@ -571,7 +571,7 @@ bool Function CanAutocalcNow()
 	return !isNearby
 EndFunction
 
-; checks if the target reference is outisde but close enough.
+; checks if the target reference is outside but close enough.
 ; Does the actual checks! no caching
 bool Function IsRefNearbyOutside(ObjectReference targetRef, float nearbyDistance = 8100.0)
 	float distToRef = targetRef.GetDistance(GetReference())
@@ -698,13 +698,13 @@ ObjectReference Function GetMoveDestAfterSpawnForUnit()
 		if InternalSpawnPoints.Length > 0
 			return InternalSpawnPoints[Utility.RandomInt(0, InternalSpawnPoints.Length - 1)]
 		else
-			return Game.FindRandomReferenceOfAnyTypeInListFromRef(SAB_ObjectsToUseAsSpawnsList, playerActor, 1500)
+			return Game.FindRandomReferenceOfAnyTypeInListFromRef(SAB_ObjectsToUseAsSpawnsList, playerActor, 2500)
 		endif
 	else
 		if ExternalSpawnPoints.Length > 0
 			return ExternalSpawnPoints[Utility.RandomInt(0, ExternalSpawnPoints.Length - 1)]
 		else 
-			return Game.FindRandomReferenceOfAnyTypeInListFromRef(SAB_ObjectsToUseAsSpawnsList, GetClosestOutsideSpawnMarkerFromRef(playerActor), 4000)
+			return Game.FindRandomReferenceOfAnyTypeInListFromRef(SAB_ObjectsToUseAsSpawnsList, GetClosestOutsideSpawnMarkerFromRef(playerActor), 7000)
 		endif
 	endif
 EndFunction

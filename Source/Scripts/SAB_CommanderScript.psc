@@ -392,12 +392,12 @@ ObjectReference Function GetMoveDestAfterSpawnForUnit()
 		; attackers besieging a location shouldn't be allowed to spawn everywhere. 
 		; defenders are fine, I think
 		if TargetLocationScript != None
-			ObjectReference unitSpawn = factionScript.UnitSpawnPoint.GetReference()
-			if unitSpawn.GetDistance(meActor) > 1400.0
-				unitSpawn.MoveTo(meActor)
-			endif
 			SAB_DiplomacyDataHandler diploHandler = factionScript.DiplomacyDataHandler
 			if !diploHandler.AreFactionsAllied(factionScript.GetFactionIndex(), TargetLocationScript.GetOwnerFactionIndex())
+				ObjectReference unitSpawn = factionScript.UnitSpawnPoint.GetReference()
+				if unitSpawn.GetDistance(meActor) > 1400.0
+					unitSpawn.MoveTo(meActor)
+				endif
 				moveDestAfterSpawn = unitSpawn
 			endif
 		endif
@@ -561,9 +561,11 @@ Event OnCombatStateChanged(Actor akTarget, int aeCombatState)
 			unitSpawn.MoveTo(meActor)
 		endif
 
-		float playerDistance = playerActor.GetDistance(meActor)
-		if playerDistance && playerDistance <= GetIsNearbyDistance()
-			ToggleNearbyUpdates(true)
+		if !isNearby
+			float playerDistance = playerActor.GetDistance(meActor)
+			if playerDistance && playerDistance <= GetIsNearbyDistance()
+				ToggleNearbyUpdates(true)
+			endif
 		endif
 	endif
 EndEvent
@@ -586,10 +588,12 @@ Function OwnedUnitHasDied(int unitIndex, float timeOwnerWasSetup)
 	parent.OwnedUnitHasDied(unitIndex, timeOwnerWasSetup)
 
 	if IsValid()
-		float playerDistance = playerActor.GetDistance(meActor)
-		if playerDistance && playerDistance > GetIsNearbyDistance() && totalOwnedUnitsAmount <= 0
-			; delete the cmder immediately
-			HandleAutocalcDefeat()
+		if totalOwnedUnitsAmount <= 0
+			float playerDistance = playerActor.GetDistance(meActor)
+			if playerDistance && playerDistance > GetIsNearbyDistance()
+				; delete the cmder immediately
+				HandleAutocalcDefeat()
+			endif
 		endif
 	else
 		ClearCmderData()
@@ -616,12 +620,7 @@ EndFunction
 
 Function HandleAutocalcDefeat()
 	; debug.Trace("commander (" + jMap.getStr(factionScript.jFactionData, "name", "Faction") + "): defeated in autocalc!")
-	ClearCmderData()
-	; meActor.SetCriticalStage(meActor.CritStage_DisintegrateEnd)
-	CrowdReducer.RemoveActorImmediately(meActor)
-	; meActor.Disable()
-	; meActor.Delete()
-	meActor = None
+	meActor.Kill()
 EndFunction
 
 ; returns true if this cmder has a valid actor reference

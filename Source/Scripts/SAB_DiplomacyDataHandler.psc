@@ -77,18 +77,24 @@ EndEvent
 ; for each faction, attempts to set up their quest using the data stored in jSABFactionRelationsMap
 Function UpdateAllRelationsAccordingToJMaps()
 
+    Debug.Trace("SAB: update all fac relations - start")
+    Debug.Notification("SAB: update all fac relations - start")
+
     SAB_FactionScript[] facQuests = FactionDataHandler.SAB_FactionQuests
 
     int curEditedFacKey = jIntMap.nextKey(jSABFactionRelationsMap, 0, 0)
+    int jRelationEntryMap = 0
+    int otherFacKey = 0
+    float relValue = 0.0
     while curEditedFacKey != 0
-        int jRelationEntryMap = jIntMap.getObj(jSABFactionRelationsMap, curEditedFacKey)    
+        jRelationEntryMap = jIntMap.getObj(jSABFactionRelationsMap, curEditedFacKey)    
 
         if jRelationEntryMap != 0
-            int otherFacKey = jIntMap.nextKey(jRelationEntryMap, 0, 0)
+            otherFacKey = jIntMap.nextKey(jRelationEntryMap, 0, 0)
 
             While otherFacKey != 0
                 ; we've got the indexes of two factions, now it's time to get the actual relation value and make it mean something
-                float relValue = ClampRelationValue(jIntMap.getFlt(jRelationEntryMap, otherFacKey))
+                relValue = ClampRelationValue(jIntMap.getFlt(jRelationEntryMap, otherFacKey))
                 ApplyRelationBetweenFactions(curEditedFacKey, otherFacKey, relValue)
 
                 otherFacKey = jIntMap.nextKey(jRelationEntryMap, otherFacKey, 0)
@@ -98,16 +104,22 @@ Function UpdateAllRelationsAccordingToJMaps()
         curEditedFacKey = jIntMap.nextKey(jSABFactionRelationsMap, curEditedFacKey, 0)
     endwhile
 
+    Debug.Trace("SAB: update all fac relations - player relations...")
+    Debug.Notification("SAB: update all fac relations - player relations...")
+
     int i = facQuests.Length
+    float playerRel = 0.0
 
     While i > 0
         i -= 1
 
-        float playerRel = ClampRelationValue(JIntMap.getFlt(jSABPlayerRelationsMap, i))
+        playerRel = ClampRelationValue(JIntMap.getFlt(jSABPlayerRelationsMap, i))
 
         SetPlayerRelationWithFac(i, playerRel)
     EndWhile
 
+    Debug.Trace("SAB: update all fac relations - done!")
+    Debug.Notification("SAB: update all fac relations - done!")
 EndFunction
 
 ; makes the relation value have an effect in actor interactions
