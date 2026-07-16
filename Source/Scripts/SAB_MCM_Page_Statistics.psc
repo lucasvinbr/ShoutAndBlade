@@ -9,8 +9,7 @@ int numStatsPages = 0
 
 int jdisplayedDataArray
 
-bool isReloadingCurInfoSet = true
-bool showLoadingMsgOnNextReset = true
+bool reloadingInfoInProgress = false
 
 string[] infoSets
 
@@ -53,27 +52,20 @@ Function SetupPage()
 
     AddTextOptionST("STATS_REFRESH_INFO_SET", "$sab_mcm_stats_button_refresh", "")
 
-    ; show a loading message to look a bit less like we froze
-    if showLoadingMsgOnNextReset
+    if reloadingInfoInProgress
         AddTextOptionST("SHARED_LOADING", "$sab_mcm_shared_loading", "")
-        showLoadingMsgOnNextReset = false
-        ForcePageReset()
         return
     endif
 
-    if isReloadingCurInfoSet
-        jdisplayedDataArray = jValue.releaseAndRetain(jdisplayedDataArray, jArray.object(), "ShoutAndBlade")
-    endif
-
     if curInfoSetBeingShown == 0 ; location statuses
-        SetupLocationStatistics()    
+        WriteLocationStatistics()    
     elseif curInfoSetBeingShown == 1 ; faction statuses
-        SetupFactionStatistics()
+        WriteFactionStatistics()
     elseif curInfoSetBeingShown == 2 ; debug
-        SetupDebugStatistics()
+        WriteDebugStatistics()
     endif
 
-    debug.Trace("[SAB] numstatspages: " + numStatsPages)
+    ; debug.Trace("[SAB] numstatspages: " + numStatsPages)
     ; if there are too many entries, paginate!
     if numStatsPages > 1
         ; add pagintation slider
@@ -81,104 +73,123 @@ Function SetupPage()
         AddSliderOptionST("STATS_CUR_DISPLAYED_PAGE_SLIDER", "$sab_mcm_stats_slider_statspage", curStatsPage + 1)
     endif
 
-    isReloadingCurInfoSet = false
 EndFunction
 
 
 Function SetupLocationStatistics()
-    SetCursorFillMode(LEFT_TO_RIGHT)
-    SAB_UnitDataHandler unitDataHandler = MainPage.MainQuest.UnitDataHandler
     SAB_LocationDataHandler locHandler = MainPage.MainQuest.LocationDataHandler
 
-    int locIndex = locHandler.NextEnabledLocationIndex
+    int locIndex = 0
+    int lastIndex = locHandler.NextEnabledLocationIndex
     int slotsPerEntry = 6
     int entriesPerPage = Math.Floor(110 / slotsPerEntry)
 
     ;set up the jMaps first, and then paginate the results if needed
-    if isReloadingCurInfoSet
-        while locIndex > 0
-            locIndex -= 1
-            SAB_LocationScript locScript = locHandler.GetEnabledLocationByIndex(locIndex)
-            if locScript != None && locScript.isCurrentlyEnabled
-                int jNewEntryMap = jMap.object()
-                jArray.addObj(jdisplayedDataArray, jNewEntryMap)
+    jdisplayedDataArray = jValue.releaseAndRetain(jdisplayedDataArray, jArray.object(), "ShoutAndBlade")
+    SAB_LocationScript locScript = None
+    int jNewEntryMap = 0
+    string ownerFacName = "$sab_mcm_locationedit_ownership_option_neutral"
 
-                JMap.setStr(jNewEntryMap, "name", locScript.GetLocName())
-                string ownerFacName = "$sab_mcm_locationedit_ownership_option_neutral"
-                if locScript.factionScript != None
-                    ownerFacName = locScript.factionScript.GetFactionName()
-                endif
-                JMap.setStr(jNewEntryMap, "ownerFacName", ownerFacName)
-                JMap.setInt(jNewEntryMap, "unitCount", locScript.totalOwnedUnitsAmount)
-                JMap.setStr(jNewEntryMap, "garrisonPower", locScript.currentAutocalcPower)
-                JMap.setStr(jNewEntryMap, "isContested", locScript.IsBeingContested())
+    while locIndex < lastIndex
+        locScript = locHandler.GetEnabledLocationByIndexInSortedNamesArr(locIndex)
+        if locScript != None && locScript.isCurrentlyEnabled
+            jNewEntryMap = jMap.object()
+            jArray.addObj(jdisplayedDataArray, jNewEntryMap)
+
+            JMap.setStr(jNewEntryMap, "name", locScript.GetLocName())
+            ownerFacName = "$sab_mcm_locationedit_ownership_option_neutral"
+            if locScript.factionScript != None
+                ownerFacName = locScript.factionScript.GetFactionName()
             endif
-        endwhile
+            JMap.setStr(jNewEntryMap, "ownerFacName", ownerFacName)
+            JMap.setInt(jNewEntryMap, "unitCount", locScript.totalOwnedUnitsAmount)
+            JMap.setStr(jNewEntryMap, "garrisonPower", locScript.currentAutocalcPower)
+            JMap.setStr(jNewEntryMap, "isContested", locScript.IsBeingContested())
+        endif
 
-        ; calculate how many pages we'll need to show the content
-        curStatsPage = 0
-        numStatsPages = Math.Ceiling((jArray.count(jdisplayedDataArray) as float) / entriesPerPage)
-    endif
+        locIndex += 1
+    endwhile
 
-    ; create the MCM entries now
+    ; calculate how many pages we'll need to show the content
+    curStatsPage = 0
+    numStatsPages = Math.Ceiling((jArray.count(jdisplayedDataArray) as float) / entriesPerPage)
+
+    debug.Notification("[SAB] fetch location statistics - done")
+EndFunction
+
+function WriteLocationStatistics()
+    SetCursorFillMode(LEFT_TO_RIGHT)
+    SAB_LocationDataHandler locHandler = MainPage.MainQuest.LocationDataHandler
+
+    int slotsPerEntry = 6
+    int entriesPerPage = Math.Floor(110 / slotsPerEntry)
+
     int firstIndex = entriesPerPage * curStatsPage
     int lastIndex = firstIndex + entriesPerPage
-    locIndex = jArray.count(jdisplayedDataArray)
+    int locIndex = firstIndex
 
-    if lastIndex > locIndex
-        lastIndex = locIndex
-    else 
-        locIndex = lastIndex
+    if lastIndex > locHandler.NextEnabledLocationIndex
+        lastIndex = locHandler.NextEnabledLocationIndex
     endif
 
-    while locIndex > firstIndex
-        locIndex -= 1
-        int jEntryData = jArray.getObj(jdisplayedDataArray, locIndex)
+    int jEntryData = 0
+    while locIndex < lastIndex
+        jEntryData = jArray.getObj(jdisplayedDataArray, locIndex)
         AddHeaderOption(jMap.getStr(jEntryData, "name", "Location (?)"))
         AddEmptyOption()
         AddTextOptionST("STATS_DISPLAY___LOCOWNER" + locIndex, "$sab_mcm_stats_menu_statspage_loc_statuses_owner", jMap.getStr(jEntryData, "ownerFacName", "?"))
         AddTextOptionST("STATS_DISPLAY___LOCUNITCOUNT" + locIndex, "$sab_mcm_stats_menu_statspage_loc_statuses_unitcount", JMap.getInt(jEntryData, "unitCount", 0))
         AddTextOptionST("STATS_DISPLAY___LOCPOWER" + locIndex, "$sab_mcm_stats_menu_statspage_loc_statuses_power", JMap.getStr(jEntryData, "garrisonPower", "0"))
         AddTextOptionST("STATS_DISPLAY___LOCISCONTESTED" + locIndex, "$sab_mcm_stats_menu_statspage_loc_statuses_contested", JMap.getStr(jEntryData, "isContested", "?"))
+
+        locIndex += 1
     endwhile
-    
-EndFunction
+endfunction
+
 
 
 Function SetupFactionStatistics()
-    SetCursorFillMode(LEFT_TO_RIGHT)
     SAB_FactionScript[] factions = MainPage.MainQuest.FactionDataHandler.SAB_FactionQuests
     int facIndex = factions.Length
     int slotsPerEntry = 6
     int entriesPerPage = Math.Floor(110 / slotsPerEntry)
 
     ;set up the jMaps first, and then paginate the results if needed
-    if isReloadingCurInfoSet
-        while facIndex > 0
-            facIndex -= 1
-            SAB_FactionScript facScript = factions[facIndex]
-            if jMap.hasKey(facScript.jFactionData, "enabled")
-                int jNewEntryMap = jMap.object()
-                jArray.addObj(jdisplayedDataArray, jNewEntryMap)
+    jdisplayedDataArray = jValue.releaseAndRetain(jdisplayedDataArray, jArray.object(), "ShoutAndBlade")
+    int jNewEntryMap = 0
+    SAB_FactionScript facScript = None
 
-                JMap.setStr(jNewEntryMap, "name", facScript.GetFactionName())
-                
-                JMap.setInt(jNewEntryMap, "factionGold", jMap.getInt(facScript.jFactionData, "AvailableGold", JDB.solveInt(".ShoutAndBlade.factionOptions.initialGold", SAB_FactionDataHandler.GetDefaultFactionGold())))
-                JMap.setInt(jNewEntryMap, "numLocations", jValue.count(facScript.jOwnedLocationIndexesArray))
-                JMap.setInt(jNewEntryMap, "numCmders", facScript.GetNumActiveCommanders())
-                JMap.setStr(jNewEntryMap, "cmdersPower", facScript.GetTotalActiveCommandersAutocalcPower())
-            endif
-        endwhile
+    while facIndex > 0
+        facIndex -= 1
+        facScript = factions[facIndex]
+        if jMap.hasKey(facScript.jFactionData, "enabled")
+            jNewEntryMap = jMap.object()
+            jArray.addObj(jdisplayedDataArray, jNewEntryMap)
 
-        ; calculate how many pages we'll need to show the content
-        curStatsPage = 0
-        numStatsPages = Math.Ceiling((jArray.count(jdisplayedDataArray) as float) / entriesPerPage)
-    endif
+            JMap.setStr(jNewEntryMap, "name", facScript.GetFactionName())
+            
+            JMap.setInt(jNewEntryMap, "factionGold", jMap.getInt(facScript.jFactionData, "AvailableGold", JDB.solveInt(".ShoutAndBlade.factionOptions.initialGold", SAB_FactionDataHandler.GetDefaultFactionGold())))
+            JMap.setInt(jNewEntryMap, "numLocations", jValue.count(facScript.jOwnedLocationIndexesArray))
+            JMap.setInt(jNewEntryMap, "numCmders", facScript.GetNumActiveCommanders())
+            JMap.setStr(jNewEntryMap, "cmdersPower", facScript.GetTotalActiveCommandersAutocalcPower())
+        endif
+    endwhile
 
-    ; create the MCM entries now
+    ; calculate how many pages we'll need to show the content
+    curStatsPage = 0
+    numStatsPages = Math.Ceiling((jArray.count(jdisplayedDataArray) as float) / entriesPerPage)
+
+    debug.Notification("[SAB] fetch faction statistics - done")
+EndFunction
+
+function WriteFactionStatistics()
+    SetCursorFillMode(LEFT_TO_RIGHT)
+    int slotsPerEntry = 6
+    int entriesPerPage = Math.Floor(110 / slotsPerEntry)
+
     int firstIndex = entriesPerPage * curStatsPage
     int lastIndex = firstIndex + entriesPerPage
-    facIndex = jArray.count(jdisplayedDataArray)
+    int facIndex = jArray.count(jdisplayedDataArray)
 
     if lastIndex > facIndex
         lastIndex = facIndex
@@ -186,9 +197,10 @@ Function SetupFactionStatistics()
         facIndex = lastIndex
     endif
 
+    int jEntryData = 0
     while facIndex > firstIndex
         facIndex -= 1
-        int jEntryData = jArray.getObj(jdisplayedDataArray, facIndex)
+        jEntryData = jArray.getObj(jdisplayedDataArray, facIndex)
         AddHeaderOption(jMap.getStr(jEntryData, "name", "Faction (?)"))
         AddEmptyOption()
         AddTextOptionST("STATS_DISPLAY___FACGOLD" + facIndex, "$sab_mcm_stats_menu_statspage_faction_statuses_gold", jMap.getInt(jEntryData, "factionGold", 0))
@@ -196,18 +208,18 @@ Function SetupFactionStatistics()
         AddTextOptionST("STATS_DISPLAY___FACNUMCMDERS" + facIndex, "$sab_mcm_stats_menu_statspage_faction_statuses_num_cmders", jMap.getInt(jEntryData, "numCmders", 0))
         AddTextOptionST("STATS_DISPLAY___FACARMYPOWER" + facIndex, "$sab_mcm_stats_menu_statspage_faction_statuses_power", jMap.getStr(jEntryData, "cmdersPower", "0.0"))
     endwhile
-    
-EndFunction
+endfunction
+
 
 Function SetupDebugStatistics()
+
+    curStatsPage = 0
+    numStatsPages = 1
+
+EndFunction
+
+function WriteDebugStatistics()
     SetCursorFillMode(LEFT_TO_RIGHT)
-
-    if isReloadingCurInfoSet
-        curStatsPage = 0
-        numStatsPages = 1
-    endif
-
-    ; SAB_CrowdReducer crowdReducer = MainPage.MainQuest.CrowdReducer
 
     AddTextOptionST("STATS_DISPLAY___NEARBYUNITS_ALIAS", "$sab_mcm_stats_menu_statspage_debug_nearbyunits_aliases", MainPage.MainQuest.UnitsUpdater.UnitUpdater.numActives)
     int nearbyUnitsTopFilledIndex = MainPage.MainQuest.UnitsUpdater.UnitUpdater.GetTopIndex()
@@ -277,8 +289,9 @@ Function SetupDebugStatistics()
     EndWhile
 
     MainPage.MainQuest.SpawnersUpdater.CmderUpdater.DebugPrintVacantSlotsInfo()
-    
-EndFunction
+endfunction
+
+
 
 state STATS_CUR_INFO_SET
 
@@ -291,8 +304,24 @@ state STATS_CUR_INFO_SET
 	event OnMenuAcceptST(string state_id, int index)
 		SetMenuOptionValueST(infoSets[index])
         curInfoSetBeingShown = index
-        isReloadingCurInfoSet = true
-        showLoadingMsgOnNextReset = true
+
+        reloadingInfoInProgress = true
+        if curInfoSetBeingShown == 1
+            ; fac data load can take long, so let's warn
+            ShowMessage("$sab_mcm_shared_popup_msg_long_process_started", false)
+        endif
+        ForcePageReset()
+
+        if curInfoSetBeingShown == 0 ; location statuses
+            SetupLocationStatistics()    
+        elseif curInfoSetBeingShown == 1 ; faction statuses
+            SetupFactionStatistics()
+        elseif curInfoSetBeingShown == 2 ; debug
+            SetupDebugStatistics()
+        endif
+
+        reloadingInfoInProgress = false
+
         ForcePageReset()
 	endEvent
 
@@ -300,8 +329,24 @@ state STATS_CUR_INFO_SET
         int index = 0
         SetMenuOptionValueST(infoSets[index])
 		curInfoSetBeingShown = index
-        isReloadingCurInfoSet = true
-        showLoadingMsgOnNextReset = true
+        
+        reloadingInfoInProgress = true
+        if curInfoSetBeingShown == 1
+            ; fac data load can take long, so let's warn
+            ShowMessage("$sab_mcm_shared_popup_msg_long_process_started", false)
+        endif
+        ForcePageReset()
+
+        if curInfoSetBeingShown == 0 ; location statuses
+            SetupLocationStatistics()    
+        elseif curInfoSetBeingShown == 1 ; faction statuses
+            SetupFactionStatistics()
+        elseif curInfoSetBeingShown == 2 ; debug
+            SetupDebugStatistics()
+        endif
+
+        reloadingInfoInProgress = false
+
         ForcePageReset()
 	endEvent
 
@@ -315,8 +360,24 @@ endstate
 
 state STATS_REFRESH_INFO_SET
     event OnSelectST(string state_id)
-        isReloadingCurInfoSet = true
-        showLoadingMsgOnNextReset = true
+
+        reloadingInfoInProgress = true
+        if curInfoSetBeingShown == 1
+            ; fac data load can take long, so let's warn
+            ShowMessage("$sab_mcm_shared_popup_msg_long_process_started", false)
+        endif
+        ForcePageReset()
+
+        if curInfoSetBeingShown == 0 ; location statuses
+            SetupLocationStatistics()    
+        elseif curInfoSetBeingShown == 1 ; faction statuses
+            SetupFactionStatistics()
+        elseif curInfoSetBeingShown == 2 ; debug
+            SetupDebugStatistics()
+        endif
+
+        reloadingInfoInProgress = false
+
         ForcePageReset()
 	endEvent
 

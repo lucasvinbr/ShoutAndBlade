@@ -70,7 +70,7 @@ Function SetupPage()
 
     SAB_LocationDataHandler locHandler = MainPage.MainQuest.LocationDataHandler
 
-    if locHandler.GetIsBusyEditingLocData()
+    if locHandler.GetIsBusyEditingLocData() || locHandler.IsAddingAddonLocs()
         AddTextOptionST("LOC_EDIT_NOOP___sab_mcm_locationedit_text_locations_loading_desc", "$sab_mcm_locationedit_text_locations_loading", "")
         return
     endif
@@ -102,7 +102,7 @@ Function SetupPage()
         endif
     endif
 
-    AddSliderOptionST("LOC_EDIT_MENU_PAGE", "$sab_mcm_unitedit_slider_menupage", editedLocationPage + 1)
+    AddSliderOptionST("LOC_EDIT_MENU_PAGE", "$sab_mcm_locationedit_slider_menupage", editedLocationPage + 1)
     AddMenuOptionST("LOC_EDIT_CUR_LOC", "$sab_mcm_locationedit_menu_currentloc", editedLocationScript.GetLocName())
 
     AddInputOptionST("LOC_EDIT_LOC_DISPLAYNAME", "$sab_mcm_locationedit_input_loc_name", editedLocationScript.GetLocName())

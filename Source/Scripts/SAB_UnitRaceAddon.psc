@@ -17,7 +17,7 @@ LeveledActor Property LooksList_Female Auto
 event OnInit()
 
     ; wait until the main location handler script is set up. 
-    ; Then we set up our extra locations and add them to the handler
+    ; Then we set up our extra races and add them to the handler
     while !UnitHandlerScript.IsDoneSettingUp()
         Utility.Wait(1.0)
     endwhile

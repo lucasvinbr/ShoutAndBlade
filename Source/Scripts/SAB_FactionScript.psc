@@ -1281,10 +1281,11 @@ int Function GetNumActiveCommanders()
 	int numActiveCmders = 0
 	int i = 28
 
+	ReferenceAlias cmderAlias = none
 	While i > 13
 		i -= 1
 
-		ReferenceAlias cmderAlias = GetAlias(i) as ReferenceAlias
+		cmderAlias = GetAlias(i) as ReferenceAlias
 		
 		if(cmderAlias.GetReference())
 			numActiveCmders += 1
@@ -1322,13 +1323,15 @@ float Function GetTotalActiveCommandersAutocalcPower()
 
 	SAB_UnitDataHandler unitDataHandler = SpawnerScript.UnitDataHandler
 
+	ReferenceAlias cmderAlias = None
+	SAB_CommanderScript cmderScript = None
 	While i > 13
 		i -= 1
 
-		ReferenceAlias cmderAlias = GetAlias(i) as ReferenceAlias
+		cmderAlias = GetAlias(i) as ReferenceAlias
 		
 		if(cmderAlias.GetReference())
-			SAB_CommanderScript cmderScript = cmderAlias as SAB_CommanderScript
+			cmderScript = cmderAlias as SAB_CommanderScript
 			totalPower += cmderScript.currentAutocalcPower
 			;totalPower += unitDataHandler.GetTotalAutocalcPowerFromArmy(cmderScript.jOwnedUnitsMap)
 		endif

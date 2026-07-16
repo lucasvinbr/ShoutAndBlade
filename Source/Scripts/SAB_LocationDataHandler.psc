@@ -76,6 +76,10 @@ bool Function IsDoneSettingUp()
     return initialSetupDone
 EndFunction
 
+bool Function IsAddingAddonLocs()
+    return pendingLocAddonRegistrations > 0
+EndFunction
+
 
 Function AddNewLocationsFromAddon(SAB_LocationDataAddon addon, int addonIndex)
 
