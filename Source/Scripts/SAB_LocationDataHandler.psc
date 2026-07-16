@@ -25,6 +25,8 @@ bool shouldRecalculateDistances = false
 bool shouldRebuildEnabledLocations = false
 bool isReaddingAllLocations = false
 
+int pendingLocAddonRegistrations = 0
+
 int Property NextLocationIndex = 0 Auto Hidden
 int Property NextEnabledLocationIndex = 0 Auto Hidden
 
@@ -84,6 +86,8 @@ Function AddNewLocationsFromAddon(SAB_LocationDataAddon addon, int addonIndex)
         jArray.setForm(jregisteredAddonsArray, indexForAddon, addon)
 
         addon.SetIndexInRegisteredAddons(indexForAddon)
+
+        pendingLocAddonRegistrations += 1
     endif
 
     while isBusyAddingNewLocsToBaseArray
@@ -124,10 +128,15 @@ Function AddNewLocationsFromAddon(SAB_LocationDataAddon addon, int addonIndex)
         endif
     endwhile
     
-    debug.Notification("SAB: added new location(s) from " + addon.GetName())
+    string addonName = addon.GetName()
+    if addonName == ""
+        addonName = addon as string
+    endif
+    debug.Notification("SAB: added new location(s) from " + addonName)
+    pendingLocAddonRegistrations -= 1
     isBusyAddingNewLocsToBaseArray = false
 
-    If hasMadeChanges
+    If pendingLocAddonRegistrations <= 0
         RebuildEnabledLocationsArray()
         CalculateLocationDistances()
         RebuildSortedLocNamesArrays()
