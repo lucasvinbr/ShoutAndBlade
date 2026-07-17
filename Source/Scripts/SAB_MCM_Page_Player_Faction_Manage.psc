@@ -256,11 +256,11 @@ state PLYR_CUR_FAC_DEST
         int curLocIndex = 0
 
         if state_id == "a"
-            curLocIndex = locHandler.GetEnabledLocationIndex(facScript.destinationScript_A)
+            curLocIndex = locHandler.GetLocationIndexInEnabledLocNamesArr(facScript.destinationScript_A)
         elseif state_id == "b"
-            curLocIndex = locHandler.GetEnabledLocationIndex(facScript.destinationScript_B)
+            curLocIndex = locHandler.GetLocationIndexInEnabledLocNamesArr(facScript.destinationScript_B)
         elseif state_id == "c"
-            curLocIndex = locHandler.GetEnabledLocationIndex(facScript.destinationScript_C)
+            curLocIndex = locHandler.GetLocationIndexInEnabledLocNamesArr(facScript.destinationScript_C)
         endif
 
         if curLocIndex < 0
@@ -277,7 +277,7 @@ state PLYR_CUR_FAC_DEST
 	event OnMenuAcceptST(string state_id, int index)
 		; find loc by index, then set target dest in fac script
         SAB_LocationDataHandler locHandler = MainPage.MainQuest.LocationDataHandler
-        SAB_LocationScript targetLoc = locHandler.GetEnabledLocationByIndex(index)
+        SAB_LocationScript targetLoc = locHandler.GetEnabledLocationByIndexInSortedNamesArr(index)
 
         SAB_FactionScript facScript = MainPage.MainQuest.FactionDataHandler.SAB_FactionQuests[playerFactionIndex]
         facScript.PlayerSetFacDestination(state_id, targetLoc)

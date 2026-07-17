@@ -264,28 +264,33 @@ function RebuildSortedLocNamesArrays()
     jArray.clear(jLocationsSortedByNameArr)
     jArray.clear(jEnabledLocationsSortedByNameArr)
 
+    int jLocNameEntry = 0
+    int jEnabledLocNameEntry = 0
+    SAB_LocationScript locScript = None
+    int locIndexInEnableds = -1
+
     while i != -1 && i < NextLocationIndex
-        SAB_LocationScript locScript = Locations.GetUpdatedAliasAtIndex(i) as SAB_LocationScript
+        locScript = Locations.GetUpdatedAliasAtIndex(i) as SAB_LocationScript
         if locScript != None
-            int jlocNameEntry = jMap.object()
+            jlocNameEntry = jMap.object()
             jMap.setStr(jlocNameEntry, "locName", locScript.GetLocName())
             jMap.setInt(jlocNameEntry, "locIndex", i)
             jArray.addObj(jLocationsSortedByNameArr, jlocNameEntry)
 
             if locScript.isCurrentlyEnabled
-                int locIndexInEnableds = GetEnabledLocationIndex(locScript)
+                locIndexInEnableds = GetEnabledLocationIndex(locScript)
 
-                int jlocNameEntry = jMap.object()
-                jMap.setStr(jlocNameEntry, "locName", locScript.GetLocName())
-                jMap.setInt(jlocNameEntry, "locIndex", locIndexInEnableds)
-                jArray.addObj(jEnabledLocationsSortedByNameArr, jlocNameEntry)
+                jEnabledLocNameEntry = jMap.object()
+                jMap.setStr(jEnabledLocNameEntry, "locName", locScript.GetLocName())
+                jMap.setInt(jEnabledLocNameEntry, "locIndex", locIndexInEnableds)
+                jArray.addObj(jEnabledLocationsSortedByNameArr, jEnabledLocNameEntry)
             endif
         endif
 
         i += 1
     endwhile
 
-    ; finally sort loc names array
+    ; finally sort loc names arrays
     SortLocsNamesList(jLocationsSortedByNameArr)
     SortLocsNamesList(jEnabledLocationsSortedByNameArr)
 
@@ -894,7 +899,7 @@ string[] Function CreateStringArrayWithLocationIdentifiers(int page = 0)
     return namesArray
 EndFunction
 
-; creates a string array with only enabled location IDs accompanied by their names
+; creates a string array with sorted enabled locations' names
 string[] Function CreateStringArrayWithEnabledLocationIdentifiers(int page = 0)
 
     int jStringsArr = jArray.object()
@@ -1060,6 +1065,30 @@ int Function GetLocationIndexById(string Id)
         locScript = Locations.GetUpdatedAliasAtIndex(i) as SAB_LocationScript
         if locScript != None && locScript.GetLocId() == Id
             return i
+        endif
+        i += 1
+    endwhile
+
+    return -1
+EndFunction
+
+; returns location's index in the sorted enabled location names array. -1 if not found
+int Function GetLocationIndexInEnabledLocNamesArr(SAB_LocationScript locScript)
+    int myLocIndex = GetEnabledLocationIndex(locScript)
+    if myLocIndex == -1
+        return -1
+    endif
+
+    int i = 0
+    int lastIndex = jArray.count(jEnabledLocationsSortedByNameArr)
+    int jLocEntryMap = 0
+    
+    while i < lastIndex
+        int jlocEntryMap = jArray.getObj(jEnabledLocationsSortedByNameArr, i)
+        if jlocEntryMap != 0
+            if jMap.getInt(jlocEntryMap, "locIndex", -1) == myLocIndex
+                return i
+            endif
         endif
         i += 1
     endwhile
