@@ -19,6 +19,9 @@ SAB_LocationScript Property TargetLocationScript Auto Hidden
 SAB_CrowdReducer Property CrowdReducer Auto
 
 float gameTimeOfLastDestCheck = 0.0
+float gameTimeOfLastLocChange = 0.0
+
+bool hasChangedLocRecently = false
 
 int indexInLocNearbiesArray = -1
 
@@ -112,9 +115,16 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 			return true
 		endif
 
-		if curGameTime != 0.0 && gameTimeOfLastExpAward == 0.0
-			; set initial values for "gameTime" variables, to avoid them from getting huge accumulated awards
-			gameTimeOfLastExpAward = curGameTime
+		if curGameTime != 0.0
+			if gameTimeOfLastExpAward == 0.0
+				; set initial values for "gameTime" variables, to avoid them from getting huge accumulated awards
+				gameTimeOfLastExpAward = curGameTime
+			endif
+			
+			if hasChangedLocRecently
+				gameTimeOfLastLocChange = curGameTime
+				hasChangedLocRecently = false
+			endif
 		endif
 	
 		;debug.Trace("game time updating commander (pre check)!")
@@ -308,6 +318,7 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 			endif
 		endif
 	else
+		; we are not interacting with target loc, probably because we're far
 		if curGameTime - gameTimeOfLastDestCheck > JDB.solveFlt(".ShoutAndBlade.cmderOptions.destCheckInterval", 0.01)
 			gameTimeOfLastDestCheck = curGameTime
 			if !factionScript.ValidateCmderReachedDestination(self, CmderDestinationType)
@@ -323,6 +334,20 @@ bool Function RunUpdate(float curGameTime = 0.0, int updateIndex = 0)
 						endif
 					endif
 				endif
+			endif
+		endif
+	endif
+
+	; if we appear to be stuck while heading somewhere else and the player isn't close, teleport!
+	if !isNearby && !hasChangedLocRecently && meActor && !meActor.IsDead()
+		if curGameTime - gameTimeOfLastLocChange > JDB.solveFlt(".ShoutAndBlade.cmderOptions.teleportIfStuckInterval", 0.5)
+			gameTimeOfLastLocChange = curGameTime
+			hasChangedLocRecently = true
+			SAB_LocationScript ourDestinationLoc = factionScript.GetCmderDestination(self)
+
+			if ourDestinationLoc != None && (TargetLocationScript == None || TargetLocationScript != ourDestinationLoc)
+				meActor.MoveTo(ourDestinationLoc.GetInteriorSpawnPointIfPossible())
+				debug.Trace("[SAB] cmder stuck teleport: " + meActor.GetDisplayName())
 			endif
 		endif
 	endif
@@ -506,30 +531,38 @@ EndFunction
 
 
 Event OnAttachedToCell()
+	; if meActor
+	; 	debug.Trace("[SAB] OnAttachedToCell: " + meActor.GetDisplayName())
+	; endif
 	if meActor && !isNearby
 		ToggleNearbyUpdates(true)
 	endif
 EndEvent
 
 Event OnCellAttach()
+	; if meActor
+	; 	debug.Trace("[SAB] OnCellAttach: " + meActor.GetDisplayName())
+	; endif
 	if meActor && !isNearby
 		ToggleNearbyUpdates(true)
 	endif
 EndEvent
 
-Event OnCellDetach()
-	if isNearby
-		ToggleNearbyUpdates(false)
-	endif
-EndEvent
-
 Event OnDetachedFromCell()
+	; if meActor
+	; 	debug.Trace("[SAB] OnDetachedFromCell: " + meActor.GetDisplayName())
+	; endif
 	if isNearby
 		ToggleNearbyUpdates(false)
 	endif
 EndEvent
 
 Event OnLocationChange(Location akOldLoc, Location akNewLoc)
+	; if meActor
+	; 	debug.Trace("[SAB] OnLocationChange: " + meActor.GetDisplayName())
+	; endif
+	hasChangedLocRecently = true
+
 	if akNewLoc == None
 		return
 	endif

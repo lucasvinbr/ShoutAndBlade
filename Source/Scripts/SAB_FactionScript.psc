@@ -450,6 +450,20 @@ int Function FindDefenseTargets()
 
 EndFunction
 
+; considering whether this cmder heads for A,B, or C, returns loc A, B or C
+SAB_LocationScript function GetCmderDestination(SAB_CommanderScript commander)
+	SAB_LocationScript targetLocScript = destinationScript_A
+	String cmderDestType = commander.CmderDestinationType
+
+	if cmderDestType == "b" || cmderDestType == "B"
+		targetLocScript = destinationScript_B
+	elseif cmderDestType == "c" || cmderDestType == "C"
+		targetLocScript = destinationScript_C
+	endif
+
+	return targetLocScript
+endFunction
+
 ; destination code can be A, B or C.
 ; we should check if the cmder really is close to the respective xmarker, and,
 ; if it really is the case, assign them to the loc script!

@@ -113,6 +113,7 @@ event OnPageDraw()
     AddSliderOptionST("OPTIONS_CMDER_EXP___awardedXpPerInterval", "$sab_mcm_options_slider_cmder_awardedxp", JDB.solveFlt(".ShoutAndBlade.cmderOptions.awardedXpPerInterval", 500.0))
     AddSliderOptionST("OPTIONS_CMDER_INTERVAL___unitMaintenanceInterval", "$sab_mcm_options_slider_cmder_unitmaintenanceinterval", JDB.solveFlt(".ShoutAndBlade.cmderOptions.unitMaintenanceInterval", 0.06), "{3}")
     AddSliderOptionST("OPTIONS_CMDER_INTERVAL___destCheckInterval", "$sab_mcm_options_slider_cmder_destcheckinterval", JDB.solveFlt(".ShoutAndBlade.cmderOptions.destCheckInterval", 0.01), "{3}")
+    AddSliderOptionST("OPTIONS_CMDER_INTERVAL___teleportIfStuckInterval", "$sab_mcm_options_slider_cmder_teleportifstuckinterval", JDB.solveFlt(".ShoutAndBlade.cmderOptions.teleportIfStuckInterval", 0.25), "{3}")
     AddSliderOptionST("OPTIONS_CMDER_DISTANCE___isNearbyDistance", "$sab_mcm_options_slider_cmder_isnearbydist", JDB.solveFlt(".ShoutAndBlade.cmderOptions.isNearbyDistance", 8192.0))
     AddSliderOptionST("OPTIONS_CMDER_UNITS___maxOwnedUnits", "$sab_mcm_options_slider_cmder_maxownedunits", JDB.solveInt(".ShoutAndBlade.cmderOptions.maxOwnedUnits", 30))
     AddSliderOptionST("OPTIONS_CMDER_UNITS___maxSpawnsOutsideCombat", "$sab_mcm_options_slider_cmder_spawnsoutsidecombat", JDB.solveInt(".ShoutAndBlade.cmderOptions.maxSpawnsOutsideCombat", 6))
@@ -123,6 +124,7 @@ event OnPageDraw()
     AddSliderOptionST("OPTIONS_CMDER_UNITS___combatSpawnsDividend", "$sab_mcm_options_slider_cmder_combatspawnsdividend", JDB.solveInt(".ShoutAndBlade.cmderOptions.combatSpawnsDividend", 20))
     AddSliderOptionST("OPTIONS_CMDER_POWER___confidentPower", "$sab_mcm_options_slider_cmder_confidentpower", JDB.solveFlt(".ShoutAndBlade.cmderOptions.confidentPower", 45.0), "{1}")
 
+    AddEmptyOption()
     AddEmptyOption()
     AddEmptyOption()
 
@@ -727,6 +729,8 @@ state OPTIONS_CMDER_INTERVAL
             SetInfoText("$sab_mcm_options_slider_cmder_unitmaintenanceinterval_desc")
         elseif state_id == "destCheckInterval"
             SetInfoText("$sab_mcm_options_slider_cmder_destcheckinterval_desc")
+        elseif state_id == "teleportIfStuckInterval"
+            SetInfoText("$sab_mcm_options_slider_cmder_teleportifstuckinterval_desc")
         endif
 	endEvent
 
@@ -1151,6 +1155,8 @@ float Function GetDefaultFltValueForOption(string category, string entryName)
             return 0.06
         elseif entryName == "destCheckInterval"
             return 0.01
+        elseif entryName == "teleportIfStuckInterval"
+            return 0.25
         endif
     elseif category == "cmderExp"
         if entryName == "initialExpPoints"
