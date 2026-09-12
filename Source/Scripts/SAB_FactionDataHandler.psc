@@ -17,7 +17,7 @@ string[] Property VanillaFactionDisplayNames Auto
 int Property jSABFactionDatasArray Auto Hidden
 
 Function InitializeJData()
-    jSABFactionDatasArray = JArray.objectWithSize(100)
+    jSABFactionDatasArray = JArray.objectWithSize(127)
     JValue.retain(jSABFactionDatasArray, "ShoutAndBlade")
 
     JDB.solveFormSetter(".ShoutAndBlade_global.factionDataHandler", self, true)
@@ -27,25 +27,25 @@ SAB_FactionDataHandler function GetFromJdb() global
 	return JDB.solveForm(".ShoutAndBlade_global.factionDataHandler") as SAB_FactionDataHandler
 endfunction
 
-; makes sure the factionDatasArray has 100 elements
+; makes sure the factionDatasArray has 127 elements
 Function EnsureArrayCounts()
     int count = jArray.count(jSABFactionDatasArray)
 
-    if count < 100
-        int remainingCount = 100 - count
+    if count < 127
+        int remainingCount = 127 - count
         int padArray = jArray.objectWithSize(remainingCount)
 
         JArray.addFromArray(jSABFactionDatasArray, padArray)
-    elseif count > 100
+    elseif count > 127
         ; if there are too many records in the array, keep the first ones only
         jSABFactionDatasArray = jValue.releaseAndRetain(jSABFactionDatasArray, jArray.subArray(jSABFactionDatasArray, 0, 39), "ShoutAndBlade")
     endif
 EndFunction
 
-; fills a 100-sized string array with faction IDs accompanied by their names
+; fills a 127-sized string array with faction IDs accompanied by their names
 Function SetupStringArrayWithFactionIdentifiers(string[] stringArray)
 
-    int endingIndex = 100
+    int endingIndex = 128
 
     int i = 0
 
