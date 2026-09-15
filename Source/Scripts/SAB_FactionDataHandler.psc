@@ -60,7 +60,7 @@ Function SetupStringArrayWithFactionIdentifiers(string[] stringArray)
     endwhile
 EndFunction
 
-; fills a 101-sized string array with faction ownership options (one option for each of the 100 factions, plus a "neutral/no faction" option)
+; fills a 128-sized string array with faction ownership options (one option for each of the 127 factions, plus a "neutral/no faction" option)
 Function SetupStringArrayWithOwnershipIdentifiers(string[] stringArray, string firstOptionText)
 
     int endingIndex = stringArray.Length

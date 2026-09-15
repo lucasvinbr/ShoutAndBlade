@@ -508,7 +508,9 @@ Function UpdateConfidenceLevel()
 		; always be confident if our destination is a neutral zone... we should get there before others do!
 		meActor.SetFactionRank(SAB_CmderConfidenceFaction, 1)
 	else
-		if currentAutocalcPower > JDB.solveFlt(".ShoutAndBlade.cmderOptions.confidentPower", 45.0)
+		; if our faction is in a bad situation (low gold, no owned locs), go all-in,
+		; to free up commander slots, or change the situation haha
+		if currentAutocalcPower > JDB.solveFlt(".ShoutAndBlade.cmderOptions.confidentPower", 45.0) || factionScript.IsInBadSituation()
 			meActor.SetFactionRank(SAB_CmderConfidenceFaction, 1)
 		else
 			meActor.SetFactionRank(SAB_CmderConfidenceFaction, 0)

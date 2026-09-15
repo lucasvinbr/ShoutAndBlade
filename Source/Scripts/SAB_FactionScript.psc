@@ -1354,3 +1354,28 @@ float Function GetTotalActiveCommandersAutocalcPower()
 	
 	return totalPower
 EndFunction
+
+; a faction is considered "in bad situation" if it has no owned locs and a low amount of gold
+bool function IsInBadSituation()
+	if jArray.count(jOwnedLocationIndexesArray) > 0
+		return false
+	endif
+
+	int goldIncome = CalculateTotalGoldAward()
+
+	; check if we can afford creating a new cmder
+	int cmderCost = JDB.solveInt(".ShoutAndBlade.factionOptions.createCmderCost", 250)
+	float extraCmderCostPercent = JDB.solveFlt(".ShoutAndBlade.factionOptions.createCmderCostPercent", 10.0) / 100.0
+
+	int currentGold = jMap.getInt(jFactionData, "AvailableGold", JDB.solveInt(".ShoutAndBlade.factionOptions.initialGold", SAB_FactionDataHandler.GetDefaultFactionGold()))
+
+	cmderCost += (currentGold * extraCmderCostPercent) as int
+
+	; if, even after waiting for some time, we can't afford a new cmder... this is bad!
+	if currentGold + (goldIncome * 3) < cmderCost
+		Debug.Trace("[SAB] " + GetFactionName() + " is in a bad situation!")
+		return true
+	endif
+
+	return false
+endfunction
