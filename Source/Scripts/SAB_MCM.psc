@@ -846,6 +846,39 @@ state OPTIONS_CMDER_UNITS
 
 endstate
 
+state OPTIONS_CMDER_EXP
+
+    event OnSliderOpenST(string state_id)
+        float defaultValue = GetDefaultFltValueForOption("cmderExp", state_id)
+		SetSliderDialogStartValue(JDB.solveFlt(".ShoutAndBlade.cmderOptions." + state_id, defaultValue))
+        SetSliderDialogRange(0.0, 4000.0)
+	    SetSliderDialogInterval(1)
+		SetSliderDialogDefaultValue(defaultValue)
+	endEvent
+
+	event OnSliderAcceptST(string state_id, float value)
+        JDB.solveFltSetter(".ShoutAndBlade.cmderOptions." + state_id, value, true)
+		SetSliderOptionValueST(value)
+	endEvent
+
+	event OnDefaultST(string state_id)
+        float value = GetDefaultFltValueForOption("cmderExp", state_id)
+        JDB.solveFltSetter(".ShoutAndBlade.cmderOptions." + state_id, value, true)
+		SetSliderOptionValueST(value)
+	endEvent
+
+	event OnHighlightST(string state_id)
+        ToggleQuickHotkey(true)
+
+        if state_id == "initialExpPoints"
+            SetInfoText("$sab_mcm_options_slider_cmder_initialxp_desc")
+        elseif state_id == "awardedXpPerInterval"
+            SetInfoText("$sab_mcm_options_slider_cmder_awardedxp_desc")
+        endif
+	endEvent
+
+endstate
+
 
 
 state OPTIONS_LOC_UNITS
@@ -942,7 +975,7 @@ state OPTIONS_LOC_EXP
 	event OnHighlightST(string state_id)
         ToggleQuickHotkey(true)
 
-        if state_id == "initialExpPoints"
+        if state_id == "awardedXpPerInterval"
             SetInfoText("$sab_mcm_options_slider_loc_awardedxp_desc")
         endif
 	endEvent
@@ -1088,7 +1121,7 @@ int Function GetDefaultIntValueForOption(string category, string entryName)
         endif
     elseif category == "cmderUnits"
         if entryName == "maxOwnedUnits"
-            return SAB_FactionDataHandler.GetDefaultFactionGold()
+            return 30
         elseif entryName == "maxSpawnsOutsideCombat"
             return 6
         elseif entryName == "maxSpawnsWhenBesieging"
